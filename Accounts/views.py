@@ -56,7 +56,7 @@ class Register_View(View):
             # storing the otp in the session for validate
             request.session['otp'] = otp
             request.session['otp_generation_time'] = otp_generation_time
-            # storing the user deatails in the session for to add the data in the database
+            # storing the user detail's in the session for to add the data in the database
             request.session['user_data'] =  { 
                 'first_name': user_data.first_name, 
                 'last_name': user_data.last_name, 
@@ -77,7 +77,7 @@ class Register_View(View):
 
             messages.success(request, 'OTP has been sent to your email. Please verify to complete registration.')
 
-            return redirect('verify_otp')
+            return redirect('verify-otp')
         
         return render(request, 'Accounts/register.html', {'form': form})
 
@@ -95,7 +95,7 @@ class Verify_Otp(View):
         if form.is_valid():
             otp = form.cleaned_data['otp']
             otp_generation_time_str = request.session.get('otp_generation_time') 
-               
+
             try: 
                 otp_generation_time = timezone.datetime.fromisoformat(otp_generation_time_str) 
                 current_time = timezone.now() 
@@ -113,12 +113,12 @@ class Verify_Otp(View):
                             user.set_password(user_data.get('password'))  # Set the password 
                             user.is_active = True 
                             user.save() 
-                         
+
                             # Clear session data 
                             del request.session['otp'] 
                             del request.session['otp_generation_time'] 
                             del request.session['user_data'] 
-                         
+
                             messages.success(request, 'Your account has been activated successfully.') 
                             return redirect('home') 
                         
@@ -161,7 +161,7 @@ class Resend_Otp(View):
             messages.success(request, 'A new OTP has been sent to your email.') 
         else: 
             messages.error(request, 'User data not found. Please register again.') 
-        return redirect('verify_otp') 
+        return redirect('verify-otp') 
     
 #---------------------------------------------- Home Page -------------------------------------------------------------#
 
@@ -181,7 +181,7 @@ class Admin_Login(View):
     def get(self, request):
 
         if request.user.is_authenticated :
-            return redirect('admindash')
+            return redirect('admin-dash')
         
         return render(request, 'Accounts/admin.html')
     
@@ -194,15 +194,15 @@ class Admin_Login(View):
         
         if admin is not None:
             auth_login(request, admin)
-            return redirect('adminView')
-        return redirect('adminLogin')
+            return redirect('admin-dash')
+        return redirect('admin-login')
 
 class Admin_View(View):
 
     def get(self, request):
         
         if request.user.is_authenticated :
-            return redirect('admindash')
+            return redirect('admin-dash')
         
-        return render(request, 'Accounts/adminlogin.html')
+        return render(request, 'Accounts/admin_login.html')
     
