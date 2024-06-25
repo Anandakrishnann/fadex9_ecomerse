@@ -1,0 +1,52 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>User Management</title> 
+    <!-- Add Bootstrap CSS --> 
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> 
+</head> 
+<body> 
+<div class="container mt-5"> 
+    <h2>User Management</h2> 
+    <a href="{% url 'create_user' %}" class="btn btn-primary mb-3">Create New User</a> 
+    <table class="table table-bordered"> 
+        <thead class="thead-dark"> 
+            <tr> 
+                <th>ID</th> 
+                <th>Username</th> 
+                <th>Email</th> 
+                <th>First Name</th> 
+                <th>Last Name</th> 
+                <th>Phone Number</th> 
+                <th>Actions</th> 
+            </tr> 
+        </thead> 
+        <tbody> 
+            {% for user in users %} 
+            <tr> 
+                <td>{{ user.id }}</td> 
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td> 
+                <td>{{ user.first_name }}</td> 
+                <td>{{ user.last_name }}</td> 
+                <td>{{ user.phone_number }}</td> 
+                <td> 
+                    <a href="{% url 'user_block' user.id %}" class="btn {% if user.is_blocked %}btn-success{% else %}btn-warning{% endif %} btn-sm">
+                        {% if user.is_blocked %}Unblock{% else %}Block{% endif %}
+                    </a>
+                    <a href="{% url 'user_delete' user.id %}" class="btn btn-danger btn-sm">Delete</a> 
+                </td> 
+            </tr> 
+            {% endfor %} 
+        </tbody> 
+    </table> 
+</div> 
+ 
+<!-- Add Bootstrap JS and dependencies --> 
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> 
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script> 
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> 
+</body> 
+</html>
