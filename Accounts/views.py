@@ -26,9 +26,12 @@ class Login_View(View):
         form = EmailAuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            auth_login(request, user)
-            messages.success(request, f"Welcome, {user.email}! You have successfully logged in.")
-            return redirect('home')
+            if user.is_active and not user.is_blocked:
+                auth_login(request, user)
+                messages.success(request, f"Welcome, {user.email}! You have successfully logged in.")
+                return redirect('home')
+            else:
+                messages.error(request, 'Account is in active. Please contact support')
         else:
             messages.error(request, "Invalid email or password. Please try again.")
         return render(request, 'Accounts/user_side/login.html', {'form': form})

@@ -8,7 +8,7 @@ class EmailBackend(BaseBackend):
         try:
             # We are using Q object to search for email.
             user = UserModel.objects.get(Q(email=username))
-            if user.check_password(password):
+            if user.check_password(password) and user.is_active and not user.is_blocked:
                 return user
         except UserModel.DoesNotExist:
             return None

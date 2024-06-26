@@ -30,6 +30,7 @@ class CustomUserManager(BaseUserManager):
             phone_number = phone_number
         ) 
         user.is_admin = True 
+        user.is_staff = True 
         user.is_active = True  # Superuser should be active by default 
         user.date_joined = timezone.now()  # Set the date_joined field 
         user.save(using=self._db) 
@@ -44,6 +45,7 @@ class Accounts(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(default=False)  # New field for activation status
     is_admin = models.BooleanField(default=False)  # Existing field for admin status
+    is_staff = models.BooleanField(default=False)
     is_blocked = models.BooleanField(default=False)  # New field for blocked status
     date_joined = models.DateTimeField(default=timezone.now)  # New field for date joined
 

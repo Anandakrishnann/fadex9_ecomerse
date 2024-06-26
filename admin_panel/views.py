@@ -37,7 +37,7 @@ class Admin_Login(View):
 
 class Admin_dash(View):
     def get(self, request):
-        return render(request, 'Accounts/admin_side/admin_view.html')
+        return render(request, 'Accounts/admin_side/admin.html')
 
 
 #---------------------------------------------- users -------------------------------------------------------------#
@@ -79,23 +79,12 @@ class User_Block(View):
         user_block.save()
         return redirect('admin_view')
     
-
-#---------------------------------------------- user block -------------------------------------------------------------#
-
-class User_Unblock(View):
-    def get(self, request, pk):
-        user_unblock = Accounts.objects.get(pk=pk)
-        user_unblock.is_blocked = True
-        user_unblock.save()
-        return redirect('admin_view')
-    
-
 #---------------------------------------------- user delete -------------------------------------------------------------#
 
 class User_Delete(View):
     def get(self, request, pk):
-        user_unblock = Accounts.objects.get(pk=pk)
-        user_unblock.is_active = False
-        user_unblock.save()
+        user_delete = get_object_or_404(Accounts, pk=pk)
+        user_delete.is_active = not user_delete.is_active  # Toggle the blocked status
+        user_delete.save()
         return redirect('admin_view')
     

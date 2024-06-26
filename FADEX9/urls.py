@@ -22,5 +22,7 @@ urlpatterns = [
     path('', include('Accounts.urls')),  # Main app
     path('admin_panel/', include('admin_panel.urls')),  # Admin panel app
     path('category/', include('category.urls')),  # Admin panel app
+    path('products/', include('products.urls')),  # Admin panel app
+    path('accounts/',include('allauth.urls')),
 ]
 

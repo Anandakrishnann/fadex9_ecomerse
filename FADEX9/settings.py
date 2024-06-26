@@ -47,8 +47,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
     'Accounts',
-    'Products',
+    'products',
     'admin_panel',
     'category'
 ]
@@ -61,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'FADEX9.urls'
@@ -76,11 +82,27 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
             ],
         },
     },
 ]
 
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+    }
+}
+
+
+SOCIAL_AUTH_GOOGLE_CLIENT_ID=config('GOOGLE_CLIENT_ID')
+SOCIAL_AUTH_GOOGLE_SECRET=config('GOOGLE_CLIENT_SECRET')
 
 
 WSGI_APPLICATION = 'FADEX9.wsgi.application'
@@ -125,6 +147,7 @@ AUTH_USER_MODEL = 'Accounts.Accounts'
 AUTHENTICATION_BACKENDS = [
     'Accounts.backends.EmailBackend', 
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend'
 ]
 
 # Internationalization
@@ -163,3 +186,10 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SITE_ID = 1
+
+# Allauth settings
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False

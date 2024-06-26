@@ -3,9 +3,9 @@ from . views import *
 from . import views
 
 urlpatterns = [
-    # path('',Index_View.as_view(),name='home'),
-    # path('register/',Register_View.as_view(),name='register'),
-    # path('login/',Login_View.as_view(),name='login'),
-    # path('verify-otp/',Verify_Otp.as_view(),name='verify-otp'),
-    # path('resend-otp/',Resend_Otp.as_view(),name='resend-otp'),
+    path('create/',Create_Category.as_view(),name='create_category'),
+    path('',Category_List.as_view(),name='category'),
+    path('edit/<int:pk>/',Category_Edit.as_view(),name='edit_category'),
+    path('delete/<int:pk>/',Delete_Category.as_view(),name='delete_category'),
+    path('restore/<int:pk>/',Restore_Category.as_view(),name='restore_category'),
 ]
