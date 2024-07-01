@@ -1,102 +1,114 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>User Management</title> 
-    <!-- Add Bootstrap CSS --> 
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> 
-</head> 
-<body> 
-<div class="container mt-5"> 
-    <h2>User Management</h2> 
-    <a href="{% url 'create_user' %}" class="btn btn-primary mb-3">Create New User</a> 
-    <table class="table table-bordered"> 
-        <thead class="thead-dark"> 
-            <tr> 
-                <th>ID</th> 
-                <th>Username</th> 
-                <th>Email</th> 
-                <th>First Name</th> 
-                <th>Last Name</th> 
-                <th>Phone Number</th> 
-                <th>Actions</th> 
-            </tr> 
-        </thead> 
-        <tbody> 
-            {% for user in users %} 
-            <tr> 
-                <td>{{ user.id }}</td> 
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td> 
-                <td>{{ user.first_name }}</td> 
-                <td>{{ user.last_name }}</td> 
-                <td>{{ user.phone_number }}</td> 
-                <td> 
-                    {% if user.is_blocked %}
-                    <button onclick="blockItem('{% url 'user_block' user.id %}','Are you sure you want to block this user')" class="btn {% if user.is_blocked %}btn-success{% else %}btn-warning{% endif %} btn-sm">
-                        Block
-                    </button>
-                    {% else %}
-                    <button onclick="blockItem('{% url 'user_block' user.id %}','Are you sure you want to unblock this user')" class="btn {% if user.is_blocked %}btn-success{% else %}btn-warning{% endif %} btn-sm">
-                        UnblockBlock
-                    </button>
-                    {% endif %}
+{% extends 'Base/admin_base.html' %}
+{% load static %}
+{% block content %}
+<section class="content-main"> 
+    <div class="content-header"> 
+        <div> 
+            <h2 class="content-title card-title">Users List</h2> 
+            
+        </div> 
+    </div> 
+    <div class="card mb-4"> 
+        <header class="card-header"> 
+            <div class="row gx-3"> 
+                <div class="col-lg-4 col-md-6 me-auto"> 
+                    <input type="text" placeholder="Search..." class="form-control" /> 
+                </div> 
+                <div class="col-lg-2 col-md-3 col-6"> 
+                    <select class="form-select"> 
+                        <option>Status</option> 
+                        <option>Active</option> 
+                        <option>Disabled</option> 
+                        <option>Show all</option> 
+                    </select> 
+                </div> 
+                <div class="col-lg-2 col-md-3 col-6"> 
+                    <select class="form-select"> 
+                        <option>Show 20</option> 
+                        <option>Show 30</option> 
+                        <option>Show 40</option> 
+                    </select> 
+                </div> 
+            </div> 
+        </header> 
+        <!-- card-header end// --> 
+        <div class="card-body"> 
+            <div class="table-responsive"> 
+                <table class="table table-hover"> 
+                    <thead> 
+                        {% for user in users %} 
+                        <tr> 
+                            <td>{{ user.id }}</td> 
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td> 
+                            <td>{{ user.first_name }}</td> 
+                            <td>{{ user.last_name }}</td> 
+                            <td>{{ user.phone_number }}</td> 
+                            <td> 
+                                <button
+                                    onclick="blockItem('{% url 'admin_panel:user_block' user.id %}', '{% if user.is_blocked %}Are you sure you want to unblock this user?{% else %}Are you sure you want to block this user?{% endif %}')"
+                                    class="btn btn-sm {% if user.is_blocked %}btn-success{% else %}btn-danger{% endif %}">
+                                    {% if user.is_blocked %}Unblock{% else %}Block{% endif %}
+                                </button>
 
-                    {% if user.is_active %}
-                        <button onclick="deleteItem('{% url 'user_delete' user.id %}', 'Are you sure you want to delete this user')" class="btn btn-danger btn-sm">
-                            Delete
-                        </button>
-                    {% else %}
-                        <button onclick="deleteItem('{% url 'user_delete' user.id %}', 'Are you sure you want to restore this user')" class="btn btn-warning btn-sm">
-                            Restore
-                        </button>
-                    {% endif %}
-                        
+                                <button
+                                    onclick="deleteItem('{% url 'admin_panel:user_delete' user.id %}', '{% if user.is_active %}Are you sure you want to delete this user?{% else %}Are you sure you want to restore this user?{% endif %}')"
+                                    class="btn btn-sm {% if user.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                                    {% if user.is_active %}Delete{% else %}Restore{% endif %}
+                                </button>
+                            </td> 
+                        </tr> 
+                        {% endfor %} 
 
-                </td> 
-            </tr> 
-            {% endfor %} 
-        </tbody> 
-    </table> 
-</div> 
- 
-<!-- Add Bootstrap JS and dependencies --> 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script> 
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+                    </tbody> 
+                </table> 
+            </div> <!-- table-responsive//end --> 
+        </div> 
+        <!-- card-body end// --> 
+    </div> 
+    <div class="pagination-area mt-30 mb-50"> 
+        <nav aria-label="Page navigation example"> 
+            <ul class="pagination justify-content-start"> 
+                <li class="page-item active"><a class="page-link" href="#">01</a></li> 
+                <li class="page-item"><a class="page-link" href="#">02</a></li> 
+                <li class="page-item"><a class="page-link" href="#">03</a></li> 
+                <li class="page-item"><a class="page-link dot" href="#">...</a></li> 
+                <li class="page-item"><a class="page-link" href="#">16</a></li> 
+                <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li> 
+            </ul> 
+        </nav> 
+    </div> 
+</section>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script> 
 <script>
 
-    function blockItem(url, message) {
-        swal({
+        function blockItem(url, message) {
+            swal({
             title: "Are you sure?",
             text: message,
             icon: "warning",
             buttons: true,
             dangerMode: true,
-          })
-          .then((willDelete) => {
-            if (willDelete) {
-              window.location.href = url;
-            } 
-          });
-    }
+            }).then((willProceed) => {
+            if (willProceed) {
+                window.location.href = url;
+            }
+            });
+        }
 
-    function deleteItem(url, message) {
-        swal({
-            title: "Are you sure?",
-            text: message,
-            icon: "warning",
-            buttons: true,
-            dangerMode: true,
-          })
-          .then((willDelete) => {
-            if (willDelete) {
-              window.location.href = url;
-            } 
-          });
+        function deleteItem(url, message) {
+            swal({
+                title: "Are you sure?",
+                text: message,
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+            .then((willDelete) => {
+                if (willDelete) {
+                window.location.href = url;
+                } 
+            });
     }
 </script>
-</body> 
-</html>
+{% endblock %}

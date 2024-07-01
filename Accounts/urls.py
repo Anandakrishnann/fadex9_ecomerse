@@ -2,10 +2,13 @@ from django.urls import path
 from . views import *
 from . import views
 
+app_name = 'accounts'
+
 urlpatterns = [
-    path('',Index_View.as_view(),name='home'),
-    path('register/',Register_View.as_view(),name='register'),
-    path('login/',Login_View.as_view(),name='login'),
-    path('verify-otp/',Verify_Otp.as_view(),name='verify-otp'),
-    path('resend-otp/',Resend_Otp.as_view(),name='resend-otp'),
+    path('',IndexView.as_view(),name='home'),
+    path('register/',RegisterView.as_view(),name='register'),
+    path('logout/',views.logout,name='logout'),
+    path('login/',LoginView.as_view(),name='login'),
+    path('verify_otp/',VerifyOtp.as_view(),name='verify-otp'),
+    path('resend_otp/',ResendOtp.as_view(),name='resend-otp'),
 ]

@@ -1,101 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Verify OTP</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
-        }
-        .container {
-            max-width: 400px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .btn {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .timer {
-            text-align: center;
-            margin: 20px 0;
-            font-size: 18px;
-            color: #ff0000;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Verify OTP</h2>
-        {% if messages %}
-            <div class="message">
-                {% for message in messages %}
-                    <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                {{ form.otp.label_tag }}
-                {{ form.otp }}
-            </div>
-            <button type="submit" class="btn">Verify OTP</button>
-        </form>
-        <div class="timer" id="timer">02:00</div>
-        <form method="post" action="{% url 'resend-otp' %}">
-            {% csrf_token %}
-            <button type="submit" class="btn" id="resend-btn" disabled>Resend OTP</button>
-        </form>
-    </div>
+{% extends 'Base/user_base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    #timer {
+        font-size: 18px;
+        font-weight: bold;
+        color: #ff0000;
+        margin-top: 10px;
+    }
+</style>
 
+    <main class="main">
+        <div class="page-header breadcrumb-wrap">
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="index.html" rel="nofollow">Home</a>
+                    <span></span> Pages
+                    <span></span> Login / Register
+                </div>
+            </div>
+        </div>
+        <section style="padding-left: 500px;" class=" ">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-30 m-auto">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="login_wrap widget-taber-content p-40 background-white border-radius-5">
+                                    <div class="padding_eight_all bg-white">
+                                        <div class="heading_s1">
+                                            <h3 class="mb-10">Verify OTP</h3>
+                                        </div>
+                                        {% if messages %}
+                                        <div>
+                                            {% for message in messages %}
+                                                <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                {{ form.otp.label_tag }}
+                                                {{ form.otp }}
+                                            </div>
+                                            <div style=" margin-left:180px;" class="timer" id="timer">02:00</div>
+                                            <button  type="submit" style=" margin-left:110px; margin-top:20px" class="btn">Verify OTP</button>
+                                        </form>
+                                        
+                                        <form method="post" action="{% url 'accounts:resend-otp' %}">
+                                            {% csrf_token %}
+                                            <button style="margin-top:10px; margin-left:115px;" class="btn" id="resend-btn" disabled>Resend OTP</button>
+                                        </form>
+                                        
+                                        <ul style="padding-top:20px;" class="btn-login list_none text-center mb-15">
+                                        go back
+                                        </ul>
+                                        
+                                    </div>
+                                    <div class="col-lg-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var timerDisplay = document.getElementById('timer');
             var resendButton = document.getElementById('resend-btn');
             var totalTime = 120; // 2 minutes in seconds
-        
-            // Get the stored remaining time and last saved time from sessionStorage
+    
             var remainingTime = sessionStorage.getItem('remainingTime');
             var lastSavedTime = sessionStorage.getItem('lastSavedTime');
-        
+    
             if (remainingTime !== null && lastSavedTime !== null) {
-                // Calculate the elapsed time since last saved
-                var elapsedTime = Math.floor(Date.now() / 1000) - parseInt(lastSavedTime);
-                remainingTime = parseInt(remainingTime) - elapsedTime;
+                var elapsedTime = Math.floor(Date.now() / 1000) - parseInt(lastSavedTime, 10);
+                remainingTime = parseInt(remainingTime, 10) - elapsedTime;
             } else {
                 remainingTime = totalTime;
             }
-        
+    
             if (remainingTime <= 0) {
                 remainingTime = 0;
                 resendButton.disabled = false;
@@ -104,21 +93,20 @@
             } else {
                 resendButton.disabled = true;
             }
-        
+    
             function updateDisplay(time) {
                 var minutes = Math.floor(time / 60);
                 var seconds = time % 60;
-        
+    
                 if (seconds < 10) {
                     seconds = '0' + seconds;
                 }
-        
+    
                 timerDisplay.textContent = minutes + ':' + seconds;
             }
-        
-            // Update the display immediately with the remaining time
+    
             updateDisplay(remainingTime);
-        
+    
             var interval = setInterval(function() {
                 if (remainingTime <= 0) {
                     clearInterval(interval);
@@ -133,9 +121,11 @@
                 }
             }, 1000);
         });
-        
-        
-        
     </script>
-</body>
-</html>
+    
+    
+    
+    
+    
+    
+{% endblock %}

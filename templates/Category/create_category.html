@@ -73,7 +73,7 @@ button:hover {
     </style>
     <div class="container">
         <h1>Create Category</h1>
-        <form action="{% url 'create_category' %}" method="POST">
+        <form action="{% url 'category:create_category' %}" method="POST">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit">Create Category</button>

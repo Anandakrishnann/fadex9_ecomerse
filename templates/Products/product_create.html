@@ -1,0 +1,86 @@
+{% extends 'Base/admin_base.html' %}
+{% load static %}
+{% block content %}
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Add New Product</h2>
+            </div>
+        </div>
+        <div style="width:900px;" class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Basic</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'product:product_create' %}">
+                        {% csrf_token %} 
+                        <div class="mb-4">
+                            <label style="font-weight: bold;" for="product_name" class="form-label">Product title</label>
+                            <input type="text" placeholder="Type here" class="form-control" name="product_name" id="product_name" required>
+                        </div>
+                        <div class="mb-4">
+                            <label style="font-weight: bold;" class="form-label">Description</label>
+                            <textarea placeholder="Type here" class="form-control" name="product_description" rows="4" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="mb-4">
+                                    <label style="font-weight: bold;" class="form-label">Regular price</label>
+                                    <div class="row gx-2">
+                                        <input placeholder="$" type="text" class="form-control" name="price" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="mb-4">
+                                    <label style="font-weight: bold;" class="form-label">Promotional price</label>
+                                    <input placeholder="$" type="text" class="form-control" name="offer_price" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mb-4">
+                           
+                            <div class="card-body">
+                                <div class="row gx-2">
+                                    <div class="col-sm-6 mb-3">
+                                        <label style="font-weight: bold;" class="form-label">Category</label>
+                                        <select class="form-select" id="product_category" name="product_category" required> 
+                                            <option value="">Select Category</option> 
+                                            {% for category in categories %}
+                                                <option value="{{ category.id }}">{{ category.category_name }}</option>     
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-6 mb-3">
+                                        <label style="font-weight: bold;" class="form-label">Brand</label>
+                                        <select name="product_brand" class="form-select" required>
+                                            <option> Nissan </option>
+                                            {% for brand in brands %}
+                                                <option value="{{ brand.id }}">{{ brand.brand_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div> <!-- row.// -->
+                                <label style='padding-top:10px;' class="form-check mb-4">
+                                    <input class="form-check-input" name="is_active" type="checkbox" value="" required>
+                                    <span style="font-weight: bold;"  class="form-check-label"> Status</span>
+                                </label>
+                            </div>
+                        </div> <!-- card end// -->
+                        <div>
+                            <button type="submit" style="font-weight: bold;" class="btn btn-md rounded font-sm hover-up">Create</button>
+                        </div>
+                    </form>
+                </div>
+            </div> <!-- card end// -->
+        </div>
+        <div class="col-lg-3">
+            
+            
+            
+        </div>
+    </div>
+</section> <!-- content-main end// -->
+{% endblock %}

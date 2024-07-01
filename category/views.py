@@ -5,7 +5,7 @@ from .models import Category
 
 # Create your views here.
 
-class Create_Category(View):
+class CreateCategory(View):
     def get(self, request):
         form = CategoryForm
         return render(request, 'Category/create_category.html', {'form':form})
@@ -14,15 +14,15 @@ class Create_Category(View):
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('category')
+            return redirect('category:category')
         return render(request, 'Category/create_category.html', {'form':form})
 
-class Category_List(View):
+class CategoryList(View):
     def get(self, request):
         categories = Category.objects.all()
         return render(request, 'Category/category.html',{'categories':categories})
     
-class Category_Edit(View):
+class CategoryEdit(View):
     def get(self, request, pk):
         category = get_object_or_404(Category, id=pk)
         form = CategoryForm(instance=category)
@@ -33,19 +33,12 @@ class Category_Edit(View):
         form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
             form.save()
-            return redirect('category')
+            return redirect('category:category')
         return render(request, 'Category/edit_category.html', {'form': form, 'category': category})
     
-class Delete_Category(View):
+class DeleteCategory(View):
     def get(self, request, pk):
         delete_category = get_object_or_404(Category, id=pk)
-        delete_category.is_deleted = True
+        delete_category.is_deleted = not delete_category.is_deleted
         delete_category.save()
-        return redirect('category')
-    
-class Restore_Category(View):
-    def get(self, request, pk):
-        delete_category = get_object_or_404(Category, id=pk)
-        delete_category.is_deleted = False
-        delete_category.save()
-        return redirect('category')
+        return redirect('category:category')

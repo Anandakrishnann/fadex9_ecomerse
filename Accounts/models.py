@@ -66,4 +66,10 @@ class Accounts(AbstractBaseUser, PermissionsMixin):
     @property
     def username(self):
         return f"{self.first_name} {self.last_name}"
+    
+
+class UserProfile(models.Model):
+    user = models.OneToOneField("Accounts", on_delete=models.CASCADE)
+    address_line_1 = models.CharField(blank=True, max_length=50)
+    
 

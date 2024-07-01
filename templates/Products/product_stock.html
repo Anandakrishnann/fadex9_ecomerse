@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        {% if variants %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Size</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for variant in variants %}
+                <tr>
+                    <td>{{ variant.product.product_name }}</td>
+                    <td>{{ variant.size }}</td>
+                    <td>{{ variant.variant_stock }}</td>
+                    <td>{{ variant.variant_status|yesno:"Active,Inactive" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No variants available.</p>
+        {% endif %}
+
+        <h2>Images</h2>
+        <div class="row">
+            {% if images %}
+            {% for image in images %}
+            <div class="col-md-3 mb-3">
+                <img src="{{ image.images.url }}" class="img-fluid" alt="Product Image">
+                <p>{{ product.product_name }}</p>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p>No images available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

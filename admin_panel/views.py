@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.views import View
 from .models import *
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import messages
 from Accounts.models import Accounts
 from Accounts.forms import RegistrationForm
@@ -11,7 +11,7 @@ from Accounts.forms import RegistrationForm
 #---------------------------------------------- admin login -------------------------------------------------------------#
 
 
-class Admin_Login(View):
+class AdminLogin(View):
     def get(self, request):
         return render(request, 'Accounts/admin_side/admin_login.html')
     
@@ -24,7 +24,7 @@ class Admin_Login(View):
         if admin is not None:
             if admin.is_admin:
                 auth_login(request, admin)
-                return redirect('admin_dash')
+                return redirect('admin_panel:admin_dash')
             else:
                 messages.error('Please log in with your admin credentials to access the admin dashboard. If you encounter any issues, contact the support team')
         else:
@@ -35,56 +35,44 @@ class Admin_Login(View):
 #---------------------------------------------- admin dash -------------------------------------------------------------#
 
 
-class Admin_dash(View):
+class Admin(View):
     def get(self, request):
-        return render(request, 'Accounts/admin_side/admin.html')
+        if request.user.is_authenticated:
+            return render(request, 'Accounts/admin_side/admin.html')
+        else:
+            return redirect('admin_panel:admin_login')
+            
+    
+def logout(request):
+    auth_logout(request)
+    return redirect('admin_panel:admin_login')    
+
 
 
 #---------------------------------------------- users -------------------------------------------------------------#
 
 
-class Admin_Users(View):
+class AdminUsers(View):
     def get(self, request):
         users = Accounts.objects.filter(is_admin=False)
         return render(request, 'Accounts/admin_side/admin_users.html', {'users':users})
 
 
-#---------------------------------------------- create user -------------------------------------------------------------#
-
-
-class Create_User(View):
-    def get(self, request):
-        form = RegistrationForm()
-        return render(request, 'Accounts/admin_side/admin_create.html',{'form':form})
-    
-    def post(self, request):
-        form = RegistrationForm(request.POST)
-        
-        if form.is_valid():
-            user = form.save(commit=False) 
-            user.set_password(form.cleaned_data['password'])  # Set the user's password 
-            user.save() 
-            messages.success(request, 'User created successfully.') 
-            return redirect('admin_view')
-        
-        return render(request, 'Accounts/admin_side/admin_create.html', {'form': form})
-    
-    
 #---------------------------------------------- user block -------------------------------------------------------------#
 
-class User_Block(View):
+class UserBlock(View):
     def get(self, request, pk):
         user_block = get_object_or_404(Accounts, pk=pk)
         user_block.is_blocked = not user_block.is_blocked  # Toggle the blocked status
         user_block.save()
-        return redirect('admin_view')
+        return redirect('admin_panel:admin_view')
     
 #---------------------------------------------- user delete -------------------------------------------------------------#
 
-class User_Delete(View):
+class UserDelete(View):
     def get(self, request, pk):
         user_delete = get_object_or_404(Accounts, pk=pk)
         user_delete.is_active = not user_delete.is_active  # Toggle the blocked status
         user_delete.save()
-        return redirect('admin_view')
+        return redirect('admin_panel:admin_view')
     

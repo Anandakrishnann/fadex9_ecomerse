@@ -2,10 +2,14 @@ from django.urls import path
 from . views import *
 from . import views
 
+app_name = 'product'
+
 urlpatterns = [
-    # path('create/',Create_Category.as_view(),name='create_category'),
-    # path('',Category_List.as_view(),name='category'),
-    # path('edit/<int:pk>/',Category_Edit.as_view(),name='edit_category'),
-    # path('delete/<int:pk>/',Delete_Category.as_view(),name='delete_category'),
-    # path('restore/<int:pk>/',Restore_Category.as_view(),name='restore_category'),
+    path('create/',ProductCreate.as_view(),name='product_create'),
+    path('products/',ProductView.as_view(),name='product_view'),
+    path('edit/<int:pk>/',ProductEdit.as_view(),name='product_edit'),
+    path('image/<int:pk>/',ProductImage.as_view(),name='product_image'),
+    path('variants/<int:pk>/',ProductVariants.as_view(),name='product_variant'),
+    path('stocks/<int:pk>/',ProductStocks.as_view(),name='product_stocks'),
+    path('delete/<int:pk>/',ProductDelete.as_view(),name='product_delete'),
 ]

@@ -145,9 +145,18 @@ class RegistrationForm(forms.ModelForm):
 
 
 class OTPForm(forms.Form):
-    otp = forms.CharField(max_length=6, widget=forms.TextInput(attrs={'placeholder': 'Enter OTP'}))
+    otp = forms.CharField(
+        max_length=6,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Enter OTP',
+            'pattern': '[0-9]*',
+            'inputmode': 'numeric',
+        })
+    )
 
 
 class EmailAuthenticationForm(AuthenticationForm): 
     username = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'})) 
     password = forms.CharField(label="Password", widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+    

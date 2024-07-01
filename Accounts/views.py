@@ -9,13 +9,15 @@ from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth import logout as auth_logout
+
 
 #---------------------------------------------- User Side -------------------------------------------------------------#
 
 User = get_user_model() 
 
 # ---------------------------------------------Login View---------------------------------------------------------------
-class Login_View(View):
+class LoginView(View):
     def get(self, request):
         # if request.user.is_authenticated:
         #     return redirect('home')
@@ -29,7 +31,7 @@ class Login_View(View):
             if user.is_active and not user.is_blocked:
                 auth_login(request, user)
                 messages.success(request, f"Welcome, {user.email}! You have successfully logged in.")
-                return redirect('home')
+                return redirect('accounts:home')
             else:
                 messages.error(request, 'Account is in active. Please contact support')
         else:
@@ -37,8 +39,12 @@ class Login_View(View):
         return render(request, 'Accounts/user_side/login.html', {'form': form})
 
 #---------------------------------------------- Registration -------------------------------------------------------------#
+def logout(request):
+    auth_logout(request)
+    return redirect('accounts:home')    
 
-class Register_View(View):
+
+class RegisterView(View):
     
     def get(self, request):
         form = RegistrationForm()
@@ -68,26 +74,25 @@ class Register_View(View):
                 'phone_number': user_data.phone_number, 
                 'password': form.cleaned_data.get('password') 
             } 
-            print(user_data)
             user_data.is_active = False
             # Sending the otp through email
-            # send_mail(
-            #     'Your otp code',
-            #     f'Your OTP code is {otp}',
-            #     settings.DEFAULT_FROM_EMAIL,
-            #     [user_data.email],
-            #     fail_silently=False,
-            # )
+            send_mail(
+                'Your otp code',
+                f'Your OTP code is {otp}',
+                settings.DEFAULT_FROM_EMAIL,
+                [user_data.email],
+                fail_silently=False,
+            )
 
             messages.success(request, 'OTP has been sent to your email. Please verify to complete registration.')
 
-            return redirect('verify-otp')
+            return redirect('accounts:verify-otp')
         
         return render(request, 'Accounts/user_side/register.html', {'form': form})
 
 #---------------------------------------------- verify otp -------------------------------------------------------------#
 
-class Verify_Otp(View):
+class VerifyOtp(View):
 
     def get(self, request):
         form = OTPForm()
@@ -125,7 +130,7 @@ class Verify_Otp(View):
                             del request.session['user_data']
 
                             messages.success(request, 'Your account has been activated successfully.')
-                            return redirect('home')
+                            return redirect('accounts:home')
 
                         else:
                             messages.error(request, 'User data not found. Please register again.')
@@ -142,7 +147,7 @@ class Verify_Otp(View):
     
 #---------------------------------------------- resend otp -------------------------------------------------------------#
 
-class Resend_Otp(View):
+class ResendOtp(View):
     
     def post(self, request):
         user_data = request.session.get('user_data') 
@@ -166,18 +171,12 @@ class Resend_Otp(View):
             messages.success(request, 'A new OTP has been sent to your email.') 
         else: 
             messages.error(request, 'User data not found. Please register again.') 
-        return redirect('verify-otp') 
+        return redirect('accounts:verify-otp') 
     
 #---------------------------------------------- Home Page -------------------------------------------------------------#
 
-class Index_View(View):
+class IndexView(View):
 
     def get(self, request):
-        
-        if request.user.is_authenticated:
+
             return render(request, 'Accounts/user_side/home.html')
-        
-        return render(request, 'Accounts/user_side/login.html')
-        
-
-
