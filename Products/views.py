@@ -7,7 +7,7 @@ from django.contrib import messages
 
 class ProductView(View):
     def get(self, request):
-        products = Products.objects.all()
+        products = Products.objects.all().order_by('id')
         return render(request, 'Products/product.html', {'products':products})
     
 
@@ -72,12 +72,13 @@ class ProductEdit(View):
         product.product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None 
         
         product.save()
+        
         return redirect('product:product_view')
         
 class ProductImage(View):
     def get(self, request, pk):
-        product = get_object_or_404(Products, id=pk)
-        return render(request, 'Products/product_image.html', {'product':product})
+        products = get_object_or_404(Products, id=pk)
+        return render(request, 'Products/product_image.html', {'products':products})
     
     def post(self, request, pk):
         product = get_object_or_404(Products, id=pk)
@@ -91,12 +92,13 @@ class ProductImage(View):
         for image in images: 
             ProductImages.objects.create(product=product, images=image) 
         
-        return redirect('product:product_view')
+        return redirect('product:product_image', pk=pk)
+
 
 class ProductVariants(View):
     def get(self, request, pk):
-        products = Products.objects.all()
-        return render(request, 'Products/product_variants.html', {'products':products})
+        product = get_object_or_404(Products, pk=pk)
+        return render(request, 'Products/product_variants.html', {'product': product})
     
     def post(self, request, pk):
         product = get_object_or_404(Products, id=pk)
@@ -106,10 +108,10 @@ class ProductVariants(View):
         variant_status = request.POST.get('variant_status') == 'on'
 
         variant = ProductVariant.objects.create(
-            product = product,
-            size = size,
-            variant_stock = variant_stock,   
-            variant_status = variant_status,
+            product=product,
+            size=size,
+            variant_stock=variant_stock,   
+            variant_status=variant_status,
         )
         variant.save()
         
@@ -128,3 +130,10 @@ class ProductDelete(View):
         product.is_active = not product.is_active
         product.save()
         return redirect('product:product_view')
+
+class ProductInfo(View):
+    def get(self, request, pk):
+        products = get_object_or_404(Products, id=pk)
+        images = ProductImages.objects.filter(product=products) 
+        variants = ProductVariant.objects.filter(product=products)
+        return render(request, 'Products/product_info.html', {'products':products, 'images':images, 'variants':variants})

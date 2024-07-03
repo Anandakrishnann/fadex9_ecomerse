@@ -3,7 +3,7 @@
 {% block content %}
 
 <div style="padding-left: 300px; padding-top: 100px; padding-bottom: 200px;">
-    <h1>Edit Variants for {{ product.product_name }}</h1>
+    <h1>{{ product.product_name }}</h1>
     <div class="col-lg-3">
         <div class="card mb-4" style="width: 500px;">
             <div class="card-header">
@@ -23,12 +23,12 @@
                         <div class="col-lg-6">
                             <div class="mb-4">
                                 <label style="font-weight: bold;" for="stock" class="form-label">Stock</label>
-                                <input type="text" placeholder="number" class="form-control" id="stock" name="stock" required>
+                                <input type="text" placeholder="number" class="form-control" id="stock" name="variant_stock" required>
                             </div>
                         </div>
                     </div>
                     <label style='padding-top:10px;' class="form-check mb-4">
-                        <input class="form-check-input" name="is_active" type="checkbox" value="" required>
+                        <input class="form-check-input" name="variant_status" type="checkbox" value="on" required>
                         <span style="font-weight: bold;"  class="form-check-label"> Status</span>
                     </label>
                     <div>

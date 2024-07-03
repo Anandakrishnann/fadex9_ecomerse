@@ -72,4 +72,5 @@ class UserProfile(models.Model):
     user = models.OneToOneField("Accounts", on_delete=models.CASCADE)
     address_line_1 = models.CharField(blank=True, max_length=50)
     
+    
 

@@ -10,7 +10,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import logout as auth_logout
-
+from products.models import *
 
 #---------------------------------------------- User Side -------------------------------------------------------------#
 
@@ -176,7 +176,12 @@ class ResendOtp(View):
 #---------------------------------------------- Home Page -------------------------------------------------------------#
 
 class IndexView(View):
-
     def get(self, request):
+        products = Products.objects.filter(is_active=True)
+        return render(request, 'Accounts/user_side/home.html', {'products':products})
+    
 
-            return render(request, 'Accounts/user_side/home.html')
+class ProductView(View):
+    def get(self, request):
+        products = Products.objects.filter(is_active=True)
+        return render(request, 'Accounts/user_side/products.html', {'products':products})

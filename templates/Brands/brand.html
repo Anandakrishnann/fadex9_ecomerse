@@ -4,9 +4,13 @@
 <section class="content-main"> 
     <div class="content-header"> 
         <div> 
-            <h2 class="content-title card-title">brands</h2> 
+            <h2 class="content-title card-title">Brands</h2> 
             
         </div> 
+        
+    </div>
+    <div>
+        <a href="{% url 'brand:brand_create' %}" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create Brand</a>
     </div> 
     <div class="card mb-4"> 
         <header class="card-header"> 
@@ -40,7 +44,9 @@
                             <th>ID</th> 
                             <th>Image</th>
                             <th>Name</th> 
+                             
                             <th>Description</th>  
+                            <th>Edit</th>  
                             <th class="text-end">Action</th> 
                         </tr> 
                     </thead> 
@@ -48,26 +54,30 @@
                         {% for brand in brands %}
                             <tr>
                                 <td>{{ brand.id }}</td>
-                                <td>{% if brand.brand_image %}
-                                    <img src="{{ brand.brand_image.url }}" alt="{{ brand.barnd_name }}" style="width: 120px; height: 40px;">
+                                <td style="vertical-align: middle; ">
+                                    <div class="d-flex align-items-center">
+                                        {% if brand.brand_image %}
+                                    <img src="{{ brand.brand_image.url }}" alt="{{ brand.barnd_name }}" style="width: 100px; height: 30px;">
                                 {% else %}
                                     No Image
-                            {% endif %}</td>
+                            {% endif %}
+                                    </div>
+                                </td>
                                 <td><b>{{ brand.brand_name }}</b></td>
-                                <td>{{ brand.brand_image }}</td>
-                                <td>{{ brand.brand_description }}</td> <!-- Access the related Category model's field -->
+                                
+                                <td>{{ brand.description }}</td> <!-- Access the related Category model's field -->
                                 <td class="text-end">
-                                    <a href="{% url 'brand:brand_status' brand.id %}" class="btn {% if brand.is_active %}btn-danger{% else %}btn-success{% endif %} rounded font-sm">
-                                        {% if brand.is_active %}
-                                            Block
-                                        {% else %}
-                                            Unblock
-                                        {% endif %}
-                                    </a>
+                                    <button 
+                                        class="btn btn-warning btn-sm" >
+                                            <a style="color:black" href="{% url 'brand:brand_edit' brand.id %}">Edit</a>
+                                    </button>
+                                </td>
+                                <td class="text-end">
+                                
                                     <button
-                                        onclick="deleteItem('{% url 'brand:delete_category' category.id %}', '{% if category.is_deleted %}Are you sure you want to delete this category?{% else %}Are you sure you want to restore this category?{% endif %}')"
-                                        class="btn btn-sm {% if category.is_deleted %}btn-danger{% else %}btn-success{% endif %}">
-                                        {% if category.is_deleted %}Delete{% else %}Restore{% endif %}
+                                        onclick="deleteItem('{% url 'brand:brand_status' brand.id %}', '{% if brand.status %}Are you sure you want to delete this category?{% else %}Are you sure you want to restore this category?{% endif %}')"
+                                        class="btn btn-sm {% if brand.status %}btn-danger{% else %}btn-success{% endif %}">
+                                        {% if brand.status %}Delete{% else %}Restore{% endif %}
                                     </button>
                                 </td>
                             </tr>

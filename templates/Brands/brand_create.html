@@ -1,106 +1,55 @@
-<!-- Brands/brand_create.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Brand</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        form label {
-            margin-bottom: 10px;
-            color: #333;
-            font-weight: bold;
-        }
-
-        form input[type="text"],
-        form input[type="file"],
-        form select,
-        form textarea {
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        form button {
-            padding: 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        form button:hover {
-            background-color: #0056b3;
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Create New Brand</h2>
-        <form method="post" action="{% url 'brand:brand_create' %}"  enctype="multipart/form-data">
-            {% csrf_token %}
-            <label for="brand_name">Brand Name</label>
-            <input type="text" id="brand_name" name="brand_name" required>
+{% extends 'Base/admin_base.html' %}
+{% load static %}
+{% block content %}
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Add New Brand</h2>
+            </div>
+        </div>
+        <div style="width:900px;" class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Basic</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'brand:brand_create' %}" enctype="multipart/form-data">
+                        {% csrf_token %} 
+                        <div class="mb-4">
+                            <label style="font-weight: bold;" for="product_name" class="form-label">Product title</label>
+                            <input type="text" placeholder="Type here" class="form-control" name="brand_name" id="brand_name" required>
+                        </div>
+                        <div class="mb-4">
+                            <label style="font-weight: bold;" class="form-label">Description</label>
+                            <textarea placeholder="Type here" class="form-control" name="description" rows="4" required></textarea>
+                        </div>
+                        <div class="card mb-8">
+                            
+                            <div class="card-body">
+                                <p>Brand Image</p>
+                                <div class="input-upload">
+                                    <img src="assets/imgs/theme/upload.svg" alt="">
+                                    <input class="form-control" name="brand_image" required type="file">
+                                </div>
+                            </div>
+                        </div> <!-- card end// -->
+                        <label style='padding-top:10px;' class="form-check mb-4">
+                            <input class="form-check-input" name="status" type="checkbox" value="" required>
+                            <span style="font-weight: bold;"  class="form-check-label"> Status</span>
+                        </label>
+                        <div>
+                            <button type="submit" style="font-weight: bold;" class="btn btn-md rounded font-sm hover-up">Create Brand</button>
+                        </div>  
+                    </form>
+                </div>
+            </div> <!-- card end// -->
+        </div>
+        <div class="col-lg-3">
             
-            <label for="description">Description</label>
-            <textarea id="description" name="description"></textarea>
             
-            <label for="brand_image">Brand Image</label>
-            <input type="file" id="brand_image" name="brand_image" required>
             
-            <label for="status">Status</label>
-            <select id="status" name="status" required>
-                <option value="True">Active</option>
-                <option value="False">Inactive</option>
-            </select>
-            
-            <button type="submit">Create Brand</button>
-        </form>
-        <a href="{% url 'brand:brand_list' %}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Brand List</a>
+        </div>
     </div>
-</body>
-</html>
+</section> <!-- content-main end// -->
+{% endblock %}

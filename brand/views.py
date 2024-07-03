@@ -1,6 +1,7 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from .models import *
 from django.views import View
+from django.contrib import messages
 
 # Create your views here.
 
@@ -19,7 +20,7 @@ class BrandCreate(View):
             brand_name = request.POST.get('brand_name')
             description = request.POST.get('description', '')
             brand_image = request.FILES.get('brand_image')
-            brand_status = request.POST.get('status', False) == 'on'
+            brand_status = request.POST.get('status') == 'on'
             
             if brand_name and brand_image:
                 brand = Brand.objects.create(
@@ -28,33 +29,38 @@ class BrandCreate(View):
                     description=description,
                     status=brand_status
                 )
+                
                 brand.save()
                 return redirect('brand:brand_list')
         return render(request, 'Brands/brand_create.html')
 
-        
-
 class BrandEdit(View):
     def get(self, request, pk):
         brands = get_object_or_404(Brand, id=pk)
-        return render(request, 'Brands/brand_edit.html',{'brands':brands})
+        return render(request, 'Brands/brand_edit.html', {'brands': brands})
 
     def post(self, request, pk):
-        brand_name = request.POST['brand_name']
-        description = request.POST['description','']
+        brands = get_object_or_404(Brand, id=pk)
+        brand_name = request.POST.get('brand_name')
+        description = request.POST.get('description', '')
         brand_image = request.FILES.get('brand_image')
-        brand_status = request.POST['status'] == 'on'
+        brand_status = request.POST.get('status') == 'on'
         
-        brand = Brand.objects.create(
-            brand_name = brand_name,
-            description = description,
-            status = brand_status
-        )
-        if brand_image:
-            brand.brand_image = brand_image
+        # Check if the new brand name is unique and not the same as the current brand
+        if brand_name != brands.brand_name and Brand.objects.filter(brand_name=brand_name).exists():
+            messages.error(request, 'Brand with this name already exists.')
+        else:
+            brands.brand_name = brand_name
+            brands.description = description
+            brands.status = brand_status
+            if brand_image:
+                brands.brand_image = brand_image
+            
+            brands.save()
+            return redirect('brand:brand_list')
         
-        brand.save()
-        return redirect('brand:brand_list')
+        return render(request, 'Brands/brand_edit.html', {'brands': brands})
+    
     
 
 class BrandStatus(View):
