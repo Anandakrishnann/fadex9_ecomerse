@@ -1,5 +1,5 @@
 from datetime import timedelta
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from .forms import *
 from .models import *
@@ -177,11 +177,44 @@ class ResendOtp(View):
 
 class IndexView(View):
     def get(self, request):
-        products = Products.objects.filter(is_active=True)
-        return render(request, 'Accounts/user_side/home.html', {'products':products})
+        
+        return render(request, 'Accounts/user_side/home.html')
     
 
+#---------------------------------------------- Product Detail Page -------------------------------------------------------------#
+
+
 class ProductView(View):
-    def get(self, request):
-        products = Products.objects.filter(is_active=True)
-        return render(request, 'Accounts/user_side/products.html', {'products':products})
+    def get(self, request, pk):
+        products = Products.objects.get(id=pk)
+        variants = ProductVariant.objects.filter(product=products)
+        return render(request, 'Accounts/user_side/product_details.html', {'products':products, 'variants':variants})
+
+
+#---------------------------------------------- Review Page -------------------------------------------------------------#
+
+
+class Reviews(View):
+    def post(self, request, pk):
+        user = get_object_or_404(Accounts, id=pk)
+        product = get_object_or_404(Products, id=pk)
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment')
+        
+        review = Review.objects.create(
+            user = user,
+            product = product,
+            rating = rating,
+            comment = comment
+        )
+        review.save()
+        
+        return redirect('accounts:product_details')
+    
+    
+#---------------------------------------------- User Dashboard Page -------------------------------------------------------------#
+
+
+# class UserDashboard(View):
+#     def get(self, request):
+        

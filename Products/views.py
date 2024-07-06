@@ -62,11 +62,11 @@ class ProductEdit(View):
         product = get_object_or_404(Products, id=pk)
         product.product_name = request.POST.get('product_name')
         product.product_description = request.POST.get('product_description')
-        product_category_id = request.POST.get('category')
-        product_brand_id = request.POST.get('brand')
+        product_category_id = request.POST.get('product_category')
+        product_brand_id = request.POST.get('product_brand')
         product.price = request.POST.get('price')
         product.offer_price = request.POST.get('offer_price')
-        product.is_active = request.POST.get('status') == 'on'
+        product.is_active = request.POST.get('is_active') == 'on'
         
         product.product_category = Category.objects.get(id=product_category_id) if product_category_id else None 
         product.product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None 
@@ -78,7 +78,7 @@ class ProductEdit(View):
 class ProductImage(View):
     def get(self, request, pk):
         products = get_object_or_404(Products, id=pk)
-        return render(request, 'Products/product_image.html', {'products':products})
+        return render(request, 'Products/demo.html', {'products':products})
     
     def post(self, request, pk):
         product = get_object_or_404(Products, id=pk)
@@ -133,7 +133,7 @@ class ProductDelete(View):
 
 class ProductInfo(View):
     def get(self, request, pk):
-        products = get_object_or_404(Products, id=pk)
-        images = ProductImages.objects.filter(product=products) 
-        variants = ProductVariant.objects.filter(product=products)
-        return render(request, 'Products/product_info.html', {'products':products, 'images':images, 'variants':variants})
+        product = get_object_or_404(Products, id=pk)
+        images = ProductImages.objects.filter(product=product) 
+        variants = ProductVariant.objects.filter(product=product)
+        return render(request, 'Products/product_info.html', {'product': product, 'images': images, 'variants': variants})

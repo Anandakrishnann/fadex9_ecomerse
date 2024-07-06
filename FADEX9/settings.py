@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'Accounts',
     'products',
     'admin_panel',
+    'user_panel',
     'category',
     'brand',
     'social_django',
@@ -154,6 +155,13 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
  
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+
+# Base directory of the project
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Media settings
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # email
 EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'

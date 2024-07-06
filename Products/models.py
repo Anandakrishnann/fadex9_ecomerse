@@ -1,6 +1,8 @@
 from django.db import models
 from category.models import Category
 from brand.models import Brand
+from django.utils import timezone
+from Accounts.models import Accounts
 
 # Create your models here.
 
@@ -14,8 +16,8 @@ class Products(models.Model):
     thumbnail = models.ImageField(upload_to='thumbnail_images', null=True)
     
     is_active = models.BooleanField(default=False)
-    created_at = models.BooleanField(default=True)
-    updated_at = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
     
     def percentage_discount(self):
         return int(((self.price - self.offer_price) / self.price) * 100)
@@ -39,3 +41,14 @@ class ProductImages(models.Model):
     
     def __str__(self):      
         return f"Image for{self.product.product_name}"
+    
+    
+class Review(models.Model):
+    user = models.ForeignKey(Accounts, on_delete=models.CASCADE)
+    product = models.ForeignKey(Products, on_delete=models.CASCADE)
+    rating = models.IntegerField()
+    comment = models.CharField( max_length=50)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return self.user
