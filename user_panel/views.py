@@ -1,4 +1,5 @@
 from django.shortcuts import render,redirect, get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import *
 from django.views import View
 from django.contrib import messages
@@ -11,9 +12,15 @@ from Accounts.models import *
 #---------------------------------------------- User Address Page -------------------------------------------------------------#
 
 
-class Address(View):
-    def post(self, request, pk):
-        users = get_object_or_404(Accounts, id=pk)
+class UserDashboard(View):
+    def get(self, request):
+        user_address = UserAddress.objects.filter(user=request.user)
+        return render(request, 'user_dashboard/user_dash.html',{'user_address': user_address})
+    
+
+class CreateAddress(View):
+    def post(self, request):
+        users = request.user
         name = request.POST.get('name')
         house_name = request.POST.get('house_name')
         street_name = request.POST.get('street_name')
@@ -22,7 +29,7 @@ class Address(View):
         state = request.POST.get('state')
         country = request.POST.get('country')
         phone_number = request.POST.get('phone_number')
-        status = request.POST.get('status')
+        status = request.POST.get('status') == "on"
         
         address = UserAddress.objects.create(
             user = users,
@@ -36,6 +43,53 @@ class Address(View):
             phone_number = phone_number,
             status = status,
         )
-        messages.success('Your address has been successfully created')
+        
         address.save()
-        return redirect('accounts:user_dashboard')
+        return redirect('user_panel:user_dash')
+
+
+
+class EditAddress(View):
+        def get(self, request, pk):
+            users = get_object_or_404(UserAddress, id=pk)
+            return render(request, 'user_dashboard/edit_address.html', {'users':users})
+        
+        def post(self, request, pk):
+            users = get_object_or_404(UserAddress, id=pk)
+            
+            users.user = request.user
+            users.name = request.POST.get('name')
+            users.house_name = request.POST.get('house_name')
+            users.street_name = request.POST.get('street_name')
+            users.pin_number = request.POST.get('pin_number')
+            users.district  = request.POST.get('district')
+            users.state = request.POST.get('state')
+            users.country = request.POST.get('country')
+            users.phone_number = request.POST.get('phone_number')
+            
+            if users.status:
+                users.status = request.POST.get('status') == "on"
+            
+            users.save()
+
+            return redirect('user_panel:user_dash')
+        
+class MakeAsDefault(View):
+    def get(self, request, pk):
+        user = request.user
+        
+        address = get_object_or_404(UserAddress, id=pk, user=user)
+        
+        updated_count = UserAddress.objects.filter(user=user).update(status=False)
+        
+        address.status = True
+        address.save()
+        
+        return redirect('user_panel:user_dash')
+    
+class AddressDelete(View):
+    def post(self, request, pk):
+        address = get_object_or_404(UserAddress, id=pk) 
+        address.delete()
+        
+        return redirect('user_panel:user_dash')

@@ -27,8 +27,9 @@ urlpatterns = [
     path('products/', include('products.urls')),  # Admin panel app
     path('brands/', include('brand.urls')),  # Admin panel app
     path('user_panel/', include('user_panel.urls')),  # Admin panel app
+    path('cart/', include('cart.urls')),  # Admin panel app
     path('auth/', include('social_django.urls', namespace='social')),
-]
+]   
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -7,8 +7,11 @@ from django.contrib import messages
 
 class BrandList(View):
     def get(self, request):
-        brands = Brand.objects.all()
-        return render(request, 'Brands/brand.html',{'brands':brands})
+        if request.user.is_authenticated:
+            brands = Brand.objects.all()
+            return render(request, 'Brands/brand.html',{'brands':brands})
+        else:
+            return render(request, 'Admin_panel/admin_side/admin_login.html')
     
 
 class BrandCreate(View):

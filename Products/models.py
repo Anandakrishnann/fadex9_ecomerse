@@ -3,6 +3,7 @@ from category.models import Category
 from brand.models import Brand
 from django.utils import timezone
 from Accounts.models import Accounts
+from django.db.models import Avg
 
 # Create your models here.
 
@@ -25,6 +26,10 @@ class Products(models.Model):
     def __str__(self):
         return f"{self.product_brand.brand_name}-{self.product_name}"
     
+    def get_average_rating(self):
+        average = self.reviews.aggregate(Avg('rating'))['rating__avg']
+        return average if average else 0
+    
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
@@ -45,10 +50,11 @@ class ProductImages(models.Model):
     
 class Review(models.Model):
     user = models.ForeignKey(Accounts, on_delete=models.CASCADE)
-    product = models.ForeignKey(Products, on_delete=models.CASCADE)
+    product = models.ForeignKey(Products, related_name='reviews',  on_delete=models.CASCADE)
     rating = models.IntegerField()
     comment = models.CharField( max_length=50)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)    
+    
     def __str__(self):
-        return self.user
+        return f'{self.user} - {self.product}'

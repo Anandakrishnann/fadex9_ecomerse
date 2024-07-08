@@ -54,8 +54,11 @@ def logout(request):
 
 class AdminUsers(View):
     def get(self, request):
-        users = Accounts.objects.filter(is_admin=False)
-        return render(request, 'Accounts/admin_side/admin_users.html', {'users':users})
+        if request.user.is_authenticated:
+            users = Accounts.objects.filter(is_admin=False)
+            return render(request, 'Accounts/admin_side/admin_users.html', {'users':users})
+        else:
+            return render(request, 'Accounts/admin_side/admin_login.html')
 
 
 #---------------------------------------------- user block -------------------------------------------------------------#

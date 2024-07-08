@@ -11,7 +11,7 @@
             </div>
         </div>
     </div>
-    <section class="pt-150 pb-150">
+    <section class="pt-50 pb-50">
         <div class="container">
             <div class="row">
                 <div class="col-lg-10 m-auto">
@@ -32,10 +32,13 @@
                                         <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#address" role="tab" aria-controls="address" aria-selected="true"><i class="fi-rs-marker mr-10"></i>My Address</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" id="account-detail-tab" data-bs-toggle="tab" href="#account-detail" role="tab" aria-controls="account-detail" aria-selected="true"><i class="fi-rs-user mr-10"></i>Account details</a>
+                                        <a class="nav-link" id="account-detail-tab" data-bs-toggle="tab" href="#account-add  " role="tab" aria-controls="account-detail" aria-selected="true"><i class="fi-rs-user mr-10"></i>Add Address</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" href="page-login-register.html"><i class="fi-rs-sign-out mr-10"></i>Logout</a>
+                                        <a class="nav-link" id="account-detail-tab" data-bs-toggle="tab" href="#account-detail" role="tab" aria-controls="account-detail" aria-selected="true"><i class="fi-rs-user mr-10"></i>Account Details</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'accounts:logout' %}"><i class="fi-rs-sign-out mr-10"></i>Logout</a>
                                     </li>
                                 </ul>
                             </div>
@@ -124,78 +127,114 @@
                                 </div>
                                 <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
                                     <div class="row">
+                                        {% for address in user_address %}
                                         <div class="col-lg-6">
                                             <div class="card mb-3 mb-lg-0">
-                                                <div class="card-header">
-                                                    <h5 class="mb-0">Billing Address</h5>
+                                                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                                    <h5 class="mb-0">{{ address.name }}</h5>
+                                                    <a href="{% url 'user_panel:make_default' address.id %}" style="color:red" class="btn-small">
+                                                        {% if address.status %}
+                                                            Default
+                                                        {% else %}
+                                                            Make as Default
+                                                        {% endif %}
+                                                    </a>
                                                 </div>
                                                 <div class="card-body">
-                                                    <address>3522 Interstate<br> 75 Business Spur,<br> Sault Ste. <br>Marie, MI 49783</address>
-                                                    <p>New York</p>
-                                                    <a href="#" class="btn-small">Edit</a>
+                                                    <address>
+                                                        {{ address.house_name }} <br>
+                                                        {{ address.street_name }} <br>
+                                                        {{ address.pin_number }} <br>
+                                                        {{ address.district }} <br>
+                                                        {{ address.state }} <br>
+                                                        {{ address.phone_number }}
+                                                    </address>
+                                                    <p>{{ address.country }}</p>    
+                                                    <div style="margin-left:230px;">
+                                                        <div style="display: inline-block;">
+                                                            <a href="{% url 'user_panel:edit_address' address.id %}" class="btn-small">Edit</a>
+                                                        </div>
+                                                        <div style="display: inline-block;">
+                                                            <p>|</p>
+                                                        </div>
+                                                        <div style="display: inline-block;">
+                                                            <form action="{% url 'user_panel:address_delete' address.id %}" method='post'>
+                                                                {% csrf_token %}
+                                                                <button style="color: white; background-color: red; border: none; outline: none;" class="btn-small">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-lg-6">
-                                            <div class="card">
-                                                <div class="card-header">
-                                                    <h5 class="mb-0">Shipping Address</h5>
-                                                </div>
-                                                <div class="card-body">
-                                                    <address>4299 Express Lane<br>
-                                                        Sarasota, <br>FL 34249 USA <br>Phone: 1.941.227.4444</address>
-                                                    <p>Sarasota</p>
-                                                    <a href="#" class="btn-small">Edit</a>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        {% empty %}
+                                        <p>No addresses found.</p>
+                                        {% endfor %}
                                     </div>
                                 </div>
-                                <div class="tab-pane fade" id="account-detail" role="tabpanel" aria-labelledby="account-detail-tab">
+                                <div class="tab-pane fade" id="account-add" role="tabpanel" aria-labelledby="account-detail-tab">
                                     <div class="card">
                                         <div class="card-header">
-                                            <h5>Account Details</h5>
+                                            <h5>Add Address</h5>
                                         </div>
                                         <div class="card-body">
-                                            <p>Already have an account? <a href="page-login-register.html">Log in instead!</a></p>
-                                            <form method="post" name="enq">
+                                            
+                                            <form id="addressForm" method="post" name="enq" action="{% url 'user_panel:create_address'%}">
+                                                {% csrf_token %}
                                                 <div class="row">
                                                     <div class="form-group col-md-6">
-                                                        <label>First Name <span class="required">*</span></label>
-                                                        <input required="" class="form-control square" name="name" type="text">
+                                                        <label>Name <span class="required">*</span></label>
+                                                        <input required class="form-control square" name="name" type="text">
+                                                    </div>
+                                                    
+                                                    <div class="form-group col-md-6">
+                                                        <label>House Name <span class="required">*</span></label>
+                                                        <input required class="form-control square" name="house_name">
+                                                    </div>
+                                                    
+                                                    <div class="form-group col-md-6">
+                                                        <label>Street Name<span class="required">*</span></label>
+                                                        <input required class="form-control square" name="street_name" type="text">
                                                     </div>
                                                     <div class="form-group col-md-6">
-                                                        <label>Last Name <span class="required">*</span></label>
-                                                        <input required="" class="form-control square" name="phone">
+                                                        <label>Pin Number<span class="required">*</span></label>
+                                                        <input required class="form-control square" name="pin_number">
                                                     </div>
-                                                    <div class="form-group col-md-12">
-                                                        <label>Display Name <span class="required">*</span></label>
-                                                        <input required="" class="form-control square" name="dname" type="text">
+                                                    
+                                                    <div class="form-group col-md-6">
+                                                        <label>District <span class="required">*</span></label>
+                                                        <input required class="form-control square" name="district" type="text">
                                                     </div>
-                                                    <div class="form-group col-md-12">
-                                                        <label>Email Address <span class="required">*</span></label>
-                                                        <input required="" class="form-control square" name="email" type="email">
+                                                    <div class="form-group col-md-6">
+                                                        <label>State <span class="required">*</span></label>
+                                                        <input required class="form-control square" name="state">
                                                     </div>
-                                                    <div class="form-group col-md-12">
-                                                        <label>Current Password <span class="required">*</span></label>
-                                                        <input required="" class="form-control square" name="password" type="password">
+                                                    
+                                                    <div class="form-group col-md-6">
+                                                        <label>Country <span class="required">*</span></label>
+                                                        <input required class="form-control square" name="country" type="text">
                                                     </div>
-                                                    <div class="form-group col-md-12">
-                                                        <label>New Password <span class="required">*</span></label>
-                                                        <input required="" class="form-control square" name="npassword" type="password">
+                                                    
+                                                    <div class="form-group col-md-6">
+                                                        <label>Phone Number <span class="required">*</span></label>
+                                                        <input required class="form-control square" name="phone_number" type="tel" pattern="[0-9]{10}">
                                                     </div>
-                                                    <div class="form-group col-md-12">
-                                                        <label>Confirm Password <span class="required">*</span></label>
-                                                        <input required="" class="form-control square" name="cpassword" type="password">
+                                                    
+                                                    <div class="form-check mb-3">
+                                                        <input type="checkbox" class="form-check-input" id="is_active" name="status">
+                                                        <label class="form-check-label" for="is_active">Make As Default</label>
                                                     </div>
+                                                    
                                                     <div class="col-md-12">
                                                         <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
                                                     </div>
                                                 </div>
                                             </form>
+                                            
                                         </div>
                                     </div>
                                 </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -204,4 +243,39 @@
         </div>
     </section>
 </main>
+<script>
+
+        document.getElementById('addressForm').addEventListener('submit', function(event) {
+            var form = this;
+            var isValid = true;
+            var fields = [
+                { name: 'name', pattern: /^[A-Za-z\s]{2,50}$/ }, 
+                { name: 'house_name', pattern: /^.{1,100}$/ },
+                { name: 'street_name', pattern: /^.{2,100}$/ },
+                { name: 'pin_number', pattern: /^[0-9]{5,6}$/ },
+                { name: 'district', pattern: /^[A-Za-z\s]{2,50}$/ },
+                { name: 'state', pattern: /^[A-Za-z\s]{2,50}$/ },
+                { name: 'country', pattern: /^[A-Za-z\s]{2,50}$/ },
+                { name: 'phone_number', pattern: /^[0-9]{10}$/ }
+            ];
+    
+            fields.forEach(function(field) {
+                var input = form[field.name];
+                var value = input.value.trim();
+                if (!field.pattern.test(value)) {
+                    isValid = false;
+                    input.style.borderColor = 'red';
+                } else {
+                    input.style.borderColor = '';
+                }
+                input.value = value; // Remove leading/trailing spaces
+            });
+    
+            if (!isValid) {
+                event.preventDefault(); // Prevent form submission if validation fails
+                alert('Please fill out all required fields correctly.');
+            }
+        });
+    
+</script>
 {% endblock %}

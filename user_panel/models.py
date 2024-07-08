@@ -13,6 +13,6 @@ class UserAddress(models.Model):
     state = models.CharField(max_length=300, null=False)
     country = models.CharField(max_length=50, null=False, default="null")
     phone_number = models.CharField(max_length=50, null=False)
-    status = models.BooleanField(default=True)
     
+    status = models.BooleanField(default=True)
     

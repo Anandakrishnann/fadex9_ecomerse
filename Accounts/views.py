@@ -177,8 +177,8 @@ class ResendOtp(View):
 
 class IndexView(View):
     def get(self, request):
-        
-        return render(request, 'Accounts/user_side/home.html')
+        products = Products.objects.all()
+        return render(request, 'Accounts/user_side/home.html', {'products':products})
     
 
 #---------------------------------------------- Product Detail Page -------------------------------------------------------------#
@@ -186,35 +186,16 @@ class IndexView(View):
 
 class ProductView(View):
     def get(self, request, pk):
-        products = Products.objects.get(id=pk)
+        products = get_object_or_404(Products, pk=pk)
+        images = ProductImages.objects.filter(product=products)
         variants = ProductVariant.objects.filter(product=products)
-        return render(request, 'Accounts/user_side/product_details.html', {'products':products, 'variants':variants})
+        reviews = Review.objects.filter(product=products)
+        return render(request, 'Accounts/user_side/product_details.html', {
+            'products': products,
+            'images': images,
+            'variants': variants,
+            'reviews': reviews
+        })
 
-
-#---------------------------------------------- Review Page -------------------------------------------------------------#
-
-
-class Reviews(View):
-    def post(self, request, pk):
-        user = get_object_or_404(Accounts, id=pk)
-        product = get_object_or_404(Products, id=pk)
-        rating = request.POST.get('rating')
-        comment = request.POST.get('comment')
-        
-        review = Review.objects.create(
-            user = user,
-            product = product,
-            rating = rating,
-            comment = comment
-        )
-        review.save()
-        
-        return redirect('accounts:product_details')
-    
-    
 #---------------------------------------------- User Dashboard Page -------------------------------------------------------------#
 
-
-# class UserDashboard(View):
-#     def get(self, request):
-        
