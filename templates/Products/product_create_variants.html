@@ -1,0 +1,51 @@
+{% extends 'Base/admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<div style="padding-left: 300px; padding-top: 100px; padding-bottom: 200px;">
+    <h1>{{ product.product_name }}</h1>
+    <div class="col-lg-3">
+        <div class="card mb-4" style="width: 500px;">
+            <div class="card-header">
+                <h4 style="font-weight: bold;">Create Variants</h4>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                        <ul class="messages">
+                            {% for message in messages %}
+                                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                {% endif %}
+                <form method="post" action="{% url 'product:create_variant' product.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label style="font-weight: bold;" for="size" class="form-label">Size</label>
+                                <input type="text" placeholder="inch" class="form-control" id="size"  name="size"  required>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label style="font-weight: bold;" for="stock" class="form-label">Stock</label>
+                                <input type="text" placeholder="number" class="form-control" id="stock" name="variant_stock" required>
+                            </div>
+                        </div>
+                    </div>
+                    <label style='padding-top:10px;' class="form-check mb-4">
+                        <input class="form-check-input" name="variant_status" type="checkbox" value="on" required>
+                        <span style="font-weight: bold;"  class="form-check-label"> Status</span>
+                    </label>
+                    <div>
+                        <button type="submit" style="font-weight: bold;" class="btn btn-md rounded font-sm hover-up">Create</button>
+                        <a href="{% url 'product:product_variant' product.id %}" class="btn  btn-danger rounded font-sm hover-up" style="font-weight: bold; margin-left:300px;">Go Back</a>
+                    </div>
+                </form>
+            </div>
+        </div> <!-- card end// -->
+    </div>
+</div>
+
+{% endblock %}

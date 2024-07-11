@@ -14,8 +14,9 @@ from Accounts.models import *
 
 class UserDashboard(View):
     def get(self, request):
-        user_address = UserAddress.objects.filter(user=request.user)
-        return render(request, 'user_dashboard/user_dash.html',{'user_address': user_address})
+        user = request.user
+        user_address = UserAddress.objects.filter(user=user)
+        return render(request, 'user_dashboard/user_dash.html',{'user_address': user_address, 'user':user})
     
 
 class CreateAddress(View):
@@ -68,6 +69,7 @@ class EditAddress(View):
             users.phone_number = request.POST.get('phone_number')
             
             if users.status:
+                
                 users.status = request.POST.get('status') == "on"
             
             users.save()

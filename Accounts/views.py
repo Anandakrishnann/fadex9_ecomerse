@@ -190,12 +190,10 @@ class ProductView(View):
         images = ProductImages.objects.filter(product=products)
         variants = ProductVariant.objects.filter(product=products)
         reviews = Review.objects.filter(product=products)
-        return render(request, 'Accounts/user_side/product_details.html', {
+        return render(request, 'Accounts/user_side/product_details2.html', {
             'products': products,
             'images': images,
             'variants': variants,
             'reviews': reviews
         })
-
-#---------------------------------------------- User Dashboard Page -------------------------------------------------------------#
 

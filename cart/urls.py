@@ -2,9 +2,11 @@ from django.urls import path
 from . views import *
 from . import views
 
+app_name = 'cart'
+
 urlpatterns = [
-    # path('create/',CreateCategory.as_view(),name='create_category'),
-    # path('category',CategoryList.as_view(),name='category'),
-    # path('edit/<int:pk>/',CategoryEdit.as_view(),name='edit_category'),
-    # path('delete/<int:pk>/',DeleteCategory.as_view(),name='delete_category'),
+    path('add-to-cart/', AddToCart.as_view(), name='add_to_cart'),
+    path('cart/', CartView.as_view(), name='cart'),
+    path('cart_delete/<int:pk>/', CartItemsDelete.as_view(), name='delete_cart'),
+    path('update_cart_item_quantity/', UpdateCartItemQuantity.as_view(), name='update_cart_item_quantity'),
 ]

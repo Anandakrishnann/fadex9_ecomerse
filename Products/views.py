@@ -102,17 +102,22 @@ class ProductImage(View):
 
 
 
-class ProductVariants(View):
+class VariantCreate(View):
     def get(self, request, pk):
         product = get_object_or_404(Products, pk=pk)
-        return render(request, 'Products/product_variants.html', {'product': product})
+        return render(request, 'Products/product_create_variants.html', {'product': product})
     
     def post(self, request, pk):
         product = get_object_or_404(Products, id=pk)
-
+        
         size = request.POST.get('size')
         variant_stock = request.POST.get('variant_stock')
         variant_status = request.POST.get('variant_status') == 'on'
+        
+        # Check if the variant with the same size already exists for the product
+        if ProductVariant.objects.filter(product=product, size=size).exists():
+            messages.error(request, 'A variant with this size already exists for this product.')
+            return render(request, 'Products/product_create_variants.html', {'product': product})
 
         variant = ProductVariant.objects.create(
             product=product,
@@ -123,6 +128,58 @@ class ProductVariants(View):
         variant.save()
         
         return redirect('product:products')
+    
+
+
+class VariantsView(View):
+    def get(self, request, pk):
+        product = get_object_or_404(Products, id=pk)
+        variants = ProductVariant.objects.filter(product=product)
+        return render(request, 'Products/product_variants.html', {'product':product, 'variants':variants})
+
+
+class VariantEdit(View):
+    def get(self, request, pk):
+        variants = ProductVariant.objects.get(id=pk)
+        return render(request, 'Products/product_edit_variant.html', {'variants':variants})
+    
+    def post(self, request, pk):
+        variant = ProductVariant.objects.get(id=pk)
+        product = variant.product
+        
+        size = request.POST.get('size')
+        variant_stock = request.POST.get('variant_stock')
+        variant_status = request.POST.get('variant_status') == 'on'
+        
+        # Check if another variant with the new size already exists for the product
+        if ProductVariant.objects.filter(product=product, size=size).exclude(id=pk).exists():
+            messages.error(request, 'A variant with this size already exists for this product.')
+            return render(request, 'Products/product_edit_variant.html', {'variant': variant})
+        
+        
+        variant.size = size
+        variant.variant_stock = variant_stock
+        variant.variant_status = variant_status
+        
+        variant.save()
+        return redirect('product:product_info')
+    
+
+class VariantStatus(View):
+    def get(self, request, pk):
+        variant = get_object_or_404(ProductVariant, id=pk)
+        pk = variant.product.id
+        variant.variant_status = not variant.variant_status
+        variant.save()
+        return redirect('product:product_variant', pk=pk)
+
+
+# class VariantDelete(View):
+#     def get(self, request, pk):
+#         variant = get_object_or_404(ProductVariant, id=pk)
+#         pk = variant.id
+#         variant.delete()
+#         return redirect('product:product_variant', pk=pk)
 
 
 

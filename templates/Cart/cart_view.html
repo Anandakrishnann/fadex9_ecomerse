@@ -1,0 +1,252 @@
+{% extends 'Base/user_base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    .detail-qty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .qty-btn {
+        width: 30px;
+        height: 30px;
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 50%;
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .qty-btn:hover {
+        background-color: #e0e0e0;
+    }
+    
+    .qty-val {
+        margin: 0 10px;
+        font-size: 16px;
+    }
+    
+</style>
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html" rel="nofollow">Home</a>
+                <span></span> Shop
+                <span></span> Your Cart
+            </div>
+        </div>
+    </div>
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table class="table shopping-summery text-center clean">
+                            <thead>
+                                <tr class="main-heading">
+                                    <th scope="col">Image</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Size</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Subtotal</th>
+                                    <th scope="col">Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cart_item %}
+                                <tr data-cart-item-id="{{ item.id }}">
+                                    <td class="image product-thumbnail">
+                                        <img src="{{ item.product.thumbnail.url }}" alt="{{ item.product.name }}">
+                                    </td>
+                                    <td class="product-des product-name" style="width:300px;">
+                                        <h5 class="product-name">
+                                            <a href="shop-product-right.html">{{ item.product.product_name }}</a>
+                                        </h5>
+                                        <p class="font-xs">{{ item.cart.updated_at }}</p>
+                                    </td>
+                                    <td class="price" data-title="Price">
+                                        <span>{{ item.variant.size }}</span>
+                                    </td>
+                                    <td class="price" data-title="Price">
+                                        <span>${{ item.product.offer_price }}</span>
+                                    </td>
+                                    <td class="text-center" data-title="Stock">
+                                        <div class="detail-qty border radius m-auto">
+                                            <button class="qty-btn qty-down">-</button>
+                                            <span class="qty-val">{{ item.quantity }}</span>
+                                            <button class="qty-btn qty-up">+</button>
+                                        </div>
+                                    </td>
+                                    <td class="text-right" data-title="Cart">
+                                        <span class="item-subtotal">${{ item.sub_total }}</span>
+                                    </td>
+                                    <td class="action" data-title="Remove">
+                                        <a href="{% url 'cart:delete_cart' item.id %}" class="text-muted remove-item"><i class="fi-rs-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="cart-action text-end">
+                        <a class="btn mr-10 mb-sm-15" id="update-cart-btn"><i class="fi-rs-shuffle mr-10"></i>Update Cart</a>
+                        <a class="btn"><i class="fi-rs-shopping-bag mr-10"></i>Continue Shopping</a>
+                    </div>
+                    
+                    <div class="divider center_icon mt-50 mb-50"><i class="fi-rs-fingerprint"></i></div>
+                    <div class="row mb-50">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="heading_s1 mb-3">
+                                <h4>Calculate Shipping</h4>
+                            </div>
+                            <p class="mt-15 mb-30">Flat rate: <span class="font-xl text-brand fw-900">5%</span></p>
+                            
+                            <div class="mb-30 mt-50">
+                                <div class="heading_s1 mb-3">
+                                    <h4>Apply Coupon</h4>
+                                </div>
+                                <div class="total-amount">
+                                    <div class="left">
+                                        <div class="coupon">
+                                            <form action="#" target="_blank">
+                                                <div class="form-row row justify-content-center">
+                                                    <div class="form-group col-lg-6">
+                                                        <input class="font-medium" name="Coupon" placeholder="Enter Your Coupon">
+                                                    </div>
+                                                    <div class="form-group col-lg-6">
+                                                        <button class="btn btn-sm"><i class="fi-rs-label mr-10"></i>Apply</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12">
+                            <div class="border p-md-4 p-30 border-radius cart-totals">
+                                <div class="heading_s1 mb-3">
+                                    <h4>Cart Totals</h4>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <td class="cart_total_label">Cart Subtotal</td>
+                                                <td class="cart_total_amount"><span id="cart-subtotal" class="cart-subtotal font-lg fw-900 text-brand">${{ total }}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="cart_total_label">Shipping</td>
+                                                <td class="cart_total_amount"><i class="ti-gift mr-5"></i> Free Shipping</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="cart_total_label">Total</td>
+                                                <td class="cart_total_amount"><strong><span id="cart-total" class="cart-total font-xl fw-900 text-brand">${{ total }}</span></strong></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <a href="#" class="btn"> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function(){
+        // Function to load saved quantities and subtotals from local storage
+        function loadSavedCartData() {
+            var savedQuantities = JSON.parse(localStorage.getItem('savedQuantities'));
+            var savedSubtotals = JSON.parse(localStorage.getItem('savedSubtotals'));
+            var savedCartTotal = localStorage.getItem('savedCartTotal');
+
+            if (savedQuantities) {
+                $('.qty-val').each(function() {
+                    var itemId = $(this).closest('tr').data('cart-item-id');
+                    var quantity = savedQuantities[itemId];
+                    if (quantity !== undefined) {
+                        $(this).text(quantity);
+                    }
+                });
+            }
+
+            if (savedSubtotals) {
+                $('.item-subtotal').each(function() {
+                    var itemId = $(this).closest('tr').data('cart-item-id');
+                    var subtotal = savedSubtotals[itemId];
+                    if (subtotal !== undefined) {
+                        $(this).text('$' + subtotal);
+                    }
+                });
+            }
+
+            if (savedCartTotal) {
+                $('#cart-total').text('$' + savedCartTotal);
+                $('#cart-subtotal').text('$' + savedCartTotal);
+            }
+        }
+
+        // Call the function to load saved cart data when the document is ready
+        loadSavedCartData();
+
+        // Event handler for quantity buttons
+        $('.qty-up, .qty-down').on('click', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            var $input = $this.siblings('.qty-val');
+            var quantity = parseInt($input.text());
+            var cartItemId = $this.closest('tr').data('cart-item-id');
+
+            if ($this.hasClass('qty-up')) {
+                quantity++;
+            } else if ($this.hasClass('qty-down') && quantity > 1) {
+                quantity--;
+            }
+
+            $input.text(quantity);
+
+          
+
+            // Update the cart totals
+            $.ajax({
+                url: "{% url 'cart:update_cart_item_quantity' %}",
+                method: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'cart_item_id': cartItemId,
+                    'quantity': quantity
+                },
+                success: function(response) {
+                    $this.closest('tr').find('.item-subtotal').text('$' + response.sub_total);
+                    $('#cart-subtotal').text('$' + response.total);
+                    $('#cart-total').text('$' + response.total);
+
+                    console.log(response.total)
+                   
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+
+        // Event handler for the update cart button
+        $('#update-cart-btn').on('click', function(e) {
+            e.preventDefault();
+            // Trigger a click on each qty-up to update quantities before updating the cart
+            $('.qty-up').each(function() {
+                $(this).click();
+            });
+        });
+    });
+</script>
+{% endblock %}

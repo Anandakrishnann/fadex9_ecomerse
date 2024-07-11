@@ -225,7 +225,7 @@
         </div>
         </div>
     </div>
-  
+
     
     <header class="header-area header-style-1 header-height-2">
         <div class="header-middle header-middle-ptb-1 d-none d-lg-block">
@@ -253,9 +253,9 @@
                                     </a>
                                 </div>
                                 <div class="header-action-icon-2">
-                                    <a href="shop-wishlist.html">
+                                    <a href="{% url 'cart:cart' %}">
                                         <img class="svgInject" alt="Evara" src="{% static 'user_side/assets/imgs/theme/icons/icon-cart.svg' %}">
-                                        <span class="pro-count blue">4</span>
+                                        {% comment %} <span class="pro-count blue">4</span> {% endcomment %}
                                     </a>
                                 </div>
                                 <div class="header-action-icon-2">
@@ -265,7 +265,7 @@
                                     </a>
                                     <div style="width:150px;" class="cart-dropdown-wrap cart-dropdown-hm2">
                                         <ul>
-                                            {% if request.user %}
+                                            {% if request.user.is_authenticated %}
                                             <li>
                                                 <div class="shopping-cart-img">
                                                     <a style="font-weight:bold; width:200px; color:red;" href="{% url 'user_panel:user_dash' %}">Account</a>
