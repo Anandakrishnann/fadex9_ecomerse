@@ -34,9 +34,7 @@
                                     <li class="nav-item">
                                         <a class="nav-link" id="account-detail-tab" data-bs-toggle="tab" href="#account-add  " role="tab" aria-controls="account-detail" aria-selected="true"><i class="fi-rs-user mr-10"></i>Add Address</a>
                                     </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="account-detail-tab" data-bs-toggle="tab" href="#account-detail" role="tab" aria-controls="account-detail" aria-selected="true"><i class="fi-rs-user mr-10"></i>Account Details</a>
-                                    </li>
+                                    
                                     <li class="nav-item">
                                         <a class="nav-link" href="{% url 'accounts:logout' %}"><i class="fi-rs-sign-out mr-10"></i>Logout</a>
                                     </li>
@@ -132,7 +130,7 @@
                                             <div class="card mb-3 mb-lg-0">
                                                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                                                     <h5 class="mb-0">{{ address.name }}</h5>
-                                                    <a href="{% url 'user_panel:make_default' address.id %}" style="color:red" class="btn-small">
+                                                    <a href="{% url 'user_panel:make_as_default' address.id %}" style="color:red" class="btn-small">
                                                         {% if address.status %}
                                                             Default
                                                         {% else %}

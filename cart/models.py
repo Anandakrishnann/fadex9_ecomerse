@@ -13,12 +13,14 @@ class Cart(models.Model):
         return self.user
 
 class CartItem(models.Model):   
-    user = models.ForeignKey(Accounts, on_delete=models.CASCADE)
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="cart")
     quantity = models.IntegerField()
     is_active = models.BooleanField(default=True)
+    
+    def total_amount(self):
+        return self.variant.product.offer_price * self.quantity
     
     def sub_total(self):
         return self.product.offer_price * self.quantity

@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from .forms import *
@@ -11,6 +12,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import logout as auth_logout
 from products.models import *
+from cart.models import *
+from django.http import JsonResponse
 
 #---------------------------------------------- User Side -------------------------------------------------------------#
 
@@ -106,7 +109,7 @@ class VerifyOtp(View):
             otp_generation_time_str = request.session.get('otp_generation_time')
 
             try:
-                otp_generation_time = timezone.datetime.fromisoformat(otp_generation_time_str)
+                otp_generation_time = timezone.datetime.fromisoformat(str(otp_generation_time_str))
                 current_time = timezone.now()
                 otp_valid_duration = timedelta(minutes=2)
 
@@ -178,7 +181,8 @@ class ResendOtp(View):
 class IndexView(View):
     def get(self, request):
         products = Products.objects.all()
-        return render(request, 'Accounts/user_side/home.html', {'products':products})
+        brands = Brand.objects.all()
+        return render(request, 'Accounts/user_side/home.html', {'products':products, 'brands':brands})
     
 
 #---------------------------------------------- Product Detail Page -------------------------------------------------------------#
@@ -190,10 +194,18 @@ class ProductView(View):
         images = ProductImages.objects.filter(product=products)
         variants = ProductVariant.objects.filter(product=products)
         reviews = Review.objects.filter(product=products)
-        return render(request, 'Accounts/user_side/product_details2.html', {
+
+
+        return render(request, 'Accounts/user_side/demo.html', {
             'products': products,
             'images': images,
             'variants': variants,
             'reviews': reviews
         })
 
+
+class ProductShop(View):
+    def get(self,request):
+        products = Products.objects.all()
+        return render(request, 'Accounts/user_side/product_shop.html', {'products':products})
+    

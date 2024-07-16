@@ -14,9 +14,11 @@
     <meta property="og:image" content="">
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'user_side/assets/imgs/theme/favicon.svg' %}">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Template CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.css" rel="stylesheet"/>
     <link rel="stylesheet" href="{% static 'user_side/assets/css/main.css ' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
     <style>
         .search-container {
     display: flex;
@@ -253,13 +255,13 @@
                                     </a>
                                 </div>
                                 <div class="header-action-icon-2">
-                                    <a href="{% url 'cart:cart' %}">
+                                    <a href="{% url 'cart:cart_view' %}">
                                         <img class="svgInject" alt="Evara" src="{% static 'user_side/assets/imgs/theme/icons/icon-cart.svg' %}">
                                         {% comment %} <span class="pro-count blue">4</span> {% endcomment %}
                                     </a>
                                 </div>
                                 <div class="header-action-icon-2">
-                                    <a class="mini-cart-icon" href="shop-cart.html">
+                                    <a class="mini-cart-icon" >
                                         <img alt="Evara" src="{% static 'images/icons/user-round-plus.svg' %}">
                                         
                                     </a>
@@ -267,6 +269,9 @@
                                         <ul>
                                             {% if request.user.is_authenticated %}
                                             <li>
+                                                <div class="shopping-cart-img" style="padding-bottom:20px;">
+                                                    <p style="font-weight:bold; width:10px; color:red;" >{{ request.user }}</p>
+                                                </div>
                                                 <div class="shopping-cart-img">
                                                     <a style="font-weight:bold; width:200px; color:red;" href="{% url 'user_panel:user_dash' %}">Account</a>
                                                 </div>
@@ -314,7 +319,7 @@
                                         
                                     </li>
                                     
-                                    <li><a href="shop-grid-right.html">Shop <i class=""></i></a>
+                                    <li><a href="{% url 'accounts:product_shop' %}">Shop <i class=""></i></a>
                                         
                                     </li>
                                     <li class="position-static"><a href="#">Mega menu <i class="fi-rs-angle-down"></i></a>
@@ -389,7 +394,6 @@
             </div>
         </div>
     </header>
-    
     {% block content %}
 
     {% endblock %}

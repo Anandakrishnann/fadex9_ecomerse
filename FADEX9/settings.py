@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'category',
     'brand',
     'cart',
+    'orders',
     'social_django',
 ]
 
@@ -181,8 +182,8 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 SOCIAL_AUTH_EMAIL_REQUIRED = True
 
 
-LOGIN_URL = 'login/'
-LOGOUT_URL = 'logout/'
+LOGIN_URL = '/login/'
+LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 

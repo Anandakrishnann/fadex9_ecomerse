@@ -10,6 +10,7 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', views.logout, name='logout'),
     path('login/', LoginView.as_view(), name='login'),
+    path('shop/', ProductShop.as_view(), name='product_shop'),
     path('verify_otp/', VerifyOtp.as_view(), name='verify-otp'),
     path('resend_otp/', ResendOtp.as_view(), name='resend-otp'),
 ]

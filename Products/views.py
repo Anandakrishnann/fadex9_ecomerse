@@ -84,7 +84,9 @@ class ProductEdit(View):
         
         return redirect('product:products')
         
-        
+
+
+
         
 class ProductImage(View):
     def get(self, request, pk):
@@ -156,13 +158,15 @@ class VariantEdit(View):
             messages.error(request, 'A variant with this size already exists for this product.')
             return render(request, 'Products/product_edit_variant.html', {'variant': variant})
         
+        pk=product.id
         
         variant.size = size
         variant.variant_stock = variant_stock
         variant.variant_status = variant_status
         
         variant.save()
-        return redirect('product:product_info')
+        
+        return redirect('product:product_variant', pk=pk)
     
 
 class VariantStatus(View):
@@ -174,21 +178,12 @@ class VariantStatus(View):
         return redirect('product:product_variant', pk=pk)
 
 
-# class VariantDelete(View):
-#     def get(self, request, pk):
-#         variant = get_object_or_404(ProductVariant, id=pk)
-#         pk = variant.id
-#         variant.delete()
-#         return redirect('product:product_variant', pk=pk)
-
-
 
 class ProductStocks(View):
     def get(self, request, pk):
         variants = ProductVariant.objects.filter(product_id=pk)
         images = ProductImages.objects.filter(product_id=pk)
         return render(request, 'Products/product_stock.html', {'variants':variants, 'images':images})
-    
 
 
 
@@ -208,14 +203,16 @@ class ProductInfo(View):
         variants = ProductVariant.objects.filter(product=product)
         return render(request, 'Products/product_info.html', {'product': product, 'images': images, 'variants': variants})
     
-    
+
 
 #---------------------------------------------- Review Page -------------------------------------------------------------#
+
 
 
 class Reviews(View):
     def post(self, request, pk):
         user = request.user
+        
         product = get_object_or_404(Products, pk=pk)
         rating = request.POST.get('rating')
         comment = request.POST.get('comment')
@@ -226,9 +223,10 @@ class Reviews(View):
             comment = comment
         )
         review.save()
-        
-        return redirect('accounts:product_details', pk=pk)
     
+        return redirect('accounts:product_details', pk=pk)
+
+
 
 class DeleteImage(View):
     def post(self, request, pk):
@@ -236,11 +234,32 @@ class DeleteImage(View):
         pk = image.product.id 
         image.delete()
         return redirect('product:product_info', pk=pk)
-    
+
+
 
 class DeleteReview(View):
     def post(self, request, pk):
         review = get_object_or_404(Review, id=pk)
-        pk = review.product.id 
-        review.delete()
-        return redirect('account:product_details', pk=pk)
+        if request.user == review.user:
+            print(request.user)
+            print(review.user)
+            pk = review.product.id 
+            review.delete()
+            return redirect('accounts:product_details', pk=pk)
+        
+            
+# class DeleteReview(View):
+#     def post(self, request, pk):
+#         review = get_object_or_404(Review, id=pk)
+#         try:
+#             if request.user == review.user:
+#                 print(request.user)
+#                 print(review.user)
+#                 pk = review.product.id 
+#                 review.delete()
+#                 return redirect('accounts:product_details', pk=pk)
+#         except:
+#             messages.error('No You Cant Delete Someones Review')
+#             print(messages)
+#             return redirect('accounts:product_details',{'messages':messages}, pk=pk)
+        
