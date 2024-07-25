@@ -20,7 +20,6 @@ class CustomUserManager(BaseUserManager):
         user.date_joined = timezone.now()  # Set the date_joined field 
         user.save(using=self._db) 
         return user 
- 
     def create_superuser(self, email, first_name, last_name, phone_number, password=None): 
         user = self.create_user(
             email = self.normalize_email(email),

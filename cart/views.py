@@ -5,6 +5,7 @@ from .models import Accounts, Products, ProductVariant, Cart, CartItem
 from user_panel.models import *
 import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 
 
 class AddToCart(LoginRequiredMixin, View):
@@ -34,6 +35,7 @@ class AddToCart(LoginRequiredMixin, View):
                 cart=cart,
                 quantity=1  
             )
+            
             return JsonResponse({'success': True, 'message': 'Product added to cart successfully'}, status=200)
 
         except Accounts.DoesNotExist:
@@ -117,12 +119,26 @@ class CartCheckout(LoginRequiredMixin, View):
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart, is_active=True).order_by('-cart__updated_at')
 
-        
+        print(cart_items)
         # Check if all cart items are active and have sufficient stock
+        
+        if not cart_items.exists():
+            messages.error(request, 'Select Product')
+            return redirect('cart:cart_view')
+        
         for cart_item in cart_items:
-            if not cart_item.variant.variant_status or cart_item.variant.variant_stock < 1 or not cart_item.product.is_active or cart_item.variant.variant_stock < cart_item.quantity:
-                return redirect('cart:cart_view')  # Redirect to cart page if any item is not active or out of stock
-
+            if not cart_item.variant.variant_status:
+                messages.error(request, 'variant unavailable')
+                return redirect('cart:cart_view')
+            
+            if cart_item.variant.variant_stock < 1:
+                messages.error(request, 'Out of stock')
+                return redirect('cart:cart_view')
+            
+            if not cart_item.product.is_active:
+                messages.error(request, 'Product unavailable')
+                return redirect('cart:cart_view')
+            
         cart_total = sum(item.sub_total() for item in cart_items)
         user_address = UserAddress.objects.filter(user=request.user.id, status=True).order_by('-status', 'id')
 

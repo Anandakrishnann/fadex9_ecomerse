@@ -15,4 +15,5 @@ class UserAddress(models.Model):
     phone_number = models.CharField(max_length=50, null=False)
     
     status = models.BooleanField(default=False)
+    order_status = models.BooleanField(default=False)
     

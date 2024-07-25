@@ -73,7 +73,7 @@
                     <h3 class="card-title h4">Order Summary</h3>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Subtotal</span>
-                        <span id="cart-subtotal">${{ cart_total }}</span>
+                        <span style="color:red:" id="cart-subtotal">${{ cart_total }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Shipping</span>
@@ -204,6 +204,7 @@ $(document).ready(function() {
                         }
                     });
                     // Update the total if necessary
+                    $('#cart-subtotal').text(response.new_total);
                     $('#cart-total').text(response.new_total);
                 } else {
                     Swal.fire({
@@ -239,6 +240,28 @@ $(document).ready(function() {
             }
         });
     });
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                "{{ message }}",
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'error',
+                title: message,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+    {% endif %}
 });
 </script>
 {% endblock %}

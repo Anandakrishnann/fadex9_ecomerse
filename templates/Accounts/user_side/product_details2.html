@@ -121,17 +121,25 @@
                                     </div>
                                     <div class="bt-1 border-color-1 mt-30 mb-30"></div>
                                     <div class="detail-extralink">
-                                        
                                         <div class="product-extra-link2">
                                             <button type="button" id="product-cart-button" class="button button-add-to-cart" style="background-color:black;" data-product-id="{{ products.id }}">Add to Cart</button>
-                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                                            <button aria-label="Add To Wishlist" class="action-btn hover-up add-to-wishlist-btn" data-variant-id="{{ variant.id }}">
+                                                <i class="fi-rs-heart"></i>
+                                            </button>
                                             <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
                                         </div>
                                     </div>
+                                    <div class="product-extra-link2" style="margin-top:10px;">
+                                        <button type="button" id="product-cart-button" class="button button-add-to-cart" style="background-color:black;" data-product-id="{{ products.id }}">Buy Now</button>
+                                    </div>
                                     <ul class="product-meta font-xs color-grey mt-50">
+                                        {% if products.is_active %}
                                             {% for variant in variants %}
                                                 {% if variant.variant_stock >= 1 %}<li>Availability:<span class="in-stock text-danger ml-5">{{ variant.size }} _{{ variant.variant_stock }} Items In Stock</span></li>{% else %}<li>Availability:<span class="in-stock text-danger ml-5">Out Of Stock</span></li>{% endif %}
                                             {% endfor %}
+                                        {% else %}
+                                            <li>Availability:<span class="in-stock text-danger ml-5">Currently Unavailable</span></li>
+                                        {% endif %}
                                     </ul>
                                 </div>
                                 <!-- Detail Info -->
@@ -291,7 +299,7 @@
                                                         
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
+                                                <div class="form-group ">
                                                     <button type="submit" class="button button-contactForm">Submit Review</button>
                                                 </div>
                                             </form>
@@ -437,13 +445,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="banner-img banner-big wow fadeIn f-none animated mt-50">
-                            <img class="border-radius-10" src="assets/imgs/banner/banner-4.png" alt="">
-                            <div class="banner-text">
-                                <h4 class="mb-15 mt-40">Repair Services</h4>
-                                <h2 class="fw-600 mb-20">We're an Apple <br>Authorised Service Provider</h2>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -453,6 +455,10 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
 <script>
     $(document).ready(function() {
         // Star rating functionality
@@ -489,6 +495,7 @@
             // Handle mouseout event
             $(this).on('mouseout', function() {
                 clearHoverStars();
+                fillStars(ratingInput.val() - 1, 'selected'); // Keep the selected stars filled on mouseout
             });
         });
     
@@ -504,64 +511,90 @@
                 }
             });
         });
+    });
+
+
+ // Cart functionality
+
+
+    $(document).ready(function() {
+    var selectedVariantId = $('.list-filter.size-filter li.active').eq(1).data('variant-id');
     
-        // Cart functionality
-        var selectedVariantId = $('.list-filter.size-filter li.active').eq(1).data('variant-id');
-        var quantity = 1;
-    
-        // Handle variant selection
-        $('.list-filter.size-filter li').on('click', function() {
-            $('.list-filter.size-filter li').removeClass('active');
-            $(this).addClass('active');
-            selectedVariantId = $(this).data('variant-id');
-        });
-    
-        // Handle quantity change
-        $('.qty-down').on('click', function(e) {
-            e.preventDefault();
-            var currentQty = parseInt($('.qty-val').text());
-            if (currentQty > 1) {
-                $('.qty-val').text(currentQty - 1);
-                quantity = currentQty - 1;
+    // Handle variant selection
+    $('.list-filter.size-filter li').on('click', function() {
+        $('.list-filter.size-filter li').removeClass('active');
+        $(this).addClass('active');
+        selectedVariantId = $(this).data('variant-id');
+    });
+
+    // Handle add to cart
+    $('.button-add-to-cart').on('click', function() {
+        var productId = $(this).data('product-id');
+        
+        $.ajax({
+            url: "{% url 'cart:add_to_cart' %}", // Replace with your actual add to cart URL
+            method: "POST",
+            data: {
+                'product_id': productId,
+                'variant_id': selectedVariantId,
+                'csrfmiddlewaretoken': '{{ csrf_token }}' // Ensure you include the CSRF token
+            },
+            success: function(response) {
+                console.log(response)
+                if (response.success) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-right',
+                        icon: 'success',
+                        title: 'Product added to cart successfully',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                } 
+            },
+            error: function(xhr, status, error) {
+                var err = eval("(" + xhr.responseText + ")");
+                console.log(err.message)
+                Swal.fire({
+                    toast: true,
+                    position: 'top-right',
+                    icon: 'error',
+                    title: err.message,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                
             }
         });
-    
-        $('.qty-up').on('click', function(e) {
-            e.preventDefault();
-            var currentQty = parseInt($('.qty-val').text());
-            $('.qty-val').text(currentQty + 1);
-            quantity = currentQty + 1;
-        });
-    
-        // Handle add to cart
-        $('.button-add-to-cart').on('click', function() {
-            var productId = $(this).data('product-id');
+    });
+});
 
-            console.log(productId)
-            console.log(quantity)
-            console.log(selectedVariantId)
-    
-            $.ajax({
-                url: "{% url 'cart:add_to_cart' %}", // Replace with your actual add to cart URL
-                method: "POST",
-                data: {
-                    'product_id': productId,
-                    'variant_id': selectedVariantId,
-                    'quantity': quantity,
-                    'csrfmiddlewaretoken': '{{ csrf_token }}' // Ensure you include the CSRF token
-                },
-                success: function(response) {
-                    // Handle success response
-                    alert('Product added to cart successfully');
-                },
-                error: function(response) {
-                    // Handle error response
-                    alert('Failed to add product to cart');
-                }
-            });
-        });
-    });    
+// add to wishlist
 
-    
+
+$(document).ready(function() {
+    $('.add-to-wishlist-btn').click(function(event) {
+        event.preventDefault();
+        
+        let variantId = $(this).data('variant-id');
+        console.log(variantId)
+        $.ajax({
+            type: 'POST',
+            url: '{% url "wishlist:add_to_wishlist" %}',  // Replace with the correct URL pattern name
+            data: {
+                'variant': variantId,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                // Display the success message
+                alert(response.message);
+            },
+            error: function(xhr, errmsg, err) {
+                // Handle errors here
+                console.log(xhr.status + ": " + xhr.responseText);
+            }
+        });
+    });
+});
 </script>
 {% endblock %}

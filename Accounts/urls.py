@@ -13,4 +13,5 @@ urlpatterns = [
     path('shop/', ProductShop.as_view(), name='product_shop'),
     path('verify_otp/', VerifyOtp.as_view(), name='verify-otp'),
     path('resend_otp/', ResendOtp.as_view(), name='resend-otp'),
+    
 ]

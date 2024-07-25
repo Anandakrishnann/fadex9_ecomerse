@@ -12,6 +12,7 @@
     <meta property="og:type" content="">
     <meta property="og:url" content="">
     <meta property="og:image" content="">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'user_side/assets/imgs/theme/favicon.svg' %}">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -152,76 +153,7 @@
                                 </ul>
                             </div>
                         </div>
-                        <div class="col-md-6 col-sm-12 col-xs-12">
-                            <div class="detail-info">
-                                <h3 class="title-detail mt-30">Colorful Pattern Shirts HD450</h3>
-                                <div class="product-detail-rating">
-                                    <div class="pro-details-brand">
-                                        <span> Brands: <a href="shop-grid-right.html">Bootstrap</a></span>
-                                    </div>
-                                    <div class="product-rate-cover text-end">
-                                        <div class="product-rate d-inline-block">
-                                            <div class="product-rating" style="width:90%">
-                                            </div>
-                                        </div>
-                                        <span class="font-small ml-5 text-muted"> (25 reviews)</span>
-                                    </div>
-                                </div>
-                                <div class="clearfix product-price-cover">
-                                    <div class="product-price primary-color float-left">
-                                        <ins><span class="text-brand">$120.00</span></ins>
-                                        <ins><span class="old-price font-md ml-15">$200.00</span></ins>
-                                        <span class="save-price  font-md color3 ml-15">25% Off</span>
-                                    </div>
-                                </div>
-                                <div class="bt-1 border-color-1 mt-15 mb-15"></div>
-                                <div class="short-desc mb-30">
-                                    <p class="font-sm">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Aliquam rem officia, corrupti reiciendis minima nisi modi,!</p>
-                                </div>
-                                
-                                <div class="attr-detail attr-color mb-15">
-                                    <strong class="mr-10">Color</strong>
-                                    <ul class="list-filter color-filter">
-                                        <li><a href="#" data-color="Red"><span class="product-color-red"></span></a></li>
-                                        <li><a href="#" data-color="Yellow"><span class="product-color-yellow"></span></a></li>
-                                        <li class="active"><a href="#" data-color="White"><span class="product-color-white"></span></a></li>
-                                        <li><a href="#" data-color="Orange"><span class="product-color-orange"></span></a></li>
-                                        <li><a href="#" data-color="Cyan"><span class="product-color-cyan"></span></a></li>
-                                        <li><a href="#" data-color="Green"><span class="product-color-green"></span></a></li>
-                                        <li><a href="#" data-color="Purple"><span class="product-color-purple"></span></a></li>
-                                    </ul>
-                                </div>
-                                <div class="attr-detail attr-size">
-                                    <strong class="mr-10">Size</strong>
-                                    <ul class="list-filter size-filter font-small">
-                                        <li><a href="#">S</a></li>
-                                        <li class="active"><a href="#">M</a></li>
-                                        <li><a href="#">L</a></li>
-                                        <li><a href="#">XL</a></li>
-                                        <li><a href="#">XXL</a></li>
-                                    </ul>
-                                </div>
-                                <div class="bt-1 border-color-1 mt-30 mb-30"></div>
-                                <div class="detail-extralink">
-                                    <div class="detail-qty border radius">
-                                        <a href="#" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
-                                        <span class="qty-val">1</span>
-                                        <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
-                                    </div>
-                                    <div class="product-extra-link2">
-                                        <button type="submit" class="button button-add-to-cart">Add to cart</button>
-                                        <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-profile"></i></a>
-                                        <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
-                                    </div>
-                                </div>
-                                <ul class="product-meta font-xs color-grey mt-50">
-                                    <li class="mb-5">SKU: <a href="#">FWM15VKT</a></li>
-                                    <li class="mb-5">Tags: <a href="#" rel="tag">Cloth</a>, <a href="#" rel="tag">Women</a>, <a href="#" rel="tag">Dress</a> </li>
-                                    <li>Availability:<span class="in-stock text-success ml-5">8 Items In Stock</span></li>
-                                </ul>
-                            </div>
-                            <!-- Detail Info -->
-                        </div>
+                        
                     </div>
                 </div>        
         </div>
@@ -238,10 +170,14 @@
                     </div>
                     <div class="header-right">
                         <div class="">
-                            <form action="#">
+                            <form method="get" action="{% url 'accounts:product_shop' %}">
                                 <div style="margin-left: 180px;" class="search-input">
-                                    <input style="width: 550px; " type="text" placeholder="Search for items...">
-                                    <button type="submit" class="search-button"><img src="{% static 'images/icons/search.png' %}" alt=""></button>
+                                    <input style="width: 550px;" type="text" name="search" placeholder="Search for items..." value="{{ search_query }}">
+                                    <input type="hidden" name="category" value="{{ current_category }}">
+                                    <input type="hidden" name="sort_by" value="{{ current_sort_by }}">
+                                    <button type="submit" class="search-button">
+                                        <img src="{% static 'images/icons/search.png' %}" alt="">Submit
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -249,9 +185,9 @@
                         <div style="margin-left: 70px;" class="header-action-right">
                             <div class="header-action-2">
                                 <div class="header-action-icon-2">
-                                    <a href="shop-wishlist.html">
+                                    <a href="{% url 'wishlist:wishlist' %}">
                                         <img class="svgInject" alt="Evara" src="{% static 'user_side/assets/imgs/theme/icons/icon-heart.svg' %}">
-                                        <span class="pro-count blue">4</span>
+                                        {% comment %} <span class="pro-count blue">4</span> {% endcomment %}
                                     </a>
                                 </div>
                                 <div class="header-action-icon-2">
@@ -269,28 +205,26 @@
                                         <ul>
                                             {% if request.user.is_authenticated %}
                                             <li>
-                                                <div class="shopping-cart-img" style="padding-bottom:20px;">
-                                                    <p style="font-weight:bold; width:10px; color:red;" >{{ request.user }}</p>
-                                                </div>
+                                                
                                                 <div class="shopping-cart-img">
-                                                    <a style="font-weight:bold; width:200px; color:red;" href="{% url 'user_panel:user_dash' %}">Account</a>
+                                                    <a style="font-weight:bold; color:#ffffff;" class="btn btn-fill-out btn-block hover-up" href="{% url 'user_panel:user_dash' %}">Account</a>
                                                 </div>
                                             </li>
                                             <li>
                                                 <div class="shopping-cart-img">
-                                                    <a style="font-weight:bold; width:200px; color:red;" href="{% url 'accounts:logout' %}">Logout</a>
+                                                    <a style="font-weight:bold; color:#ffffff;" class="btn btn-fill-out btn-block hover-up" href="{% url 'accounts:logout' %}">Logout</a>
                                                 </div>
                                             </li>
                                             {% else %}
                                             <li>
                                                 <div class="shopping-cart-img">
-                                                    <a style="font-weight:bold; width:200px; color:red;" href="{% url 'accounts:login' %}">Login</a>
+                                                    <a style="font-weight:bold;  color:#ffffff;" class="btn btn-fill-out btn-block hover-up" href="{% url 'accounts:login' %}">Login</a>
                                                 </div>
                                                 
                                             </li>
                                             <li>
                                                 <div class="shopping-cart-img">
-                                                    <a style="font-weight:bold; width:200px; color:red;" href="{% url 'accounts:register' %}">Register</a>
+                                                    <a style="font-weight:bold;  color:#ffffff;" class="btn btn-fill-out btn-block hover-up" href="{% url 'accounts:register' %}">Register</a>
                                                 </div>
                                             </li>
                                             {% endif %}
@@ -304,7 +238,7 @@
                 </div>
             </div>
         </div>
-        <div style="padding-left:570px;" class="header-bottom header-bottom-bg-color sticky-bar">
+        <div style="padding-left:600px;" class="header-bottom header-bottom-bg-color sticky-bar">
             <div class="container">
                 <div class="header-wrap header-space-between position-relative">
                     <div class="logo logo-width-1 d-block d-lg-none">
@@ -315,14 +249,14 @@
                         <div class="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block">
                             <nav>
                                 <ul>
-                                    <li><a class="active" href="{% url 'accounts:home' %}">Home <i ></i></a>
+                                    <li><a style="font-weight:bold; font-size:20px;" class="active" href="{% url 'accounts:home' %}">Home <i ></i></a>
                                         
                                     </li>
                                     
-                                    <li><a href="{% url 'accounts:product_shop' %}">Shop <i class=""></i></a>
+                                    <li><a style="font-weight:bold; font-size:20px;" href="{% url 'accounts:product_shop' %}">Shop <i class=""></i></a>
                                         
                                     </li>
-                                    <li class="position-static"><a href="#">Mega menu <i class="fi-rs-angle-down"></i></a>
+                                    {% comment %} <li  class="position-static"><a style="font-weight:bold; font-size:20px;" href="#">Mega menu <i class="fi-rs-angle-down"></i></a>
                                         <ul class="mega-menu">
                                             <li class="sub-mega-menu sub-mega-menu-width-22">
                                                 <a class="menu-title" href="#">Women's Fashion</a>
@@ -378,13 +312,13 @@
                                                 </div>
                                             </li>
                                         </ul>
-                                    </li>
+                                    </li> {% endcomment %}
                                     <li>
-                                        <a href="page-about.html">About</a>
+                                        <a style="font-weight:bold; font-size:20px;" href="page-about.html">About</a>
                                     </li>
                                     
                                     <li>
-                                        <a href="page-contact.html">Contact</a>
+                                        <a style="font-weight:bold; font-size:20px;" href="page-contact.html">Contact</a>
                                     </li>
                                 </ul>
                             </nav>
@@ -398,9 +332,6 @@
 
     {% endblock %}
     <footer class="main">
-        <section class="newsletter p-30 text-white wow fadeIn animated">
-            
-        </section>
         <section class="section-padding footer-mid">
             <div class="container pt-15 pb-20">
                 <div class="row">

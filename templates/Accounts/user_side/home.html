@@ -11,15 +11,15 @@
                         <div class="col-lg-5 col-md-6">
                             <div class="hero-slider-content-2">
                                 <h4 class="animated">Trade-in offer</h4>
-                                <h2 class="animated fw-900">Supper value deals</h2>
-                                <h1 class="animated fw-900 text-brand">On all products</h1>
+                                <h1 class="animated fw-900">Hype Your Wardrobe</h1>
+                                <h1 class="animated fw-900">with Exclusive Drops</h1>
                                 <p class="animated">Save more with coupons & up to 70% off</p>
-                                <a class="animated btn btn-brush btn-brush-3" href="shop-product-right.html"> Shop Now </a>
+                                <a class="animated btn btn-black" href="shop-product-right.html"> Shop Now </a>
                             </div>
                         </div>
-                        <div class="col-lg-7 col-md-6">
-                            <div class="single-slider-img single-slider-img-1">
-                                <img class="animated slider-1-1" src="{% static 'user_side/assets/imgs/slider/slider-1.png' %}" alt="">
+                        <div class="col-lg-7 col-md-6" >
+                            <div class="single-slider-img single-slider-img-1" >
+                                <img  class="animated slider-1-1" src="{% static 'banner/dolce gabana.jpg' %}" alt="">
                             </div>
                         </div>
                     </div>
@@ -31,15 +31,16 @@
                         <div class="col-lg-5 col-md-6">
                             <div class="hero-slider-content-2">
                                 <h4 class="animated">Hot promotions</h4>
-                                <h2 class="animated fw-900">Fashion Trending</h2>
-                                <h1 class="animated fw-900 text-7">Great Collection</h1>
+                                <h1 class="animated fw-900">Stand Out with</h1>
+                                <h1 class="animated fw-900 ">Our Exclusive and Unique Hype Apparel</h1>
                                 <p class="animated">Save more with coupons & up to 20% off</p>
-                                <a class="animated btn btn-brush btn-brush-2" href="shop-product-right.html"> Discover Now </a>
+                                <a class="animated btn btn-black" href="shop-product-right.html"> Discover Now </a>
                             </div>
+                            
                         </div>
                         <div class="col-lg-7 col-md-6">
                             <div class="single-slider-img single-slider-img-1">
-                                <img class="animated slider-1-2" src="{% static 'user_side/assets/imgs/slider/slider-2.png' %}" alt="">
+                                <img class="animated slider-1-2" src="{% static 'banner/977032.jpg' %}" alt="">
                             </div>
                         </div>
                     </div>
@@ -51,15 +52,15 @@
                         <div class="col-lg-5 col-md-6">
                             <div class="hero-slider-content-2">
                                 <h4 class="animated">Upcoming Offer</h4>
-                                <h2 class="animated fw-900">Big Deals From</h2>
-                                <h1 class="animated fw-900 text-8">Manufacturer</h1>
-                                <p class="animated">Clothing, Shoes, Bags, Wallets...</p>
-                                <a class="animated btn btn-brush btn-brush-1" href="shop-product-right.html"> Shop Now </a>
+                                <h1 class="animated fw-900">Stay Ahead of</h1>
+                                <h1 class="animated fw-900 "> the Game with Exclusive Hype Gear</h1>
+                                <p class="animated"></p>
+                                <a class="animated btn btn-black" href="shop-product-right.html"> Shop Now </a>
                             </div>
                         </div>
                         <div class="col-lg-7 col-md-6">
                             <div class="single-slider-img single-slider-img-1">
-                                <img class="animated slider-1-3" src="{% static 'user_side/assets/imgs/slider/slider-3.png' %}" alt="">
+                                <img class="animated slider-1-3" src="{% static 'banner\street wear.jpg' %}" alt="">
                             </div>
                         </div>
                     </div>
@@ -153,12 +154,8 @@
     <section class="banner-2 section-padding pb-0">
         <div class="container">
             <div class="banner-img banner-big wow fadeIn animated f-none">
-                <img src="{% static 'user_side/assets/imgs/banner/banner-4.png' %}" alt="">
-                <div class="banner-text d-md-block d-none">
-                    <h4 class="mb-15 mt-40 text-brand">Repair Services</h4>
-                    <h1 class="fw-600 mb-20">We're an Apple <br>Authorised Service Provider</h1>
-                    <a href="shop-grid-right.html" class="btn">Learn More <i class="fi-rs-arrow-right"></i></a>
-                </div>
+                <img src="" alt="">
+                
             </div>
         </div>
     </section>
@@ -1264,4 +1261,26 @@
         </div>
     </section>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                "{{ message }}",
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'success',
+                title: message,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+    {% endif %}
+});
+</script>
 {% endblock %}

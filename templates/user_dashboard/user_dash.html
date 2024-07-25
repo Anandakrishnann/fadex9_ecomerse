@@ -1,6 +1,18 @@
 {% extends 'Base/user_base.html' %}
 {% load static %}
 {% block content %}
+<style>
+    .no-outline {
+        outline: none;
+        box-shadow: none;
+    }
+    
+    .no-outline:focus,
+    .no-outline:active {
+        outline: none;
+        box-shadow: none;
+    }
+</style>
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
@@ -45,11 +57,39 @@
                             <div class="tab-content dashboard-content">
                                 <div class="tab-pane fade active show" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
                                     <div class="card">
+                                        <div class="card-body text-center"> 
+                                            <div class="mb-3"> 
+                                                <i class="bi bi-person-circle display-1 text-secondary"></i> 
+                                            </div> 
+                                            <h5 class="card-title">{{ user.get_full_name }}</h5> 
+                                            <p class="card-text text-muted">{{ user.email }}</p> 
+                                            <a href="{% url 'user_panel:edit_details' user.id %}" class="btn btn-outline-secondary btn-sm mt-2">Edit Profile</a> 
+                                            <a href="{% url 'user_panel:change_password' %}" class="btn btn-outline-secondary btn-sm mt-2">Change Password</a> 
+                                        </div>
                                         <div class="card-header">
                                             <h5 class="mb-0">Hello {{ user.username }}! </h5>
                                         </div>
                                         <div class="card-body">
-                                            <p>From your account dashboard. you can easily check &amp; view your <a href="#">recent orders</a>, manage your <a href="#">shipping and billing addresses</a> and <a href="#">edit your password and account details.</a></p>
+                                            <div class="row">
+                                                <div class="form-group col-md-6">
+                                                    <label>First Name<span class="required">*</span></label>
+                                                    <input required class="form-control square" name="name" value="{{ user_data.first_name}} " type="text">
+                                                </div>
+                                                
+                                                <div class="form-group col-md-6">
+                                                    <label>Last Name<span class="required">*</span></label>
+                                                    <input required class="form-control square" value="{{ user_data.last_name }}" name="house_name">
+                                                </div>
+                                                
+                                                <div class="form-group col-md-6">
+                                                    <label>Email<span class="required">*</span></label>
+                                                    <input required class="form-control square" name="street_name" value="{{ user_data.email }}" type="text">
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>Phone Number<span class="required">*</span></label>
+                                                    <input required class="form-control square" value="{{ user_data.phone_number }}" name="pin_number">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -58,46 +98,115 @@
                                         <div class="card-header">
                                             <h5 class="mb-0">Your Orders</h5>
                                         </div>
-                                        <div class="card-body">
-                                            <div class="table-responsive">
-                                                <table class="table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Order</th>
-                                                            <th>Date</th>
-                                                            <th>Status</th>
-                                                            <th>Total</th>
-                                                            <th>Actions</th>
+                                        
+                                        <div class="card-body"> 
+                                            <div class="table-responsive"> 
+                                                <table class="table"> 
+                                                    <thead> 
+                                                        <tr> 
+                                                            <th>Order ID</th> 
+                                                            <th>Address</th> 
+                                                            <th>Price</th> 
+                                                            <th>Date</th> 
+                                                            <th>Status</th> 
+                                                            <th>Action</th> 
+                                                        </tr> 
+                                                    </thead> 
+                                                    {% for order in orders %}
+                                                    <tbody> 
+                                                        <tr> 
+                                                            <td> 
+                                                                {% if order_sub.variant.product.thumbnail %}
+                                                                <img src="{{ order_sub.variant.product.thumbnail.url }}"  alt="{{ order_sub.variant.product.product_name }}" style="width: 100px;"> 
+                                                                {% endif %}
+                                                                <div>Order ID:</div> 
+                                                                <div>{{ order.order_id }}</div>
+                                                            </td> 
+                                                            
+                                                            <td> 
+                                                                {{ order.address.house_name }}<br> 
+                                                                {{ order.address.district }}<br> 
+                                                                {{ order.address.state}}<br>
+                                                                {{ order.address.pin_number}} 
+                                                            </td> 
+                                                            <td>₹{{ order.total_amount }}</td> 
+                                                            <td> 
+                                                                {{ order.date }}<br>
+                                                            </td>
+                                                            <td><span {% if order.order_status == "Order Placed" %} class="badge bg-success" {% elif order.order_status == "Confirmed" %} class="badge bg-warning" {% elif order.order_status == "Awaiting Payment" %} class="badge bg-primary" {% else %}class="badge bg-danger" {% endif %}>{{ order.order_status }}</span></td> 
+                                                            <td>
+                                                                <div>
+                                                                    {% if order.order_status == "Order Placed" or order.order_status == "Confirmed" or order.order_status == "Awaiting Payment" or order.order_status == "Shipped" %}
+                                                                    <form id="cancel-order-form" method="post" action="{% url 'order:cancel_order' order.id %}">
+                                                                        {% csrf_token %}
+                                                                            <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
+                                                                                Cancel Order
+                                                                            </button>
+                                                                    </form>
+                                                                </div>
+                                                                <div style="margin-top:10px;">
+                                                                    <form id="return-order-form" method="post" action="{% url 'order:return_order' order.id %}">
+                                                                        {% csrf_token %}
+                                                                            <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
+                                                                                Return Order
+                                                                            </button>
+                                                                        </form>
+                                                                    {% endif %}
+                                                                </div>
+                                                                <div style="margin-top:10px;">
+                                                                    <button class="btn btn-secondary btn-sm collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#orderDetails{{ order.id }}" aria-expanded="false" aria-controls="orderDetails{{ order.id }}">
+                                                                        ▼
+                                                                    </button>
+                                                                </div>
+                                                            </td>
                                                         </tr>
-                                                    </thead>
-                                                    <tbody>
                                                         <tr>
-                                                            <td>#1357</td>
-                                                            <td>March 45, 2020</td>
-                                                            <td>Processing</td>
-                                                            <td>$125.00 for 2 item</td>
-                                                            <td><a href="#" class="btn-small d-block">View</a></td>
+                                                            <td colspan="6" class="p-0">
+                                                                <div class="collapse order-details" id="orderDetails{{ order.id }}">
+                                                                    <div class="card card-body">
+                                                                        {% for item in order.ordersub_set.all %}
+                                                                        <div class="row mb-3">
+                                                                            <div class="col-md-3">
+                                                                                <img src="{{ item.variant.product.thumbnail.url }}" alt="{{ item.variant.product.product_name }}" class="img-fluid rounded">
+                                                                            </div>
+                                                                            <div class="col-md-9">
+                                                                                <div class="row">
+                                                                                    <div class="col-md-6">
+                                                                                        <h5 class="card-title">{{ item.variant.product.product_name }}</h5>
+                                                                                        <p class="card-text">
+                                                                                            Quantity: {{ item.quantity }}<br>
+                                                                                            Size: {{ item.variant.size }}<br>
+                                                                                            Price: ₹{{ item.variant.product.offer_price }}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                    <div class="col-md-6">
+                                                                                        <h5 class="card-title">Delivery Address</h5>
+                                                                                        <p class="card-text">
+                                                                                            Name:{{ item.main_order.address.name }}<br>
+                                                                                            House Name: {{ item.main_order.address.house_name }}<br>
+                                                                                            Size: {{ item.variant.size }}<br>
+                                                                                            Price: ₹{{ item.variant.product.offer_price }}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        {% endfor %}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
                                                         </tr>
-                                                        <tr>
-                                                            <td>#2468</td>
-                                                            <td>June 29, 2020</td>
-                                                            <td>Completed</td>
-                                                            <td>$364.00 for 5 item</td>
-                                                            <td><a href="#" class="btn-small d-block">View</a></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>#2366</td>
-                                                            <td>August 02, 2020</td>
-                                                            <td>Completed</td>
-                                                            <td>$280.00 for 3 item</td>
-                                                            <td><a href="#" class="btn-small d-block">View</a></td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                                    </tbody> 
+                                                    {% endfor %}
+                                                </table> 
+                                            </div> 
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- Include Bootstrap JS for collapse functionality -->
+                                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+                                
                                 <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
                                     <div class="card">
                                         <div class="card-header">
@@ -173,66 +282,11 @@
                                 <div class="tab-pane fade" id="account-add" role="tabpanel" aria-labelledby="account-detail-tab">
                                     <div class="card">
                                         <div class="card-header">
-                                            <h5>Add Address</h5>
+                                            <h5>User Details</h5>
                                         </div>
-                                        <div class="card-body">
-                                            
-                                            <form id="addressForm" method="post" name="enq" action="{% url 'user_panel:create_address'%}">
-                                                {% csrf_token %}
-                                                <div class="row">
-                                                    <div class="form-group col-md-6">
-                                                        <label>Name <span class="required">*</span></label>
-                                                        <input required class="form-control square" name="name" type="text">
-                                                    </div>
-                                                    
-                                                    <div class="form-group col-md-6">
-                                                        <label>House Name <span class="required">*</span></label>
-                                                        <input required class="form-control square" name="house_name">
-                                                    </div>
-                                                    
-                                                    <div class="form-group col-md-6">
-                                                        <label>Street Name<span class="required">*</span></label>
-                                                        <input required class="form-control square" name="street_name" type="text">
-                                                    </div>
-                                                    <div class="form-group col-md-6">
-                                                        <label>Pin Number<span class="required">*</span></label>
-                                                        <input required class="form-control square" name="pin_number">
-                                                    </div>
-                                                    
-                                                    <div class="form-group col-md-6">
-                                                        <label>District <span class="required">*</span></label>
-                                                        <input required class="form-control square" name="district" type="text">
-                                                    </div>
-                                                    <div class="form-group col-md-6">
-                                                        <label>State <span class="required">*</span></label>
-                                                        <input required class="form-control square" name="state">
-                                                    </div>
-                                                    
-                                                    <div class="form-group col-md-6">
-                                                        <label>Country <span class="required">*</span></label>
-                                                        <input required class="form-control square" name="country" type="text">
-                                                    </div>
-                                                    
-                                                    <div class="form-group col-md-6">
-                                                        <label>Phone Number <span class="required">*</span></label>
-                                                        <input required class="form-control square" name="phone_number" type="tel" pattern="[0-9]{10}">
-                                                    </div>
-                                                    
-                                                    <div class="form-check mb-3">
-                                                        <input type="checkbox" class="form-check-input" id="is_active" name="status">
-                                                        <label class="form-check-label" for="is_active">Make As Default</label>
-                                                    </div>
-                                                    
-                                                    <div class="col-md-12">
-                                                        <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                            
-                                        </div>
+                                        
                                     </div>
                                 </div>
-                                
                             </div>
                         </div>
                     </div>
@@ -242,6 +296,7 @@
     </section>
 </main>
 <script>
+    /*
 
         document.getElementById('addressForm').addEventListener('submit', function(event) {
             var form = this;
@@ -274,6 +329,96 @@
                 alert('Please fill out all required fields correctly.');
             }
         });
-    
+    */
 </script>
-{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                "{{ message }}",
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'success',
+                title: message,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+    {% endif %}
+});
+
+
+// cancel confirm sweet alert
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle cancel order form
+    const cancelForm = document.getElementById('cancel-order-form');
+    
+    cancelForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you really want to cancel this order?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, cancel it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                cancelForm.submit();
+            }
+        });
+    });
+
+    // Handle return order form
+    const returnForm = document.getElementById('return-order-form');
+    returnForm.addEventListener('submit', function(event) {
+        event.preventDefault(); 
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you really want to return this order?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, return it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                returnForm.submit();
+            }
+        });
+    });
+});
+
+
+<!-- Include Bootstrap JS for collapse functionality -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom script to ensure only one collapse is open at a time -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var collapseButtons = document.querySelectorAll('.collapse-btn');
+        collapseButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var currentCollapse = document.querySelector('.collapse.show');
+                if (currentCollapse && currentCollapse !== this.nextElementSibling) {
+                    var collapseInstance = bootstrap.Collapse.getInstance(currentCollapse);
+                    if (collapseInstance) {
+                        collapseInstance.hide();
+                    }
+                }
+            });
+        });
+    });
+</script>
+</script>
+{% endblock %} 

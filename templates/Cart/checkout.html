@@ -16,36 +16,38 @@
     color: white !important;
   }
 
- .black-hover-button input[type="checkbox"]:checked {
+  .black-hover-button input[type="checkbox"]:checked {
     background-color: black;
     color: white !important;
   }
 </style>
 <main class="main">
-  <div class="page-header breadcrumb-wrap">
+    <div class="page-header breadcrumb-wrap">
         <div class="container">
-          <div class="breadcrumb">
-            <a href="index.html" rel="nofollow">Home</a>
-            <span></span> Shop <span></span> Checkout
-          </div>
+            <div class="breadcrumb">
+              <a href="index.html" rel="nofollow">Home</a>
+                <span></span> Shop <span></span> Checkout
+            </div>
         </div>
   </div>
   <section class="mt-20 mb-50">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6">
+      <div class="container">
+          <div class="row">
+          <div class="col-md-6">
           <div class="mb-25">
             <h4>Billing Details</h4>
           </div>
           <div class="mb-25">
             <button class="btn btn-fill-out btn-block hover-up">
-              <a style="color: white; width: " href="">Add New Address</a>
+              <a style="color: white; width: " href="{% url 'user_panel:add_address' %}" >Add New Address</a>
             </button>
           </div>
           <div>
             <div class="row">
               <div class="col-lg-6" style="width: 700px">
-                <div class="card mb-3 mb-lg-0">
+                <form method="post" action="{% url 'order:place_order' %}">
+                  {% csrf_token %}
+                  <div class="card mb-3 mb-lg-0">
                   {% for address in user_address %}
                   <div class="accordion-item">
                     <h2
@@ -62,7 +64,7 @@
                         aria-expanded="false"
                         aria-controls="collapse{{ address.id }}">
                         <input
-                          type="checkbox"
+                          type="checkbox" 
                           class="form-check-input me-2 address-checkbox"
                           id="address_{{ address.id }}"
                           data-address-id="{{ address.id }}"
@@ -153,47 +155,32 @@
               </div>
 
               <hr class="my-4" />
-
-              <h5 class="mb-3">Payment Method</h5>
-              <div class="mb-3">
-                <div class="form-check mb-2">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    name="payment_option"
-                    id="creditCard"
-                    checked />
-                  <label class="form-check-label" for="creditCard">Credit Card</label>
+              <form method="post" action="{% url 'order:place_order' %}">
+                {% csrf_token %}
+                <h5 class="mb-3">Payment Method</h5>
+                <div class="mb-3">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="payment_option" value="Credit Card" id="creditCard" checked />
+                        <label class="form-check-label" for="creditCard">Cash On Delivery</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="payment_option" value="UPI" id="upi" />
+                        <label class="form-check-label" for="upi">Card</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_option" value="Online Payment" id="cod" />
+                        <label class="form-check-label" for="cod">Online Payment</label>
+                    </div>
                 </div>
-                <div class="form-check mb-2">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    name="payment_option"
-                    id="upi" />
-                  <label class="form-check-label" for="upi">UPI</label>
-                </div>
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    name="payment_option"
-                    id="cod" />
-                  <label class="form-check-label" for="cod">Cash On Delivery</label>
-                </div>
-              </div>
-
-              <button type="button" class="btn btn-outline-dark w-100 mt-3">
-                Place Order
-              </button>
-            </div>
+                <button type="submit" class="btn btn-outline-dark w-100 mt-3">Place Order</button>
+            </form>
           </div>
         </div>
       </div>
     </div>
   </section>
 </main>
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -230,5 +217,26 @@
     });
   });
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                "{{ message }}",
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'error',
+                title: message,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+    {% endif %}
+});
+</script>
 {% endblock %}

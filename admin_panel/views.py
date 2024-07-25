@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect,get_object_or_404
 from django.views import View
 from .models import *
@@ -6,6 +7,7 @@ from django.contrib import messages
 from Accounts.models import Accounts
 from Accounts.forms import RegistrationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from orders.models import *
 # Create your views here.
 
 
@@ -80,3 +82,17 @@ class UserDelete(View):
         user_delete.save()
         return redirect('admin_panel:admin_view')
     
+
+class OrderStatus(View):
+    def post(self, request, pk):
+        fk = pk
+        order = get_object_or_404(OrderMain, id=pk)
+        new_status = request.POST.get('order_status')
+        
+        if new_status:
+            order.order_status = new_status
+            order.save()
+            
+            return redirect('order:admin_orders_details',fk)
+        else:
+            return HttpResponse("No status selected", status=400)

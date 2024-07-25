@@ -95,7 +95,7 @@
         let originalImageBlobs = [];
     
         const validateImage = (file) => {
-            const allowedExtensions = /\.(jpg|jpeg|png|gif|webp)$/i;
+            const allowedExtensions = /\.(jpg|jpeg|png|gif|webp|avif)$/i;
             if (!allowedExtensions.test(file.name)) {
                 alert("Please upload a valid image file (jpg, jpeg, png, gif)");
                 return false;

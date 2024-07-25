@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'brand',
     'cart',
     'orders',
+    'wishlist',
     'social_django',
 ]
 
@@ -172,6 +173,7 @@ EMAIL_PORT=587
 EMAIL_USE_TLS=True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -189,3 +191,8 @@ LOGOUT_REDIRECT_URL = '/'
 
 MEDIA_URL = '/media/' 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+RAZORPAY_KEY = 'rzp_test_JbnH93yXXtN2K2'
+RAZORPAY_SECRET = 'X0Wih2CS1PK5f9epKVOy3LPu'
+
+

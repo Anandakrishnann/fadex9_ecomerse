@@ -1,0 +1,30 @@
+{% extends 'Base/user_base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Order Completed</h1>
+    <h3 class="text-success">{{ formatted_future_date }}</h3>
+    
+    <div class="text-center mb-4">
+        <div class="text-success display-1">✓</div>
+        <h2>Your order is Completed</h2>
+        <p>Thank You for your order. Sit tight we are processing your order<br>we will update you with your order in email</p>
+    </div>
+    
+    <div class="row justify-content-center mb-4">
+        <div class="col-auto d-flex align-items-center">
+            {% comment %} <a href="{% url '%}" class="btn btn-dark me-3">View order</a> {% endcomment %}
+            <a href="{% url 'accounts:home' %}" class="btn btn-dark ms-3">Continue Shopping</a>
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <p class="mb-1"><strong>Order date : </strong>{{ main_order.date }}</p>
+        <p><strong>Order status : </strong> Confirmed</p>
+    </div>
+</div>
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}

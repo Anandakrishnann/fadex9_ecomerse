@@ -172,14 +172,14 @@
                                                 {{ form.first_name.label_tag }}
                                                 {{ form.first_name }}
                                                 {% for error in form.first_name.errors %}
-                                                    <div class="form-errors">{{ error }}</div>
+                                                    <div style="color:red;" class="form-errors">{{ error }}</div>
                                                 {% endfor %}
                                             </div>
                                             <div class="form-group">
                                                 {{ form.last_name.label_tag }}
                                                 {{ form.last_name }}
                                                 {% for error in form.last_name.errors %}
-                                                    <div class="form-errors">{{ error }}</div>
+                                                    <div style="color:red;" class="form-errors">{{ error }}</div>
                                                 {% endfor %}
 
                                             </div>
@@ -187,7 +187,7 @@
                                                 {{ form.email.label_tag }}
                                                 {{ form.email }}
                                                 {% for error in form.email.errors %}
-                                                    <div class="form-errors">{{ error }}</div>
+                                                    <div style="color:red;" class="form-errors">{{ error }}</div>
                                                 {% endfor %}
                                 
                                             </div>
@@ -195,7 +195,7 @@
                                                 {{ form.phone_number.label_tag }}
                                                 {{ form.phone_number }}
                                                 {% for error in form.phone_number.errors %}
-                                                    <div class="form-errors">{{ error }}</div>
+                                                    <div style="color:red;" class="form-errors">{{ error }}</div>
                                                 {% endfor %}
                                 
                                             </div>
@@ -203,7 +203,7 @@
                                                 {{ form.password.label_tag }}
                                                 {{ form.password }}
                                                 {% for error in form.password.errors %}
-                                                    <div class="form-errors">{{ error }}</div>
+                                                    <div style="color:red;" class="form-errors">{{ error }}</div>
                                                 {% endfor %}
                                 
                                             </div>
@@ -211,7 +211,7 @@
                                                 {{ form.confirm_password.label_tag }}
                                                 {{ form.confirm_password }}
                                                 {% for error in form.confirm_password.errors %}
-                                                    <div class="form-errors">{{ error }}</div>
+                                                    <div style="color:red;"  class="form-errors">{{ error }}</div>
                                                 {% endfor %}
                                 
                                             </div>
