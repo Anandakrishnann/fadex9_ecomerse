@@ -25,7 +25,7 @@
             "description": "Purchase",
             "order_id": "{{ payment.id }}",
             "handler": function (response) {
-                console.log("Payment successful", response);
+                console.log("Payment successful.....0", response);
                 fetch("{% url 'order:online_payment' %}", {
                     method: 'POST',
                     headers: {
@@ -35,7 +35,7 @@
                     body: JSON.stringify(response)
                 }).then(response => response.json())
                 .then(data => {
-                    console.log('Server response:', data);
+                    console.log('Server response...0:', data);
                     if (data.success) {
                         window.location.href = '{% url "order:order_success" %}';
                     } else {
