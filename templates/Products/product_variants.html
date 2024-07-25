@@ -2,42 +2,68 @@
 {% load static %}
 {% block content %}
 
-<div style="padding-left: 300px; padding-top: 100px; padding-bottom: 200px;">
-    <h1>{{ product.product_name }}</h1>
-    <div class="col-lg-3">
-        <div class="card mb-4" style="width: 500px;">
-            <div class="card-header">
-                <h4 style="font-weight: bold;">Variants</h4>
-            </div>
-            <div class="card-body">
-                <form method="post" action="{% url 'product:product_variant' product.id %}">
-                    {% csrf_token %}
-                    
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="mb-4">
-                                <label style="font-weight: bold;" for="size" class="form-label">Size</label>
-                                <input type="text" placeholder="inch" class="form-control" id="size"  name="size"  required>
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-4">
-                                <label style="font-weight: bold;" for="stock" class="form-label">Stock</label>
-                                <input type="text" placeholder="number" class="form-control" id="stock" name="variant_stock" required>
-                            </div>
-                        </div>
-                    </div>
-                    <label style='padding-top:10px;' class="form-check mb-4">
-                        <input class="form-check-input" name="variant_status" type="checkbox" value="on" required>
-                        <span style="font-weight: bold;"  class="form-check-label"> Status</span>
-                    </label>
-                    <div>
-                        <button type="submit" style="font-weight: bold;" class="btn btn-md rounded font-sm hover-up">Create</button>
-                    </div>
-                </form>
-            </div>
-        </div> <!-- card end// -->
-    </div>
-</div>
+<div class="container mt-5"> 
+    <div class="content-header"> 
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+            <h1> {{ product.product_name }}</h1> 
+        </div> 
+        <div> 
+            <a href="{% url 'product:create_variant' product.id %}" class="btn btn-primary"> 
+                <i class="text-muted material-icons md-post_add"></i>Create Variant 
+            </a> 
+        </div> 
+    </div> 
 
-{% endblock %}
+    {% for variant in variants %} 
+    <div class="card mb-4"> 
+        <div class="card-header d-flex justify-content-between align-items-center"> 
+            <h5>{{ variant.product.product_name }} - {{ variant.size }} - {{ variant.colour_name }}</h5> 
+            <div> 
+                <a href="{% url 'product:variant_edit' variant.id %}" class="btn btn-sm btn-warning"> 
+                    Edit 
+                </a> 
+                <a href="{% url 'product:variant_status' variant.id %}" class="btn btn-sm {% if variant.variant_status %}btn-danger{% else %}btn-success{% endif %}"> 
+                    {% if variant.variant_status %}Delete{% else %}Restore{% endif %} 
+                </a> 
+            </div> 
+        </div> 
+        <div class="card-body"> 
+            <div class="row"> 
+                <!-- Display images for this variant --> 
+                {% comment %} <div class="col-md-4"> 
+                    <h6>Images for {{ variant.product.product_name }} - {{ variant.colour_name }}</h6> 
+                    <div class="d-flex flex-wrap"> 
+                        {% for image in variant.product_variant_images_set.all %} 
+                        <div class="p-2"> 
+                            <img src="{{ image.images.url }}" class="img-fluid img-thumbnail" alt="Variant Image" width="100"> 
+                        </div> 
+                        {% empty %} 
+                        <p>No images available for this variant</p> 
+                        {% endfor %} 
+                    </div> 
+                </div>  {% endcomment %}
+                <!-- Display details for this variant --> 
+                <div class="col-md-8"> 
+                    <table class="table table-bordered"> 
+                        <tbody> 
+                            <tr> 
+                                <th>Size</th> 
+                                <td>{{ variant.size }}</td> 
+                            </tr> 
+                            <tr> 
+                                <th>Stock</th> 
+                                <td>{{ variant.variant_stock }}</td> 
+                            </tr> 
+                            <tr> 
+                                <th>Status</th> 
+                                <td>{% if variant.variant_status %}Active{% else %}Inactive{% endif %}</td> 
+                            </tr> 
+                        </tbody> 
+                    </table> 
+                </div> 
+            </div> 
+        </div> 
+    </div> 
+    {% endfor %} 
+</div>
+{% endblock %} 

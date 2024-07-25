@@ -1,31 +1,50 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <h2>Admin Login</h2>
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    <form method="post" action="{% url 'admin_panel:admin_login' %}">
-        {% csrf_token %}
-        <div>
-            <label for="username">Email:</label>
-            <input type="text" id="email" name="email" required>
+<section class="d-flex align-items-center vh-100">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 rounded">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <h3 class="card-title">Login</h3>
+                        </div>
+                        <p class="text-danger">{{ error_message }}</p>
+                        <form method="post" action="{% url 'admin_panel:admin_login' %}">
+                            {% csrf_token %}
+                            
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" name="email" id="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" class="form-control" name="password" id="password" required>
+                            </div>
+                            
+                            <div class="form-group text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-block" name="login">Log in</button>
+                            </div>
+                            
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <button type="submit">Login</button>
-    </form>
+    </div>
+</section>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 from datetime import timedelta
-from django.shortcuts import render, redirect
+import json
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from .forms import *
 from .models import *
@@ -11,6 +12,10 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import logout as auth_logout
 from products.models import *
+from cart.models import *
+from django.http import JsonResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Avg
 
 #---------------------------------------------- User Side -------------------------------------------------------------#
 
@@ -106,7 +111,7 @@ class VerifyOtp(View):
             otp_generation_time_str = request.session.get('otp_generation_time')
 
             try:
-                otp_generation_time = timezone.datetime.fromisoformat(otp_generation_time_str)
+                otp_generation_time = timezone.datetime.fromisoformat(str(otp_generation_time_str))
                 current_time = timezone.now()
                 otp_valid_duration = timedelta(minutes=2)
 
@@ -130,7 +135,7 @@ class VerifyOtp(View):
                             del request.session['user_data']
 
                             messages.success(request, 'Your account has been activated successfully.')
-                            return redirect('accounts:home')
+                            return redirect('accounts:login')
 
                         else:
                             messages.error(request, 'User data not found. Please register again.')
@@ -177,11 +182,69 @@ class ResendOtp(View):
 
 class IndexView(View):
     def get(self, request):
-        products = Products.objects.filter(is_active=True)
-        return render(request, 'Accounts/user_side/home.html', {'products':products})
+        products = Products.objects.all()
+        brands = Brand.objects.all()
+        # return render(request, 'Accounts/user_side/home.html', {'products':products, 'brands':brands})
+        return render(request, 'Accounts/user_side/home.html', {'products':products, 'brands':brands})
     
 
+#---------------------------------------------- Product Detail Page -------------------------------------------------------------#
+
+
 class ProductView(View):
+    def get(self, request, pk):
+        products = get_object_or_404(Products, pk=pk)
+        images = ProductImages.objects.filter(product=products)
+        variants = ProductVariant.objects.filter(product=products)
+        reviews = Review.objects.filter(product=products)
+
+        return render(request, 'Accounts/user_side/demo.html', {
+            'products': products,
+            'images': images,
+            'variants': variants,
+            'reviews': reviews
+        })
+
+
+class ProductShop(View):
     def get(self, request):
-        products = Products.objects.filter(is_active=True)
-        return render(request, 'Accounts/user_side/products.html', {'products':products})
+        category_slug = request.GET.get('category', '')
+        sort_by = request.GET.get('sort_by', '')
+        search_query = request.GET.get('search', '')
+
+        products = Products.objects.all()
+
+        if search_query:
+            products = products.filter(product_name__icontains=search_query)
+        
+        if category_slug:
+            products = products.filter(product_category__slug=category_slug)
+
+        # Annotate products with their average rating
+        products = products.annotate(avg_rating=Avg('reviews__rating'))
+
+        # Sort products based on the sort_by parameter
+        if sort_by == 'price_asc':
+            products = products.order_by('offer_price')
+        elif sort_by == 'price_desc':
+            products = products.order_by('-offer_price')
+        elif sort_by == 'release_date':
+            products = products.order_by('-release_date')
+        elif sort_by == 'avg_rating':
+            products = products.order_by('-avg_rating')
+        else:
+            products = products.order_by('id')
+
+        categories = Category.objects.all()
+
+        context = {
+            'products': products,
+            'categories': categories,
+            'current_category': category_slug,
+            'current_sort_by': sort_by,
+            'search_query': search_query,
+        }
+        return render(request, 'Accounts/user_side/product_shop.html', context)
+
+    
+

@@ -19,8 +19,11 @@ class CreateCategory(View):
 
 class CategoryList(View):
     def get(self, request):
-        categories = Category.objects.all()
-        return render(request, 'Category/category.html',{'categories':categories})
+        if request.user.is_authenticated:
+            categories = Category.objects.all()
+            return render(request, 'Category/category.html',{'categories':categories})
+        else:
+            return render(request, 'Accounts/admin_side/admin_login.html' )
     
 class CategoryEdit(View):
     def get(self, request, pk):

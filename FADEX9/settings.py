@@ -50,8 +50,12 @@ INSTALLED_APPS = [
     'Accounts',
     'products',
     'admin_panel',
+    'user_panel',
     'category',
     'brand',
+    'cart',
+    'orders',
+    'wishlist',
     'social_django',
 ]
 
@@ -151,9 +155,16 @@ USE_TZ = True
 
 STATIC_URL = '/static/' 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")] 
- 
+
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+
+# Base directory of the project
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Media settings
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # email
 EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
@@ -162,6 +173,7 @@ EMAIL_PORT=587
 EMAIL_USE_TLS=True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -172,10 +184,15 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 SOCIAL_AUTH_EMAIL_REQUIRED = True
 
 
-LOGIN_URL = 'login/'
-LOGOUT_URL = 'logout/'
+LOGIN_URL = '/login/'
+LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 MEDIA_URL = '/media/' 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+RAZORPAY_KEY = 'rzp_test_JbnH93yXXtN2K2'
+RAZORPAY_SECRET = 'X0Wih2CS1PK5f9epKVOy3LPu'
+
+

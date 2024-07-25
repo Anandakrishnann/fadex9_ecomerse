@@ -61,7 +61,7 @@
                 $(this).parents('.attr-detail').find('.current-size').text($(this).text());
                 $(this).parents('.attr-detail').find('.current-color').text($(this).attr('data-color'));
             });
-        });
+        }); 
         //Qty Up-Down
         $('.detail-qty').each(function () {
             var qtyval = parseInt($(this).find('.qty-val').text(), 10);

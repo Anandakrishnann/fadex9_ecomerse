@@ -23,11 +23,15 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('Accounts.urls')),  # Main app
     path('admin_panel/', include('admin_panel.urls')),  # Admin panel app
-    path('category/', include('category.urls')),  # Admin panel app
-    path('products/', include('products.urls')),  # Admin panel app
-    path('brands/', include('brand.urls')),  # Admin panel app
+    path('category/', include('category.urls')),  # Category app
+    path('products/', include('products.urls')),  # Products app
+    path('brands/', include('brand.urls')),  # Brands app
+    path('user_panel/', include('user_panel.urls')),  # User Panel app
+    path('cart/', include('cart.urls')),  # Cart app
+    path('orders/', include('orders.urls')),  # Orders app
+    path('wishlist/', include('wishlist.urls')),  # wishlist app
     path('auth/', include('social_django.urls', namespace='social')),
-]
+]   
 
-if settings.DEBUG: 
+if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

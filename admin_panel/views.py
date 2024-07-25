@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect,get_object_or_404
 from django.views import View
 from .models import *
@@ -5,13 +6,15 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib import messages
 from Accounts.models import Accounts
 from Accounts.forms import RegistrationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from orders.models import *
 # Create your views here.
 
 
 #---------------------------------------------- admin login -------------------------------------------------------------#
 
 
-class AdminLogin(View):
+class AdminLogin(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'Accounts/admin_side/admin_login.html')
     
@@ -35,7 +38,7 @@ class AdminLogin(View):
 #---------------------------------------------- admin dash -------------------------------------------------------------#
 
 
-class Admin(View):
+class Admin(LoginRequiredMixin, View):
     def get(self, request):
         if request.user.is_authenticated:
             return render(request, 'Accounts/admin_side/admin.html')
@@ -52,15 +55,18 @@ def logout(request):
 #---------------------------------------------- users -------------------------------------------------------------#
 
 
-class AdminUsers(View):
+class AdminUsers(LoginRequiredMixin, View):
     def get(self, request):
-        users = Accounts.objects.filter(is_admin=False)
-        return render(request, 'Accounts/admin_side/admin_users.html', {'users':users})
+        if request.user.is_authenticated:
+            users = Accounts.objects.filter(is_admin=False)
+            return render(request, 'Accounts/admin_side/admin_users.html', {'users':users})
+        else:
+            return render(request, 'Accounts/admin_side/admin_login.html')
 
 
 #---------------------------------------------- user block -------------------------------------------------------------#
 
-class UserBlock(View):
+class UserBlock(LoginRequiredMixin, View):
     def get(self, request, pk):
         user_block = get_object_or_404(Accounts, pk=pk)
         user_block.is_blocked = not user_block.is_blocked  # Toggle the blocked status
@@ -76,3 +82,17 @@ class UserDelete(View):
         user_delete.save()
         return redirect('admin_panel:admin_view')
     
+
+class OrderStatus(View):
+    def post(self, request, pk):
+        fk = pk
+        order = get_object_or_404(OrderMain, id=pk)
+        new_status = request.POST.get('order_status')
+        
+        if new_status:
+            order.order_status = new_status
+            order.save()
+            
+            return redirect('order:admin_orders_details',fk)
+        else:
+            return HttpResponse("No status selected", status=400)
