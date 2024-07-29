@@ -15,6 +15,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from datetime import datetime, timedelta
 import razorpay
 from django .conf import settings
+from coupon.models import *
 
 
 # Create your views here.
@@ -68,6 +69,21 @@ class OrderVerificationView(LoginRequiredMixin, View):
         cart_items = CartItem.objects.filter(cart__user=request.user, is_active=True) 
         new_total = sum(item.sub_total() for item in cart_items) 
         
+        # Get applied coupon from the session (if exists)
+        coupon_code = request.session.get('applied_coupon', None)
+        discount = 0
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(coupon_code=coupon_code)
+                discount = coupon.maximum_amount
+                coupon_name = coupon.coupon_name
+                discount_amount = (new_total * discount / 100)
+                if discount_amount > discount:
+                    discount_amount = discount
+                new_total-= discount_amount
+            except Coupon.DoesNotExist:
+                pass
+        
         if payment_option == "Online Payment":
             return redirect('order:online_payment')
         
@@ -86,6 +102,16 @@ class OrderVerificationView(LoginRequiredMixin, View):
             formatted_future_date = future_date_time.strftime("Arriving By %d %a %B %Y")
             
             main_order = OrderMain.objects.get(id=order_main.id)
+
+            
+            if coupon_code:
+                coupon = Coupon.objects.create(
+                    user=request.user.id,
+                    coupon = coupon.id,
+                    used = True,
+                    order = main_order
+                )
+            
             
             for cart_item in cart_items:
                 order_sub = OrderSub.objects.create(   
@@ -101,7 +127,8 @@ class OrderVerificationView(LoginRequiredMixin, View):
             
             for cart_item in cart_items:
                 cart_item.delete()
-        
+
+            request.session.pop('applied_coupon', None)
         return render(request, 'Order/order.html', {'main_order':main_order, 'formatted_future_date':formatted_future_date})
 
 
@@ -110,8 +137,26 @@ class OnlinePayment(View):
         user = request.user
         cart_items = CartItem.objects.filter(cart__user=user, is_active=True) 
         new_total = sum(item.sub_total() for item in cart_items) 
+        
+        # Get applied coupon from the session (if exists)
+        coupon_code = request.session.get('applied_coupon', None)
+        discount = 0
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(coupon_code=coupon_code)
+                discount = coupon.maximum_amount
+                coupon_name = coupon.coupon_name
+                discount_amount = (new_total * discount / 100)
+                if discount_amount > discount:
+                    discount_amount = discount
+                new_total-= discount_amount
+            except Coupon.DoesNotExist:
+                pass
+            
+            
         new_total_paise = int(new_total * 100)
         
+
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY, settings.RAZORPAY_SECRET))
         payment = client.order.create({'amount': new_total_paise, 'currency': 'INR', 'payment_capture': 1})
         
@@ -154,6 +199,20 @@ class OnlinePayment(View):
             payment_id = data.get('razorpay_payment_id')
 
             new_total = sum(item.sub_total() for item in cart_items) 
+            
+            coupon_code = request.session.get('applied_coupon', None)
+            discount = 0
+            if coupon_code:
+                try:
+                    coupon = Coupon.objects.get(coupon_code=coupon_code)
+                    discount = coupon.maximum_amount
+                    coupon_name = coupon.coupon_name
+                    discount_amount = (new_total * discount / 100)
+                    if discount_amount > discount:
+                        discount_amount = discount
+                    new_total-= discount_amount
+                except Coupon.DoesNotExist:
+                    pass
 
             order_main = OrderMain.objects.create(
                 user=current_user,
@@ -164,6 +223,14 @@ class OnlinePayment(View):
                 payment_id=payment_id
             )
 
+            if coupon_code:
+                coupon = Coupon.objects.create(
+                    user=request.user.id,
+                    coupon = coupon.id,
+                    used = True,
+                    order = order_main
+                )
+            
             for cart_item in cart_items:
                 OrderSub.objects.create(
                     user=current_user,
@@ -177,6 +244,8 @@ class OnlinePayment(View):
                 variant.save()
 
             cart_items.delete()
+            
+            request.session.pop('applied_coupon', None)
 
             print(f"Order created successfully: {order_main}")  # Logging order creation
             return JsonResponse({'success': True, 'message': 'Payment successful'})

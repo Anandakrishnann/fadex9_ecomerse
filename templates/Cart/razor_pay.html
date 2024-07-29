@@ -16,10 +16,11 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        console.log("iiiiiiiiiiiiiii")
+        console.log("iiiiiiiiiiiiiii")  
+        console.log("Razorpay Key ID:", "{{ razorpay_key_id }}");
         var options = {
             "key": "{{ razorpay_key_id }}",
-            "amount": "{{ payment_amount }}",
+            "amount": "{{ payment.amount  }}",
             "currency": "INR",
             "name": "FADEX.9",
             "description": "Purchase",

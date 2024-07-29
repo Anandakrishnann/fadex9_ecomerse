@@ -6,6 +6,7 @@ from user_panel.models import *
 import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from coupon.models import *
 
 
 class AddToCart(LoginRequiredMixin, View):
@@ -58,10 +59,14 @@ class CartView(LoginRequiredMixin, View):
             cart_prices = CartItem.objects.filter(cart=cart, is_active=True)
             cart_total = sum(item.sub_total() for item in cart_prices)
             
-            return render(request, 'Cart/demo_cart.html',{'cart':cart, 'cart_item':cart_item, 'cart_total':cart_total})
+            
+            available_coupons = Coupon.objects.filter(status=True, expiry_date__gte=timezone.now()) 
+            used_coupons = UserCoupon.objects.filter(user=request.user).values_list('coupon', flat=True) 
+            available_coupons = available_coupons.exclude(id__in=used_coupons) 
+            
+            return render(request, 'Cart/demo_cart.html',{'cart':cart, 'cart_item':cart_item, 'cart_total':cart_total, 'available_coupons': available_coupons })
         except:
             return render(request, 'Cart/demo_cart.html')
-
 
 
 
@@ -98,20 +103,63 @@ def update_cart_quantity(request):
 class UpdateCartStatus(View):
     def post(self, request, *args, **kwargs):
         item_id = request.POST.get('item_id')
-        is_active = request.POST.get('is_active') == 'true'  # corrected the logic here
+        is_active = request.POST.get('is_active') == 'true' if request.POST.get('is_active') else None
+        coupon_code = request.POST.get('coupon_code')
+        action = request.POST.get('action')
 
-        cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-        cart_item.is_active = is_active
-        cart_item.save()
-
+        response = {'success': False}
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart, is_active=True)
-        new_total = sum(item.sub_total() for item in cart_items)  # Make sure you have a sub_total method
 
-        return JsonResponse({
-            'success': True,
-            'new_total': new_total,
-        })
+        if action == 'status' and item_id is not None and is_active is not None:
+            cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+            cart_item.is_active = is_active
+            cart_item.save()
+            response['success'] = True
+            response['message'] = 'Status updated successfully.'
+
+        if action == 'coupon' and coupon_code:
+            try:
+                coupon = Coupon.objects.get(coupon_code=coupon_code)
+                cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+                current_total = sum(item.sub_total() for item in cart_items)
+                
+                if current_total > coupon.minimum_amount:
+                    discount = coupon.maximum_amount
+                    discount_amount = (current_total * discount / 100)
+
+                    if discount_amount > discount:
+                        discount_amount = discount
+                else:
+                    messages.error(request, f'Coupon only available for {coupon.minimum_amount}')
+                    return redirect('cart:cart_view')
+                
+                new_total = current_total - discount_amount
+                print(new_total)
+                response.update({
+                    'success': True,
+                    'message': 'Coupon applied successfully.',
+                    'current_total':current_total,
+                    'new_total': new_total,
+                    'discount': discount,
+                })
+                
+                request.session['applied_coupon'] = coupon_code
+                
+            except Coupon.DoesNotExist:
+                response['message'] = 'Invalid coupon code.'
+
+        if not coupon_code:
+            new_total = sum(item.sub_total() for item in cart_items)
+            discount = 0
+            response.update({
+                'success': True,
+                'new_total': new_total,
+                'discount':discount
+            })
+
+        return JsonResponse(response)
+
 
 
 class CartCheckout(LoginRequiredMixin, View):
@@ -140,10 +188,29 @@ class CartCheckout(LoginRequiredMixin, View):
                 return redirect('cart:cart_view')
             
         cart_total = sum(item.sub_total() for item in cart_items)
+        
+        # Get applied coupon from the session (if exists)
+        coupon_code = request.session.get('applied_coupon', None)
+        discount = 0
+        coupon_name = "Not Applied"
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(coupon_code=coupon_code)
+                discount = coupon.maximum_amount
+                coupon_name = coupon.coupon_name
+                discount_amount = (cart_total * discount / 100)
+                if discount_amount > discount:
+                    discount_amount = discount
+                cart_total -= discount_amount
+            except Coupon.DoesNotExist:
+                pass
+            
         user_address = UserAddress.objects.filter(user=request.user.id, status=True).order_by('-status', 'id')
 
         return render(request, 'Cart/checkout.html', {
             'cart_items': cart_items,
             'cart_total': cart_total,
             'user_address': user_address,
+            'discount':discount,
+            'coupon_name':coupon_name
         })

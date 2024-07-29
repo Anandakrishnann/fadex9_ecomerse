@@ -71,11 +71,29 @@
                         <input type="text" class="form-control mb-2" placeholder="Enter coupon code">
                         <button class="btn btn-outline-secondary w-100">Apply Coupon</button>
                     </div>
+                    <button class="btn btn-outline-secondary w-100" data-bs-toggle="modal" data-bs-target="#availableCouponsModal">Available Coupons</button>
                 </div>
             </div>
         </div>
     </div>
 </main>
+<div class="modal fade" id="availableCouponsModal" tabindex="-1" aria-labelledby="availableCouponsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="availableCouponsModalLabel">Available Coupons</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- This is where you'll dynamically insert the available coupons -->
+                <div id="availableCouponsList"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -137,5 +155,64 @@ document.querySelectorAll('.qty-btn').forEach(button => {
     });
 });
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const availableCouponsModal = document.getElementById('availableCouponsModal');
+        availableCouponsModal.addEventListener('show.bs.modal', function (event) {
+            // Fetch available coupons when the modal is about to be shown
+            fetchAvailableCoupons();
+        });
+    });
+    
+    function fetchAvailableCoupons() {
+        // Replace this URL with your actual API endpoint
+        fetch('/api/available-coupons')
+            .then(response => response.json())
+            .then(coupons => {
+                displayCoupons(coupons);
+            })
+            .catch(error => {
+                console.error('Error fetching coupons:', error);
+                document.getElementById('availableCouponsList').innerHTML = 'Error loading coupons.';
+            });
+    }
+    
+    function displayCoupons(coupons) {
+        const couponsList = document.getElementById('availableCouponsList');
+        couponsList.innerHTML = ''; // Clear existing content
+    
+        if (coupons.length === 0) {
+            couponsList.innerHTML = 'No coupons available at the moment.';
+            return;
+        }
+    
+        const ul = document.createElement('ul');
+        ul.className = 'list-group';
+    
+        coupons.forEach(coupon => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `
+                <div>
+                    <h6 class="mb-0">${coupon.code}</h6>
+                    <small>${coupon.description}</small>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="applyCoupon('${coupon.code}')">Apply</button>
+            `;
+            ul.appendChild(li);
+        });
+    
+        couponsList.appendChild(ul);
+    }
+    
+    function applyCoupon(couponCode) {
+        // Implement the logic to apply the coupon
+        console.log('Applying coupon:', couponCode);
+        // You might want to close the modal and update the cart total here
+        document.getElementById('availableCouponsModal').modal('hide');
+        // Update the coupon input field with the selected coupon code
+        document.querySelector('input[placeholder="Enter coupon code"]').value = couponCode;
+    }
+    </script>
 {% endblock %}
 

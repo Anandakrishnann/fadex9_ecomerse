@@ -30,6 +30,7 @@ urlpatterns = [
     path('cart/', include('cart.urls')),  # Cart app
     path('orders/', include('orders.urls')),  # Orders app
     path('wishlist/', include('wishlist.urls')),  # wishlist app
+    path('coupon/', include('coupon.urls')),  # coupon app
     path('auth/', include('social_django.urls', namespace='social')),
 ]   
 

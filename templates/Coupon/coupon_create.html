@@ -1,0 +1,102 @@
+{% extends 'Base/admin_base.html' %}
+{% load static %}
+{% block content %}
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Add New Coupon</h2>
+            </div>
+        </div>
+        <div style="width:900px;" class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Create</h4>
+                </div>
+                <div class="card-body">
+                    <form id="couponForm" method="post" action="{% url 'coupon:create_coupon' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label style="font-weight: bold;" for="coupon_name" class="form-label">Coupon Name</label>
+                                <input type="text" placeholder="Type here" class="form-control" name="coupon_name" id="coupon_name" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label style="font-weight: bold;" class="form-label">Minimum Amount</label>
+                                <input type="number" placeholder="Type here" class="form-control" name="minimum_amount" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label style="font-weight: bold;" class="form-label">Discount</label>
+                                <input type="number" placeholder="Type here" class="form-control" name="discount" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label style="font-weight: bold;" class="form-label">Maximum Amount</label>
+                                <input type="number" placeholder="Type here" class="form-control" name="maximum_amount" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label style="font-weight: bold;" class="form-label">Expiry Date</label>
+                                <input type="date" class="form-control" name="expiry_date" required>
+                            </div>
+                        </div>
+                        <div class="card mb-8">
+                            <div class="card-body">
+                                <p>Coupon Code</p>
+                                <div class="input-upload">
+                                    <input type="text" class="form-control" id="generated_coupon_code">
+                                    <input type="hidden" name="generated_coupon_code" id="hidden_coupon_code">
+                                </div>
+                                <button type="button" class="btn btn-md rounded font-sm hover-up mt-3" onclick="generateCouponCode()">Generate</button>
+                            </div>
+                        </div>
+                        <label style='padding-top:10px;' class="form-check mb-4">
+                            <input class="form-check-input" name="status" type="checkbox" value="True">
+                            <span style="font-weight: bold;" class="form-check-label"> Status</span>
+                        </label>
+                        <div>
+                            <button type="submit" style="font-weight: bold;" class="btn btn-md rounded font-sm hover-up">Create Coupon</button>
+                        </div>
+                    </form>
+                </div>
+            </div> <!-- card end// -->
+        </div>
+    </div>
+</section> <!-- content-main end// -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                "{{ message }}",
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'success',
+                title: message,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+    {% endif %}
+});
+</script>
+<script>
+    function generateCouponCode() {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        const length = 10; // Set the length of the random string here
+        for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        document.getElementById('generated_coupon_code').value = result;
+        document.getElementById('hidden_coupon_code').value = result;
+    }
+</script>
+{% endblock %}

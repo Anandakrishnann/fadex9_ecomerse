@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'cart',
     'orders',
     'wishlist',
+    'coupon',
     'social_django',
 ]
 
