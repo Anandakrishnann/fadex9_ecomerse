@@ -1,6 +1,6 @@
 from django.db import models
 from Accounts.models import Accounts
-from orders.models import OrderMain
+from orders.models import *
 # Create your models here.
 
 
@@ -16,11 +16,12 @@ class Coupon(models.Model):
     def __str__(self):
         return self.coupon_code 
 
+
 class UserCoupon(models.Model): 
     user = models.ForeignKey(Accounts, on_delete=models.CASCADE) 
     coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, null=True) 
     used = models.BooleanField(default=False) 
-    used_at = models.DateTimeField(null=True, blank=True) 
+    used_at = models.DateTimeField(auto_now_add=True,null=True, blank=True) 
     order = models.ForeignKey(OrderMain, on_delete=models.CASCADE, null=True) 
 
     def __str__(self): 

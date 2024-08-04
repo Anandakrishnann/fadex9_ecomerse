@@ -12,6 +12,7 @@ class Cart(models.Model):
     def __str__(self):
         return self.user
 
+
 class CartItem(models.Model):   
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)

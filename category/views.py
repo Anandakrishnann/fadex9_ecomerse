@@ -17,13 +17,18 @@ class CreateCategory(View):
             return redirect('category:category')
         return render(request, 'Category/create_category.html', {'form':form})
 
+
 class CategoryList(View):
     def get(self, request):
         if request.user.is_authenticated:
-            categories = Category.objects.all()
-            return render(request, 'Category/category.html',{'categories':categories})
+            query = request.GET.get('q')
+            if query:
+                categories = Category.objects.filter(category_name__icontains=query, is_deleted=False)
+            else:
+                categories = Category.objects.filter(is_deleted=False)
+            return render(request, 'Category/category.html', {'categories': categories, 'query': query})
         else:
-            return render(request, 'Accounts/admin_side/admin_login.html' )
+            return render(request, 'Accounts/admin_side/admin_login.html')
     
 class CategoryEdit(View):
     def get(self, request, pk):

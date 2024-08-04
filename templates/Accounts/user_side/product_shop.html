@@ -5,8 +5,8 @@
     <div class="page-header breadcrumb-wrap">
         <div class="container">
             <div class="breadcrumb">
-                <a href="index.html" rel="nofollow">Home</a>
-                <span></span> Shop
+                <a href="{% url 'accounts:home' %}" rel="nofollow">Home</a>
+                <span></span> <a href="{% url 'accounts:product_shop' %}" rel="nofollow">Shop</a>
             </div>
         </div>
     </div>
@@ -16,24 +16,24 @@
                 <div class="col-lg-9">
                     <div class="shop-product-fillter">
                         <div class="totall-product">
-                            <p> We found <strong class="text-brand">688</strong> items for you!</p>
+                            <p> We found <strong class="text-brand">{{ count }}</strong> items for you!</p>
                         </div>
                         <div class="sort-by-product-area">
                             <div class="sort-by-cover mr-10">
                                 <div class="sort-by-product-wrap">
                                     <div class="sort-by">
-                                        <span><i class="fi-rs-apps"></i>Show:</span>
+                                        <span><i class="fi-rs-apps"></i>Price:</span>
                                     </div>
                                     <div class="sort-by-dropdown-wrap">
-                                        <span> 50 <i class="fi-rs-angle-small-down"></i></span>
+                                        <span>filter by price<i class="fi-rs-angle-small-down"></i></span>
                                     </div>
                                 </div>
                                 <div class="sort-by-dropdown">
                                     <ul>
-                                        <li><a class="active" href="#">50</a></li>
-                                        <li><a href="#">100</a></li>
-                                        <li><a href="#">150</a></li>
-                                        <li><a href="#">200</a></li>
+                                        <li><a class="active" href="#">2000 - 3000</a></li>
+                                        <li><a href="#">3000 - 4000</a></li>
+                                        <li><a href="#">4000 - 5000</a></li>
+                                        <li><a href="#">Above 5000</a></li>
                                         <li><a href="#">All</a></li>
                                     </ul>
                                 </div>
@@ -93,11 +93,13 @@
                                             </span>
                                         </div>
                                         <div class="product-price">
-                                            <span>${{ product.offer_price }} </span>
-                                            <span class="old-price">${{ product.price }}</span>
+                                            <span>₹{{ product.offer_price }} </span>
+                                            <span class="old-price">₹{{ product.price }}</span>
                                         </div>
                                         <div class="product-action-1 show">
-                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                                            <button aria-label="Add To Wishlist" class="action-btn hover-up add-to-wishlist-btn" data-variant-id="{{ variant.id }}">
+                                                <i class="fi-rs-heart"></i> 
+                                            </button>  
                                         </div>
                                     </div>
                                 </div>
@@ -128,13 +130,13 @@
                         </ul>
                     </div>
                     <!-- Fillter By Price -->
-                    <div class="banner-img wow fadeIn mb-45 animated d-lg-block d-none">
-                        <img src="{% static 'user_side/assets/imgs/banner/banner-11.jpg' %}" alt="">
-                        <div class="banner-text">
-                            <span>Women Zone</span>
-                            <h4>Save 17% on <br>Office Dress</h4>
-                            <a href="shop-grid-right.html">Shop Now <i class="fi-rs-arrow-right"></i></a>
-                        </div>
+                    <div class="widget-category mb-30">
+                        <h5 class="section-title style-1 mb-30 wow fadeIn animated">Brands</h5>
+                        <ul class="brands">
+                        {% for brand in brands %}
+                            <li><a href="?brand={{ brand.brand_name }}">{{ brand.brand_name }}</a></li>
+                        {% endfor %}  
+                        </ul>
                     </div>
                     <!-- Product sidebar Widget -->
                     <div class="sidebar-widget product-sidebar  mb-30 p-30 bg-grey border-radius-10">
@@ -142,42 +144,23 @@
                             <h5 class="widget-title mb-10">New products</h5>
                             <div class="bt-1 border-color-1"></div>
                         </div>
+                        {% for product in products %}
                         <div class="single-post clearfix">
+                            
                             <div class="image">
-                                <img src="{% static 'user_side/assets/imgs/shop/thumbnail-3.jpg' %}" alt="#">
+                                <img src="{{ product.thumbnail.url }}" alt="#">
                             </div>
                             <div class="content pt-10">
-                                <h5><a href="shop-product-detail.html">Chen Cardigan</a></h5>
-                                <p class="price mb-0 mt-5">$99.50</p>
+                                <h5><a href="shop-product-detail.html">{{ product.product_name }}</a></h5>
+                                <p class="price mb-0 mt-5">₹{{ product.offer_price }}</p>
                                 <div class="product-rate">
-                                    <div class="product-rating" style="width:90%"></div>
+                                    {% comment %} <div class="product-rating" style="width:90%"></div> {% endcomment %}
                                 </div>
                             </div>
+                            
                         </div>
-                        <div class="single-post clearfix">
-                            <div class="image">
-                                <img src="{% static 'user_side/assets/imgs/shop/thumbnail-4.jpg' %}" alt="#">
-                            </div>
-                            <div class="content pt-10">
-                                <h6><a href="shop-product-detail.html">Chen Sweater</a></h6>
-                                <p class="price mb-0 mt-5">$89.50</p>
-                                <div class="product-rate">
-                                    <div class="product-rating" style="width:80%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="single-post clearfix">
-                            <div class="image">
-                                <img src="{% static 'user_side/assets/imgs/shop/thumbnail-5.jpg' %}" alt="#">
-                            </div>
-                            <div class="content pt-10">
-                                <h6><a href="shop-product-detail.html">Colorful Jacket</a></h6>
-                                <p class="price mb-0 mt-5">$25</p>
-                                <div class="product-rate">
-                                    <div class="product-rating" style="width:60%"></div>
-                                </div>
-                            </div>
-                        </div>
+                        {% endfor%}
+                        
                     </div>
                     
                 </div>
@@ -185,5 +168,112 @@
         </div>
     </section>
 </main>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
 
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var selectedVariantId = $('.list-filter.size-filter li.active').eq(0).data('variant-id');
+        
+        // Handle variant selection
+        $('.list-filter.size-filter li').on('click', function() {
+            $('.list-filter.size-filter li').removeClass('active');
+            $(this).addClass('active');
+            selectedVariantId = $(this).data('variant-id');
+    
+        });
+    
+        // Handle add to cart
+        $('.button-add-to-cart').on('click', function() {
+            var productId = $(this).data('product-id');
+            
+            $.ajax({
+                url: "{% url 'cart:add_to_cart' %}", // Replace with your actual add to cart URL
+                method: "POST",
+                data: {
+                    'product_id': productId,
+                    'variant_id': selectedVariantId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}' // Ensure you include the CSRF token
+                },
+                success: function(response) {
+                    console.log(response)
+                    if (response.success) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-right',
+                            icon: 'success',
+                            title: 'Product added to cart successfully',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    } else if (response.message === 'Product is unavailable.') {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-right',
+                            icon: 'error',
+                            title: 'Product is unavailable',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    } else if (response.message === 'Product is out of stock.') {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-right',
+                            icon: 'error',
+                            title: 'Product is out of stock',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    } else {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-right',
+                            icon: 'error',
+                            title: 'Login to add product to cart',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    var err = eval("(" + xhr.responseText + ")");
+                    console.log(err.message)
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-right',
+                        icon: 'error',
+                        title: 'Product is out of stock',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            });
+        });
+    
+    // add to wishlist
+    
+        $('.add-to-wishlist-btn').on('click', function(event) {
+            event.preventDefault();
+            var variantId = selectedVariantId;
+            $.ajax({
+                url: "{% url 'wishlist:add_to_wishlist' %}",
+                type: 'POST',
+                data: {
+                    'variant': variantId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    console.log(response)
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText)
+                   // alert('Error: ' + xhr.responseJSON.message);
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

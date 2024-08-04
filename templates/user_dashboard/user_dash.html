@@ -12,6 +12,34 @@
         outline: none;
         box-shadow: none;
     }
+    .wallet-table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9em;
+        color: #495057;
+    }
+    .wallet-table td {
+        vertical-align: middle;
+        font-size: 0.95em;
+    }
+    .transaction-type {
+        font-weight: 600;
+        padding: 0.25em 0.6em;
+        border-radius: 20px;
+    }
+    .transaction-amount {
+        font-weight: 700;
+        font-size: 1.05em;
+    }
+    .transaction-date {
+        color: #6c757d;
+    }
+    .transaction-description {
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 </style>
 <main class="main">
     <div class="page-header breadcrumb-wrap">
@@ -38,7 +66,7 @@
                                         <a class="nav-link" id="orders-tab" data-bs-toggle="tab" href="#orders" role="tab" aria-controls="orders" aria-selected="false"><i class="fi-rs-shopping-bag mr-10"></i>Orders</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#track-orders" role="tab" aria-controls="track-orders" aria-selected="false"><i class="fi-rs-shopping-cart-check mr-10"></i>Track Your Order</a>
+                                        <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#track-orders" role="tab" aria-controls="track-orders" aria-selected="false"><i class="fi-rs-shopping-cart-check mr-10"></i>Wallet</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#address" role="tab" aria-controls="address" aria-selected="true"><i class="fi-rs-marker mr-10"></i>My Address</a>
@@ -59,7 +87,7 @@
                                     <div class="card">
                                         <div class="card-body text-center"> 
                                             <div class="mb-3"> 
-                                                <i class="bi bi-person-circle display-1 text-secondary"></i> 
+                                                <a   href="#"  aria-expanded="false"> <img class="img-xs rounded-circle" style="height:100px;" src="{% static 'images/icons/adminavatar.jpg' %}" alt="User"></a>
                                             </div> 
                                             <h5 class="card-title">{{ user.get_full_name }}</h5> 
                                             <p class="card-text text-muted">{{ user.email }}</p> 
@@ -107,7 +135,7 @@
                                                             <th>Order ID</th> 
                                                             <th>Address</th> 
                                                             <th>Price</th> 
-                                                            <th>Date</th> 
+                                                            <th style="width:100px;">Date</th> 
                                                             <th>Status</th> 
                                                             <th>Action</th> 
                                                         </tr> 
@@ -133,29 +161,32 @@
                                                             <td> 
                                                                 {{ order.date }}<br>
                                                             </td>
-                                                            <td><span {% if order.order_status == "Order Placed" %} class="badge bg-success" {% elif order.order_status == "Confirmed" %} class="badge bg-warning" {% elif order.order_status == "Awaiting Payment" %} class="badge bg-primary" {% else %}class="badge bg-danger" {% endif %}>{{ order.order_status }}</span></td> 
+                                                            <td><span {% if order.order_status == "Order Placed" %} class="badge bg-success" {% elif order.order_status == "Confirmed" %} class="badge bg-warning" {% elif order.order_status == "Shipped" %} class="badge bg-primary" {% else %}class="badge bg-danger" {% endif %}>{{ order.order_status }}</span></td> 
                                                             <td>
                                                                 <div>
-                                                                    {% if order.order_status == "Order Placed" or order.order_status == "Confirmed" or order.order_status == "Awaiting Payment" or order.order_status == "Shipped" %}
+                                                                    {% if order.order_status == "Confirmed" or order.order_status == "Awaiting Payment" or order.order_status == "Shipped" %}
                                                                     <form id="cancel-order-form" method="post" action="{% url 'order:cancel_order' order.id %}">
                                                                         {% csrf_token %}
-                                                                            <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
-                                                                                Cancel Order
-                                                                            </button>
+                                                                        <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
+                                                                            Cancel Order
+                                                                        </button>
                                                                     </form>
-                                                                </div>
-                                                                <div style="margin-top:10px;">
-                                                                    <form id="return-order-form" method="post" action="{% url 'order:return_order' order.id %}">
-                                                                        {% csrf_token %}
-                                                                            <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
-                                                                                Return Order
-                                                                            </button>
-                                                                        </form>
                                                                     {% endif %}
                                                                 </div>
                                                                 <div style="margin-top:10px;">
-                                                                    <button class="btn btn-secondary btn-sm collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#orderDetails{{ order.id }}" aria-expanded="false" aria-controls="orderDetails{{ order.id }}">
-                                                                        ▼
+                                                                    {% if order.order_status == "Order Placed" %}
+                                                                    <form id="return-order-form" method="post" action="{% url 'order:return_order' order.id %}">
+                                                                        {% csrf_token %}
+                                                                        <button type="submit" class="badge bg-danger no-outline" style="height: 25px; width: 100px; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center;">
+                                                                            Return Order
+                                                                        </button>
+                                                                    </form>
+                                                                    {% endif %}
+                                                                </div>
+                                                                
+                                                                <div style="margin-top:10px;">
+                                                                    <button class="btn btn-danger btn-sm collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#orderDetails{{ order.id }}" aria-expanded="false" aria-controls="orderDetails{{ order.id }}">
+                                                                        Details
                                                                     </button>
                                                                 </div>
                                                             </td>
@@ -176,7 +207,7 @@
                                                                                         <p class="card-text">
                                                                                             Quantity: {{ item.quantity }}<br>
                                                                                             Size: {{ item.variant.size }}<br>
-                                                                                            Price: ₹{{ item.variant.product.offer_price }}
+                                                                                            Price: ₹{{ item.price }}
                                                                                         </p>
                                                                                     </div>
                                                                                     <div class="col-md-6">
@@ -185,7 +216,8 @@
                                                                                             Name:{{ item.main_order.address.name }}<br>
                                                                                             House Name: {{ item.main_order.address.house_name }}<br>
                                                                                             Size: {{ item.variant.size }}<br>
-                                                                                            Price: ₹{{ item.variant.product.offer_price }}
+                                                                                            Price: ₹{{ item.variant.product.offer_price }}<br>
+                                                                                            
                                                                                         </p>
                                                                                     </div>
                                                                                 </div>
@@ -206,32 +238,47 @@
                                 
                                 <!-- Include Bootstrap JS for collapse functionality -->
                                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-                                
                                 <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h5 class="mb-0">Orders tracking</h5>
+                                    <div class="card shadow-sm">
+                                        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                                            <h5 class="mb-0 text-danger font-weight-bold">Wallet</h5>
+                                            <h4 class="mb-0 font-weight-bold">Balance: <span class="text-danger">₹{{ balance }}</span></h4>
                                         </div>
-                                        <div class="card-body contact-from-area">
-                                            <p>To track your order please enter your OrderID in the box below and press "Track" button. This was given to you on your receipt and in the confirmation email you should have received.</p>
-                                            <div class="row">
-                                                <div class="col-lg-8">
-                                                    <form class="contact-form-style mt-30 mb-50" action="#" method="post">
-                                                        <div class="input-style mb-20">
-                                                            <label>Order ID</label>
-                                                            <input name="order-id" placeholder="Found in your order confirmation email" type="text" class="square">
-                                                        </div>
-                                                        <div class="input-style mb-20">
-                                                            <label>Billing email</label>
-                                                            <input name="billing-email" placeholder="Email you used during checkout" type="email" class="square">
-                                                        </div>
-                                                        <button class="submit submit-auto-width" type="submit">Track</button>
-                                                    </form>
-                                                </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover ">
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th scope="col">Transaction Type</th>
+                                                            <th scope="col">Amount</th>
+                                                            <th style="width:100px;" scope="col">Date</th>
+                                                            <th scope="col">Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for item in transactions %}
+                                                        <tr>
+                                                            <td>
+                                                                <span class="badge {% if item.transaction_type == 'Credited' %}badge-success{% else %}badge-danger{% endif %} px-2 py-1">
+                                                                    {{ item.transaction_type }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="font-weight-bold {% if item.transaction_type == 'Credited' %}text-success{% else %}text-danger{% endif %}">
+                                                                ₹{{ item.amount }}
+                                                            </td>
+                                                            <td>{{ item.date|date:"M d, Y" }}</td>
+                                                            <td>{{ item.description }}</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                {% comment %} <a href="{% url 'user_panel:create_address' %}"><button class="btn btn-danger btn-sm mb-5" style="color: white; border: none; outline: none; padding: 5px 10px; border-radius: 3px; ">
+                                    Create Address
+                                </button></a> {% endcomment %}
                                 <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
                                     <div class="row">
                                         {% for address in user_address %}
@@ -277,6 +324,7 @@
                                         {% empty %}
                                         <p>No addresses found.</p>
                                         {% endfor %}
+                                        
                                     </div>
                                 </div>
                                 
@@ -338,6 +386,27 @@
             </div>
         </div>
     </section>
+    <!-- Bootstrap Modal -->
+<div class="modal fade" id="reasonModal" tabindex="-1" aria-labelledby="reasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reasonModalLabel">Provide a Reason</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="reason-form" method="post" action="">
+            <div class="mb-3">
+              <label for="reason-text" class="form-label">Reason</label>
+              <textarea class="form-control" id="reason-text" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 </main>
 <script>
     /*
@@ -397,52 +466,63 @@
     {% endif %}
 });
 
-
-// cancel confirm sweet alert
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle cancel order form
+    // Function to handle SweetAlert confirmation
+    function handleSweetAlert(form, title, text) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, do it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show the reason modal
+                    const reasonModal = new bootstrap.Modal(document.getElementById('reasonModal'));
+                    reasonModal.show();
+
+                    // Handle reason form submission
+                    const reasonForm = document.getElementById('reason-form');
+                    reasonForm.addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        
+                        // Get the reason from the textarea
+                        const reason = document.getElementById('reason-text').value;
+
+                        // Add the reason to the form as a hidden input
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'reason';
+                        hiddenInput.value = reason;
+                        form.appendChild(hiddenInput);
+
+                        // Submit the original form
+                        form.submit();
+                    });
+                }
+            });
+        });
+    }
+
+    // Cancel order form
     const cancelForm = document.getElementById('cancel-order-form');
-    
-    cancelForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "Do you really want to cancel this order?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, cancel it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                cancelForm.submit();
-            }
-        });
-    });
+    if (cancelForm) {
+        handleSweetAlert(cancelForm, 'Are you sure?', 'Do you really want to cancel this order?');
+    }
 
-    // Handle return order form
+    // Return order form
     const returnForm = document.getElementById('return-order-form');
-    returnForm.addEventListener('submit', function(event) {
-        event.preventDefault(); 
-
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "Do you really want to return this order?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, return it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                returnForm.submit();
-            }
-        });
-    });
+    if (returnForm) {
+        handleSweetAlert(returnForm, 'Are you sure?', 'Do you really want to return this order?');
+    }
 });
 
+</script>
 
 <!-- Include Bootstrap JS for collapse functionality -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -464,5 +544,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 </script>
-</script>
+
 {% endblock %} 

@@ -7,7 +7,8 @@ from django.contrib import messages
 from Accounts.models import *
 from orders.models import *
 from django.contrib.auth import authenticate, login
-
+from wallet.models import *
+from django.db.models import *
 
 # Create your views here.
 
@@ -19,12 +20,32 @@ from django.contrib.auth import authenticate, login
 class UserDashboard(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
-        user_data = Accounts.objects.get(email=user)
+        user_data = Accounts.objects.get(email=user.email)
         user_address = UserAddress.objects.filter(user=user, status=True)
         orders = OrderMain.objects.filter(user=request.user.id)
         order_sub = OrderSub.objects.filter(user=request.user.id)
-        return render(request, 'user_dashboard/user_dash.html',{'user_address': user_address,'user_data':user_data, 'user':user, 'orders':orders, 'order_sub':order_sub})
-    
+        
+        balance = 0  # Initialize balance to 0 by default
+        wallets = None  # Initialize wallets to None by default
+        try:
+            wallets = Wallet.objects.get(user=user)
+            balance = wallets.balance
+        except Wallet.DoesNotExist:
+            messages.error(request, "User doesn't have a wallet")
+        
+        transactions = Transaction.objects.filter(wallet=wallets)
+        
+        print(balance)
+        return render(request, 'user_dashboard/user_dash.html', {
+            'user_address': user_address,
+            'user_data': user_data,
+            'user': user,
+            'orders': orders,
+            'order_sub': order_sub,
+            'balance': balance,
+            'transactions':transactions
+        })
+
 
 
 class UserDetails(LoginRequiredMixin, View):

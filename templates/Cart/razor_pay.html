@@ -1,14 +1,14 @@
 {% extends 'Base/user_base.html' %}
 {% load static %}
 {% block content %}
-<div style="width:500px; margin: 100px auto;">
-    <div class="card-header">
-        <h5 class="mb-0">Hello {{ user.username }}!</h5>
+<div style="width: 300px; margin: 50px auto; background-color: #f0f0f0; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); font-family: Arial, sans-serif;">
+    <div style="background-color: #4CAF50; color: white; padding: 15px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+        <h5 style="margin: 0; font-size: 18px;">Hello {{ user.username }}!</h5>
     </div>
-    <div class="card-header">
-        <button id="rzp-button1">Pay with Razorpay</button>
+    <div style="padding: 20px; text-align: center;">
+        <button id="rzp-button1" style="background-color: #008CBA; color: white; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 5px;">Pay with Razorpay</button>
     </div>
-    <div class="card-body">
+    <div style="padding: 0 20px 20px;">
         <!-- Add additional content if needed -->
     </div>
 </div>

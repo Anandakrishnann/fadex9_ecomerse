@@ -22,10 +22,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
     <style>
         .search-container {
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Center items horizontally */
-}
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Center items horizontally */
+    }
 
 .search-input {
     display: flex;
@@ -91,7 +91,58 @@
     filter: invert(100%);
 }
 
+.search-container {
+    max-width: 600px;
+    margin: 20px auto;
+}
 
+.search-wrapper {
+    display: flex;
+    border: 1px solid #ddd;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+    flex-grow: 1;
+    padding: 12px 20px;
+    border: none;
+    font-size: 16px;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.search-button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.search-button:hover {
+    background-color: #45a049;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+.search-text {
+    font-size: 16px;
+}
     </style>
     
 </head>
@@ -166,22 +217,17 @@
             <div class="container">
                 <div class="header-wrap">
                     <div class="">
-                        <a href="index.html"><img style="height: 70px;" src="{% static 'images/logo-no-background.png' %}" alt="logo"></a>
+                        <a href="{% url 'accounts:home' %}"><img style="height: 70px;" src="{% static 'images/logo-no-background.png' %}" alt="logo"></a>
                     </div>
                     <div class="header-right">
-                        <div class="">
+                        <div class="search-container">
                             <form method="get" action="{% url 'accounts:product_shop' %}">
-                                <div style="margin-left: 180px;" class="search-input">
-                                    <input style="width: 550px;" type="text" name="search" placeholder="Search for items..." value="{{ search_query }}">
+                                    <input style="width:600px; height:50px;" class="search-wrapper" type="text" name="search" placeholder="Search for items..." value="{{ search_query }}" class="search-input">
                                     <input type="hidden" name="category" value="{{ current_category }}">
+                                    <input type="hidden" name="brand" value="{{ current_brand }}">
                                     <input type="hidden" name="sort_by" value="{{ current_sort_by }}">
-                                    <button type="submit" class="search-button">
-                                        <img src="{% static 'images/icons/search.png' %}" alt="">Submit
-                                    </button>
-                                </div>
                             </form>
                         </div>
-                        
                         <div style="margin-left: 70px;" class="header-action-right">
                             <div class="header-action-2">
                                 <div class="header-action-icon-2">
@@ -338,7 +384,7 @@
                     <div class="col-lg-4 col-md-6">
                         <div class="widget-about font-md mb-md-5 mb-lg-0">
                             <div class="logo logo-width-1 wow fadeIn animated">
-                                <a href="index.html"><img src="{% static 'images/logo-no-background.png' %}" alt="logo"></a>
+                                <a href="{% url 'accounts:home' %}"><img src="{% static 'images/logo-no-background.png' %}" alt="logo"></a>
                             </div>
                             <h5 class="mt-20 mb-10 fw-600 text-grey-4 wow fadeIn animated">Contact</h5>
                             <p class="wow fadeIn animated">
@@ -457,7 +503,7 @@
     <script src="{% static 'user_side/assets/js/main.js' %}"></script>
     <script src="{% static 'user_side/assets/js/shop.js' %}"></script>
 
-   
+
 </body>
 
 </html>

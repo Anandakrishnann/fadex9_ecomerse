@@ -7,7 +7,11 @@ from django.contrib import messages
 
 class ProductView(View):
     def get(self, request):
-        products = Products.objects.all()
+        query = request.GET.get('q')
+        if query:
+            products = Products.objects.filter(product_name__icontains=query)
+        else:
+            products = Products.objects.all()
         return render(request, 'Products/product.html', {'products':products})
 
 
@@ -76,6 +80,9 @@ class ProductEdit(View):
         product.price = request.POST.get('price')
         product.offer_price = request.POST.get('offer_price')
         product.is_active = request.POST.get('is_active') == 'on'
+        
+        if request.FILES.get('thumbnail'):
+            product.thumbnail = request.FILES.get('thumbnail')
         
         product.product_category = Category.objects.get(id=product_category_id) if product_category_id else None 
         product.product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None 

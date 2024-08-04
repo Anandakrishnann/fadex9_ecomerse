@@ -7,6 +7,7 @@ import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from coupon.models import *
+from wallet.models import *
 
 
 class AddToCart(LoginRequiredMixin, View):
@@ -64,9 +65,9 @@ class CartView(LoginRequiredMixin, View):
             used_coupons = UserCoupon.objects.filter(user=request.user).values_list('coupon', flat=True) 
             available_coupons = available_coupons.exclude(id__in=used_coupons) 
             
-            return render(request, 'Cart/demo_cart.html',{'cart':cart, 'cart_item':cart_item, 'cart_total':cart_total, 'available_coupons': available_coupons })
+            return render(request, 'Cart/cart_view.html',{'cart':cart, 'cart_item':cart_item, 'cart_total':cart_total, 'available_coupons': available_coupons })
         except:
-            return render(request, 'Cart/demo_cart.html')
+            return render(request, 'Cart/cart_view.html')
 
 
 
@@ -100,28 +101,17 @@ def update_cart_quantity(request):
     return JsonResponse({'success': False})
 
 
-class UpdateCartStatus(View):
+class ApplyCouponView(View):
     def post(self, request, *args, **kwargs):
-        item_id = request.POST.get('item_id')
-        is_active = request.POST.get('is_active') == 'true' if request.POST.get('is_active') else None
         coupon_code = request.POST.get('coupon_code')
-        action = request.POST.get('action')
 
         response = {'success': False}
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart, is_active=True)
 
-        if action == 'status' and item_id is not None and is_active is not None:
-            cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-            cart_item.is_active = is_active
-            cart_item.save()
-            response['success'] = True
-            response['message'] = 'Status updated successfully.'
-
-        if action == 'coupon' and coupon_code:
+        if coupon_code:
             try:
                 coupon = Coupon.objects.get(coupon_code=coupon_code)
-                cart_items = CartItem.objects.filter(cart=cart, is_active=True)
                 current_total = sum(item.sub_total() for item in cart_items)
                 
                 if current_total > coupon.minimum_amount:
@@ -130,36 +120,69 @@ class UpdateCartStatus(View):
 
                     if discount_amount > discount:
                         discount_amount = discount
+                    new_total = current_total - discount_amount
+
+                    response.update({
+                        'success': True,
+                        'message': 'Coupon applied successfully.',
+                        'current_total': current_total,
+                        'new_total': new_total,
+                        'discount': discount,
+                    })
+                    
+                    request.session['applied_coupon'] = coupon_code
                 else:
-                    messages.error(request, f'Coupon only available for {coupon.minimum_amount}')
-                    return redirect('cart:cart_view')
-                
-                new_total = current_total - discount_amount
-                print(new_total)
-                response.update({
-                    'success': True,
-                    'message': 'Coupon applied successfully.',
-                    'current_total':current_total,
-                    'new_total': new_total,
-                    'discount': discount,
-                })
-                
-                request.session['applied_coupon'] = coupon_code
-                
+                    response['message'] = f'Coupon only available for orders over {coupon.minimum_amount}'
             except Coupon.DoesNotExist:
                 response['message'] = 'Invalid coupon code.'
-
-        if not coupon_code:
+        else:
             new_total = sum(item.sub_total() for item in cart_items)
-            discount = 0
             response.update({
                 'success': True,
                 'new_total': new_total,
-                'discount':discount
+                'discount': 0
             })
 
         return JsonResponse(response)
 
+
+class RemoveCouponView(View):
+    def post(self, request, *args, **kwargs):
+        response = {'success': False}
+        cart = Cart.objects.get(user=request.user)
+        cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+
+        request.session.pop('applied_coupon', None)
+
+        new_total = sum(item.sub_total() for item in cart_items)
+        response.update({
+            'success': True,
+            'message': 'Coupon removed successfully.',
+            'new_total': new_total,
+            'discount':0
+        })
+
+        return JsonResponse(response)
+
+
+class UpdateCartStatus(View):
+    def post(self, request, *args, **kwargs):
+        item_id = request.POST.get('item_id')
+        is_active = request.POST.get('is_active') == 'true'
+
+        response = {'success': False}
+        
+        if item_id is not None and is_active is not None:
+            cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+            cart_item.is_active = is_active
+            cart_item.save()
+            response['success'] = True
+            response['message'] = 'Status updated successfully.'
+            cart = Cart.objects.get(user=request.user)
+            new_total = sum(item.sub_total() for item in CartItem.objects.filter(cart=cart, is_active=True))
+            response['new_total'] = new_total
+
+        return JsonResponse(response)
 
 
 class CartCheckout(LoginRequiredMixin, View):
@@ -167,7 +190,6 @@ class CartCheckout(LoginRequiredMixin, View):
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart, is_active=True).order_by('-cart__updated_at')
 
-        print(cart_items)
         # Check if all cart items are active and have sufficient stock
         
         if not cart_items.exists():
@@ -206,7 +228,7 @@ class CartCheckout(LoginRequiredMixin, View):
                 pass
             
         user_address = UserAddress.objects.filter(user=request.user.id, status=True).order_by('-status', 'id')
-
+        
         return render(request, 'Cart/checkout.html', {
             'cart_items': cart_items,
             'cart_total': cart_total,

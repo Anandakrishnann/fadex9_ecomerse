@@ -8,6 +8,9 @@ from Accounts.models import Accounts
 from Accounts.forms import RegistrationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from orders.models import *
+from django.db.models import *
+from datetime import datetime
+
 # Create your views here.
 
 
@@ -41,7 +44,9 @@ class AdminLogin(LoginRequiredMixin, View):
 class Admin(LoginRequiredMixin, View):
     def get(self, request):
         if request.user.is_authenticated:
-            return render(request, 'Accounts/admin_side/admin.html')
+            total_order_amount = OrderMain.objects.filter(order_status="Order Placed").aggregate(total=Sum('total_amount'))['total'] or 0
+            total_order_count = OrderMain.objects.filter(order_status="Order Placed").aggregate(total_orders=Count('id'))['total_orders'] or 0
+            return render(request, 'Accounts/admin_side/admin.html',{'total_order_amount':total_order_amount, 'total_order_count':total_order_count})
         else:
             return redirect('admin_panel:admin_login')
             
@@ -58,7 +63,11 @@ def logout(request):
 class AdminUsers(LoginRequiredMixin, View):
     def get(self, request):
         if request.user.is_authenticated:
-            users = Accounts.objects.filter(is_admin=False)
+            query = request.GET.get('q')
+            if query:
+                users = Accounts.objects.filter(email__icontains=query)
+            else:
+                users = Accounts.objects.filter(is_admin=False)
             return render(request, 'Accounts/admin_side/admin_users.html', {'users':users})
         else:
             return render(request, 'Accounts/admin_side/admin_login.html')
@@ -96,3 +105,30 @@ class OrderStatus(View):
             return redirect('order:admin_orders_details',fk)
         else:
             return HttpResponse("No status selected", status=400)
+        
+        
+class SalesReport(View):
+    def get(self, request):
+        orders = OrderMain.objects.filter(order_status = "Order Placed")
+        return render(request, 'Accounts/admin_side/sales_report.html',{'orders':orders                            })
+    
+
+class OrderDateFilter(View):
+    def post(self, request):
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        
+        if start_date and end_date:
+            
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                
+            except ValueError:
+                return redirect('admin_panel:sales_report')
+            
+            orders = OrderMain.objects.filter(date__range=[start_date,end_date], order_status="Order Placed")
+            
+            return render(request, 'Accounts/admin_side/sales_report.html',{'orders':orders})
+        
+        return redirect('admin_panel:sales_report')

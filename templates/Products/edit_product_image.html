@@ -2,10 +2,28 @@
 {% load static %}
 {% block content %}
 <section class="content-main">
+    <div class="modal fade" id="cropperModal" tabindex="-1" aria-labelledby="cropperModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width: 600px; margin: 1.75rem auto;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cropperModalLabel">Crop Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="width: 100%; height: 400px; overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 0;">
+                    <img id="imageToCrop" style="max-width: 100%; max-height: 100%; display: none;" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="modal-close-btn" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="cropAndSave" class="btn btn-primary">Crop and Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-9">
             <div class="content-header">
-                <h2 class="content-title">Add New Product</h2>
+                <h2 class="content-title">ADD IMAGE</h2>
             </div>
         </div>
         <div style="width:900px;" class="col-lg-6">
@@ -14,127 +32,44 @@
                     <h4>Basic</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="{% url 'product:product_edit' product.id %}">
-                        {% csrf_token %} 
-                        <div class="mb-4">
-                            <label style="font-weight: bold;" for="product_name" class="form-label">Product Name</label>
-                            <input type="text" placeholder="Type here" class="form-control" name="product_name" id="product_name" value="{{ product.product_name }}" required>
-                        </div>
-                        <div class="mb-4">
-                            <label style="font-weight: bold;" class="form-label">Description</label>
-                            <textarea placeholder="Type here" class="form-control" name="product_description" rows="4" required>{{ product.product_description }}</textarea>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-4">
-                                <div class="mb-4">
-                                    <label style="font-weight: bold;" class="form-label">Regular price</label>
-                                    <div class="row gx-2">
-                                        <input placeholder="₹" type="text" class="form-control" value="{{ product.price }}" name="price" required>
+                        <form method="post" enctype="multipart/form-data" id="addImagesForm">
+                            {% csrf_token %}
+                            <div class="col-lg-80">
+                                <div class="card mb-8"> 
+                                    <div class="card-header">
+                                        <h4>IMAGE</h4>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4">
-                                <div class="mb-4">
-                                    <label style="font-weight: bold;" class="form-label">Promotional price</label>
-                                    <input placeholder="₹" type="text" class="form-control" name="offer_price" value="{{ product.offer_price }}" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <div class="row gx-2">
-                                    <div class="col-sm-6 mb-3">
-                                        <label style="font-weight: bold;" class="form-label">Category</label>
-                                        <select class="form-select" id="product_category" name="product_category"  required> 
-                                            <option value="">Select Category</option> 
-                                            {% for category in categories %}
-                                                <option value="{{ category.id }}">{{ category.category_name }}</option>     
-                                            {% endfor %}
-                                        </select>
+                                    <label style="font-weight:bold;" for="images">Image</label>
+                                    <div class="card-body">
+                                        <div id="imageInputs" class="form-group">
+                                            <input type="file" class="form-control" id="images" name="images" accept="image/*" required>
+                                            <small class="form-text text-muted">Please upload valid image files.</small>
+                                        </div>
                                     </div>
-                                    <div class="col-sm-6 mb-3">
-                                        <label style="font-weight: bold;" class="form-label">Brand</label>
-                                        <select name="product_brand" class="form-select" required>
-                                            <option>Select Brands </option>
-                                            {% for brand in brands %}
-                                                <option value="{{ brand.id }}">{{ brand.brand_name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div> <!-- row.// -->
-                                <label style='padding-top:10px;' class="form-check mb-4">
-                                    <input class="form-check-input" name="is_active" type="checkbox" value="" required>
-                                    <span style="font-weight: bold;"  class="form-check-label"> Status</span>
-                                </label>
-                                <div class="form-group mt-3">
-                                    <label for="images">Select Images</label>
-                                    <input type="file" class="form-control" id="images" name="thumbnail" accept="image/*">
-                                    <small class="form-text text-muted">Please upload valid image files.</small>
-                                    <div class="col-md-3"> 
-                                        {% if product.thumbnail %} 
-                                        <img src="{{ product.thumbnail.url }}" class="img-fluid rounded-start" alt="{{ product.product_name }}"> 
-                                        {% else %} 
-                                        <img src="{% static 'placeholder_image.jpg' %}" class="img-fluid rounded-start" alt="Placeholder Image"> 
-                                        {% endif %} 
-                                    </div> 
-                                </div>
-                            </div>
-                        </div> <!-- card end// -->
-                        <div>
-                            <button type="submit" style="font-weight: bold;" class="btn btn-md rounded font-sm hover-up">Create</button>
-                        </div>
+                                </div> <!-- card end// -->
+
+                        {% comment %} <button type="button" class="btn btn-secondary" id="addMoreImages">Add More Images</button>  {% endcomment %}
+
+                        <div id="selectedImages" class="mt-3 mb-3"></div> <!-- Container for displaying selected images -->
+
+                        <button type="submit" class="btn btn-primary">Upload Images</button>
                     </form>
+
                 </div>
             </div> <!-- card end// -->
         </div>
         <div class="col-lg-3">
-            
-            
-            
+            <!-- Image Preview Section -->
+            <div class="container mt-4" style="width: 100%">
+                <h4 style="padding-top: 5px">Image Preview</h4>
+                <div id="imagePreview" style="width: 100%; overflow: auto; border: 1px solid #ddd; padding: 10px;"></div>
+            </div>
+            <!-- Modal for Cropping Image -->
+            <button type="button" style="display: none" id="openCropperModalBtn" data-bs-toggle="modal" data-bs-target="#cropperModal"></button>
         </div>
     </div>
-<div class="col-lg-3">
-    <!-- Image Preview Section -->
-    <div class="container mt-4" style="width: 100%">
-        <h4 style="padding-top: 5px">Image Preview</h4>
-        <div id="imagePreview" style="width: 100%; overflow: auto; border: 1px solid #ddd; padding: 10px;"></div>
-    </div>
-    <!-- Modal for Cropping Image -->
-    <button type="button" style="display: none" id="openCropperModalBtn" data-bs-toggle="modal" data-bs-target="#cropperModal"></button>
-</div>
-<!-- Modal for Cropping Image -->
-<button type="button" style="display: none" id="openCropperModalBtn" data-bs-toggle="modal" data-bs-target="#cropperModal"></button>
-
-<div class="modal fade" id="cropperModal" tabindex="-1" aria-labelledby="cropperModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="cropperModalLabel">Crop Image</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" style="width: 100%; height: 400px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
-                <img id="imageToCrop" style="max-width: 100%; max-height: 100%;" />
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="modal-close-btn" data-bs-dismiss="modal">Close</button>
-                <button type="button" id="cropAndSave" class="btn btn-primary">Crop and Save</button>
-            </div>
-        </div>
-    </div>
-</div>
 </section> <!-- content-main end// -->
-<style>
-    .error {
-        font-size: 0.8em;
-        color: red;
-    }
-    .small-text {
-        font-size: 0.8em;
-        line-height: 1.2;
-    }
-    
-    </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.js"></script>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
 
@@ -160,7 +95,7 @@
         let originalImageBlobs = [];
     
         const validateImage = (file) => {
-            const allowedExtensions = /\.(jpg|jpeg|png|gif|webp)$/i;
+            const allowedExtensions = /\.(jpg|jpeg|png|gif|webp|avif)$/i;
             if (!allowedExtensions.test(file.name)) {
                 alert("Please upload a valid image file (jpg, jpeg, png, gif)");
                 return false;
@@ -295,6 +230,6 @@
             }
         });
     });
-
+    
 </script>
 {% endblock %}

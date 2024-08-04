@@ -11,9 +11,12 @@
     <div class="card mb-4"> 
         <header class="card-header"> 
             <div class="row gx-3"> 
-                <div class="col-lg-4 col-md-6 me-auto"> 
-                    <input type="text" placeholder="Search..." class="form-control" /> 
-                </div> 
+                <div class="col-lg-5 col-md-6 mb-2 mb-md-0">
+                    <form method="GET" action="{% url 'admin_panel:admin_view' %}" class="d-flex">
+                        <input type="text" name="q" placeholder="Search category" class="form-control bg-white me-2" value="{{ query }}">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
+                </div>
                 <div class="col-lg-2 col-md-3 col-6"> 
                     <select class="form-select"> 
                         <option>Status</option> 

@@ -8,7 +8,11 @@ from django.contrib import messages
 class BrandList(View):
     def get(self, request):
         if request.user.is_authenticated:
-            brands = Brand.objects.all()
+            query = request.GET.get('q')
+            if query:
+                brands = Brand.objects.filter(brand_name__icontains=query)
+            else:
+                brands = Brand.objects.all()
             return render(request, 'Brands/brand.html',{'brands':brands})
         else:
             return render(request, 'Admin_panel/admin_side/admin_login.html')

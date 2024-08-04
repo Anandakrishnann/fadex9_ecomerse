@@ -9,31 +9,34 @@
         </div> 
     </div> 
     <div>
-      <a href="{% url 'category:create_category' %}" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create Category</a>
-  </div>
+    <a href="{% url 'category:create_category' %}" class="btn btn-primary mb-20"><i class="text-muted material-icons md-post_add"></i>Create Category</a>
+    </div>
     <div class="card mb-4"> 
-        <header class="card-header"> 
-            <div class="row gx-3"> 
-                <div class="col-lg-4 col-md-6 me-auto"> 
-                    <input type="text" placeholder="Search..." class="form-control" /> 
-                </div> 
-                <div class="col-lg-2 col-md-3 col-6"> 
-                    <select class="form-select"> 
-                        <option>Status</option> 
-                        <option>Active</option> 
-                        <option>Disabled</option> 
-                        <option>Show all</option> 
-                    </select> 
-                </div> 
-                <div class="col-lg-2 col-md-3 col-6"> 
-                    <select class="form-select"> 
-                        <option>Show 20</option> 
-                        <option>Show 30</option> 
-                        <option>Show 40</option> 
-                    </select> 
-                </div> 
-            </div> 
-        </header> 
+        <header class="card-header">
+            <div class="row gx-3 align-items-center">
+                <div class="col-lg-5 col-md-6 mb-2 mb-md-0">
+                    <form method="GET" action="{% url 'category:category' %}" class="d-flex">
+                        <input type="text" name="q" placeholder="Search category" class="form-control bg-white me-2" value="{{ query }}">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
+                </div>
+                <div class="col-lg-3 col-md-3 col-sm-6 mb-2 mb-sm-0">
+                    <select class="form-select">
+                        <option>Status</option>
+                        <option>Active</option>
+                        <option>Disabled</option>
+                        <option>Show all</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-3 col-sm-6">
+                    <select class="form-select">
+                        <option>Show 20</option>
+                        <option>Show 30</option>
+                        <option>Show 40</option>
+                    </select>
+                </div>
+            </div>
+        </header>
         <!-- card-header end// --> 
         <div class="card-body"> 
             <div class="table-responsive"> 

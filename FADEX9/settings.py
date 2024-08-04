@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'orders',
     'wishlist',
     'coupon',
+    'wallet',
     'social_django',
 ]
 
@@ -193,7 +194,7 @@ LOGOUT_REDIRECT_URL = '/'
 MEDIA_URL = '/media/' 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-RAZORPAY_KEY = 'rzp_test_JbnH93yXXtN2K2'
-RAZORPAY_SECRET = 'X0Wih2CS1PK5f9epKVOy3LPu'
+RAZORPAY_KEY = 'rzp_test_k3jJlpvXZAD5FJ'
+RAZORPAY_SECRET = 'VXKhYVud2BI4kVnLPWqBEIlJ'
 
 

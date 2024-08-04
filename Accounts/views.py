@@ -197,18 +197,20 @@ class ProductView(View):
         images = ProductImages.objects.filter(product=products)
         variants = ProductVariant.objects.filter(product=products)
         reviews = Review.objects.filter(product=products)
-
-        return render(request, 'Accounts/user_side/demo.html', {
+        related_products = Products.objects.filter(product_category=products.product_category)
+        return render(request, 'Accounts/user_side/product_detail.html', {
             'products': products,
             'images': images,
             'variants': variants,
-            'reviews': reviews
+            'reviews': reviews,
+            'related_products':related_products,
         })
 
 
 class ProductShop(View):
     def get(self, request):
         category_slug = request.GET.get('category', '')
+        brand_slug = request.GET.get('brand', '')
         sort_by = request.GET.get('sort_by', '')
         search_query = request.GET.get('search', '')
 
@@ -220,12 +222,16 @@ class ProductShop(View):
         if category_slug:
             products = products.filter(product_category__slug=category_slug)
 
+        if brand_slug:
+            products = products.filter(product_brand__brand_name=brand_slug)
+
         # Annotate products with their average rating
         products = products.annotate(avg_rating=Avg('reviews__rating'))
 
         # Sort products based on the sort_by parameter
         if sort_by == 'price_asc':
             products = products.order_by('offer_price')
+            # count = products.aggregate(count=Count(''))
         elif sort_by == 'price_desc':
             products = products.order_by('-offer_price')
         elif sort_by == 'release_date':
@@ -235,14 +241,18 @@ class ProductShop(View):
         else:
             products = products.order_by('id')
 
-        categories = Category.objects.all()
-
+        categories = Category.objects.filter(is_deleted=False)
+        brands = Brand.objects.filter(status=True)
+        
+        
         context = {
             'products': products,
             'categories': categories,
+            'brands': brands,
             'current_category': category_slug,
             'current_sort_by': sort_by,
             'search_query': search_query,
+            'current_brand': brand_slug,
         }
         return render(request, 'Accounts/user_side/product_shop.html', context)
 

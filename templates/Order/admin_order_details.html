@@ -5,7 +5,7 @@
     <div class="content-header">
         <div>
             <h2 class="content-title card-title">Order detail</h2>
-            <p>Details for Order ID: {{ orders.order_id }}</p>
+            <h4>Order ID: {{ orders.order_id }}</h4>
         </div>
     </div>
     <div class="card">
@@ -23,20 +23,29 @@
                     <form method="post" action="{% url 'admin_panel:order_status' orders.id %}">
                         {% csrf_token %}
                         <select class="form-select d-inline-block mb-lg-0 mb-15 mw-200" name="order_status">
+                            {% if orders.order_status == "Canceled" %}
+                            <option style="color:red;">Canceled</option>
+                            {% elif orders.order_status == "Order Placed" %}
+                            <option style="color:red;">Order Placed</option>
+                            {% else %}
                             <option>Change status</option>
                             <option>Awaiting payment</option>
                             <option>Confirmed</option>
+                            <option>Order Placed</option>
                             <option>Shipped</option>
-                            <option>Delivered</option>
+                            <option>Canceled</option>
+                            {% endif %}
                         </select>
+                        {% if orders.order_status != "Canceled" and orders.order_status != "Order Placed" %}
                         <button class="btn btn-primary" type="submit">Save</button>
+                        {% endif %}
                     </form>
-                    <a class="btn btn-secondary print ms-2" href="#"><i class="icon material-icons md-print"></i></a>
-                    <form method="post" action="{% url 'order:admin_cancel_order' orders.id %}">
-                        {% csrf_token %}
-                    <button class="btn btn-primary" type="submit"><a href="">Save</a></button>
-                </form>
+                    <a class="btn btn-secondary print ms-2 mb-10" href="#"><i class="icon material-icons md-print"></i></a>
+                    <form method="post" action="">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    </form>
                 </div>
+                
             </div>
         </header> <!-- card-header end// -->
         <div class="card-body">
@@ -110,9 +119,9 @@
                                         </a>
                                     </td>
                                     <td class="align-middle">{{ item.variant.product.product_name }}</td>
-                                    <td class="align-middle">${{ item.variant.product.offer_price }}</td>
+                                    <td class="align-middle">₹{{ item.price }}</td>
                                     <td class="align-middle">{{ item.quantity }}</td>
-                                    <td class="align-middle text-end">${{ item.total_cost }}</td>
+                                    <td class="align-middle text-end">₹{{ item.total_cost }}</td>
                                 </tr>
                                 {% endfor %}
                                 <tr>
@@ -120,12 +129,12 @@
                                         <div class="float-end text-end">
                                             <dl class="dlist">
                                                 <dt>Subtotal:</dt>
-                                                <dd>${{ orders.total_amount }}</dd>
+                                                <dd>₹{{ orders.total_amount }}</dd>
                                             </dl>
                                             
                                             <dl class="dlist">
                                                 <dt>Grand total:</dt>
-                                                <dd><b class="h5">${{ orders.total_amount }}</b></dd>
+                                                <dd><b class="h5">{{ orders.total_amount }}</b></dd>
                                             </dl>
                                             <dl class="dlist">
                                                 <dt class="text-muted">Status:</dt>
@@ -140,25 +149,30 @@
                         </table>
                     </div> <!-- table-responsive// -->
                     
-                    <a class="btn btn-primary" href="page-orders-tracking.html">View Order Tracking</a>
                 </div> <!-- col// -->
                 <div class="col-lg-1"></div>
                 <div  class="col-lg-4">
                     <div class="box shadow-sm bg-light">
                         <h6 class="mb-15">Payment info</h6>
                         <p>
-                            <img src="{% static 'admin_side/assets/imgs/card-brands/2.png' %}" class="border" height="20"> Master Card **** **** 4768 <br>
-                            Business name: Grand Market LLC <br>
-                            Phone: +1 (800) 555-154-52
+                            {% if orders.payment_option == "Online Payment" %}
+                            <img src="{% static 'admin_side/assets/imgs/card-brands/2.png' %}" class="border" height="20"><h4>Online Payment<h4>
+                            Name: {{ orders.address.name }}<br>
+                            Phone: +91 {{ orders.address.phone_number}}
+                            {% elif orders.payment_option == "Cash On Delivery" %}
+                            <img src="{% static 'admin_side/assets/imgs/card-brands/2.png' %}" class="border" height="20"><h4>Cash On Delivery<h4>
+                                Name: {{ orders.address.name }}<br>
+                                Phone: +91 {{ orders.address.phone_number}}
+                            {% endif %}
                         </p>
                     </div>
-                    <div class="h-25 pt-4">
+                    {% comment %} <div class="h-25 pt-4">
                         <div class="mb-3">
                             <label>Notes</label>
                             <textarea class="form-control" name="notes" id="notes" placeholder="Type some note"></textarea>
                         </div>
                         <button class="btn btn-primary">Save note</button>
-                    </div>
+                    </div> {% endcomment %}
                 </div> <!-- col// -->
             </div>
         </div> <!-- card-body end// -->

@@ -10,5 +10,7 @@ urlpatterns = [
     path('cart-checkout/', CartCheckout.as_view(), name='cart_checkout'),
     path('cart-delete/<int:pk>/', CartItemsDelete.as_view(), name='delete_cart'),
     path('update-cart-quantity/',views.update_cart_quantity, name='update_cart_quantity'),
+    path('apply-coupon/', ApplyCouponView.as_view(), name='apply_coupon'),
+    path('remove-coupon/', RemoveCouponView.as_view(), name='remove_coupon'),
     path('update-cart-status/', UpdateCartStatus.as_view(), name='update_cart_status'),
 ]

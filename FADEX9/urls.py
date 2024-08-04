@@ -31,6 +31,7 @@ urlpatterns = [
     path('orders/', include('orders.urls')),  # Orders app
     path('wishlist/', include('wishlist.urls')),  # wishlist app
     path('coupon/', include('coupon.urls')),  # coupon app
+    path('wallet/', include('wallet.urls')),  # wallet app
     path('auth/', include('social_django.urls', namespace='social')),
 ]   
 
