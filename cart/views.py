@@ -8,6 +8,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from coupon.models import *
 from wallet.models import *
+from django.utils.decorators import method_decorator
+from utils.decorators import admin_required
 
 
 class AddToCart(LoginRequiredMixin, View):
@@ -35,10 +37,16 @@ class AddToCart(LoginRequiredMixin, View):
                 product=product,
                 variant=variant,
                 cart=cart,
-                quantity=1  
+                defaults={'quantity': 1}
             )
-            
-            return JsonResponse({'success': True, 'message': 'Product added to cart successfully'}, status=200)
+
+            already_in_cart = created
+
+            return JsonResponse({
+                'success': True,
+                'already_in_cart': already_in_cart,
+                'message': 'Product added to cart successfully' if not already_in_cart else 'Product is already in cart.'
+            }, status=200)
 
         except Accounts.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'User does not exist.'}, status=400)

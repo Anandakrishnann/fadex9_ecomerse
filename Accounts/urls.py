@@ -13,5 +13,6 @@ urlpatterns = [
     path('shop/', ProductShop.as_view(), name='product_shop'),
     path('verify_otp/', VerifyOtp.as_view(), name='verify-otp'),
     path('resend_otp/', ResendOtp.as_view(), name='resend-otp'),
-    
+    path('contact/', Contact.as_view(), name='contact'),
+    path('about/', About.as_view(), name='about'),
 ]

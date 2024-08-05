@@ -35,7 +35,6 @@ class UserDashboard(LoginRequiredMixin, View):
         
         transactions = Transaction.objects.filter(wallet=wallets)
         
-        print(balance)
         return render(request, 'user_dashboard/user_dash.html', {
             'user_address': user_address,
             'user_data': user_data,

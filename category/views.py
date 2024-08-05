@@ -2,9 +2,14 @@ from django.shortcuts import render,redirect,get_object_or_404
 from django.views import View
 from .forms import CategoryForm
 from .models import Category
+from django.utils.decorators import method_decorator
+from utils.decorators import admin_required
+
 
 # Create your views here.
 
+
+@method_decorator(admin_required, name='dispatch')
 class CreateCategory(View):
     def get(self, request):
         form = CategoryForm
@@ -17,7 +22,7 @@ class CreateCategory(View):
             return redirect('category:category')
         return render(request, 'Category/create_category.html', {'form':form})
 
-
+@method_decorator(admin_required, name='dispatch')
 class CategoryList(View):
     def get(self, request):
         if request.user.is_authenticated:
@@ -29,7 +34,7 @@ class CategoryList(View):
             return render(request, 'Category/category.html', {'categories': categories, 'query': query})
         else:
             return render(request, 'Accounts/admin_side/admin_login.html')
-    
+@method_decorator(admin_required, name='dispatch')
 class CategoryEdit(View):
     def get(self, request, pk):
         category = get_object_or_404(Category, id=pk)
@@ -43,7 +48,7 @@ class CategoryEdit(View):
             form.save()
             return redirect('category:category')
         return render(request, 'Category/edit_category.html', {'form': form, 'category': category})
-    
+@method_decorator(admin_required, name='dispatch')
 class DeleteCategory(View):
     def get(self, request, pk):
         delete_category = get_object_or_404(Category, id=pk)

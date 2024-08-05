@@ -182,9 +182,10 @@ class ResendOtp(View):
 
 class IndexView(View):
     def get(self, request):
-        products = Products.objects.all()
-        brands = Brand.objects.all()
-        # return render(request, 'Accounts/user_side/home.html', {'products':products, 'brands':brands})
+        all_products = Products.objects.all()
+        products = all_products.order_by('?')[:8]
+        brands = Brand.objects.all()[:6]
+
         return render(request, 'Accounts/user_side/home.html', {'products':products, 'brands':brands})
     
 
@@ -212,6 +213,7 @@ class ProductShop(View):
         category_slug = request.GET.get('category', '')
         brand_slug = request.GET.get('brand', '')
         sort_by = request.GET.get('sort_by', '')
+        price_range = request.GET.get('price_range', '')
         search_query = request.GET.get('search', '')
 
         products = Products.objects.all()
@@ -241,6 +243,19 @@ class ProductShop(View):
         else:
             products = products.order_by('id')
 
+        
+        if price_range == '2000-3000':
+            products = products.filter(offer_price__gte=2000, offer_price__lt=3000)
+        elif price_range == '3000-4000':
+            products = products.filter(offer_price__gte=3000, offer_price__lt=4000)
+        elif price_range == '4000-5000':
+            products = products.filter(offer_price__gte=4000, offer_price__lt=5000)
+        elif price_range == 'above_5000':
+            products = products.filter(offer_price__gte=5000)
+        elif price_range == 'all':
+            products = products  # No filtering for 'all'
+        
+        
         categories = Category.objects.filter(is_deleted=False)
         brands = Brand.objects.filter(status=True)
         
@@ -258,3 +273,11 @@ class ProductShop(View):
 
     
 
+class Contact(View):
+    def get(self, request):
+        return render(request, 'Accounts/user_side/contact.html')
+    
+
+class About(View):
+    def get(self, request):
+        return render(request, 'Accounts/user_side/about.html')

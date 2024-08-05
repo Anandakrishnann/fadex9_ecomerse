@@ -10,6 +10,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from orders.models import *
 from django.db.models import *
 from datetime import datetime
+from django.utils.decorators import method_decorator
+from utils.decorators import admin_required
 
 # Create your views here.
 
@@ -17,7 +19,8 @@ from datetime import datetime
 #---------------------------------------------- admin login -------------------------------------------------------------#
 
 
-class AdminLogin(LoginRequiredMixin, View):
+@method_decorator(admin_required, name='dispatch')
+class AdminLogin(View):
     def get(self, request):
         return render(request, 'Accounts/admin_side/admin_login.html')
     
@@ -35,32 +38,31 @@ class AdminLogin(LoginRequiredMixin, View):
                 messages.error('Please log in with your admin credentials to access the admin dashboard. If you encounter any issues, contact the support team')
         else:
             messages.error(request, 'Invalid username or password.')
+        
         return render(request, 'Accounts/admin_side/admin_login.html')
 
 
 #---------------------------------------------- admin dash -------------------------------------------------------------#
 
-
-class Admin(LoginRequiredMixin, View):
+@method_decorator(admin_required, name='dispatch')
+class AdminDash( View):
     def get(self, request):
-        if request.user.is_authenticated:
-            total_order_amount = OrderMain.objects.filter(order_status="Order Placed").aggregate(total=Sum('total_amount'))['total'] or 0
-            total_order_count = OrderMain.objects.filter(order_status="Order Placed").aggregate(total_orders=Count('id'))['total_orders'] or 0
-            return render(request, 'Accounts/admin_side/admin.html',{'total_order_amount':total_order_amount, 'total_order_count':total_order_count})
-        else:
-            return redirect('admin_panel:admin_login')
-            
-    
+        total_order_amount = OrderMain.objects.filter(order_status="Order Placed").aggregate(total=Sum('total_amount'))['total'] or 0
+        total_order_count = OrderMain.objects.filter(order_status="Order Placed").aggregate(total_orders=Count('id'))['total_orders'] or 0
+        
+        return render(request, 'Accounts/admin_side/admin.html',{'total_order_amount':total_order_amount, 'total_order_count':total_order_count})
+
+
 def logout(request):
     auth_logout(request)
-    return redirect('admin_panel:admin_login')    
+    return redirect('admin_panel:admin_login')   
 
 
 
 #---------------------------------------------- users -------------------------------------------------------------#
 
-
-class AdminUsers(LoginRequiredMixin, View):
+@method_decorator(admin_required, name='dispatch')
+class AdminUsers(View):
     def get(self, request):
         if request.user.is_authenticated:
             query = request.GET.get('q')
@@ -74,8 +76,8 @@ class AdminUsers(LoginRequiredMixin, View):
 
 
 #---------------------------------------------- user block -------------------------------------------------------------#
-
-class UserBlock(LoginRequiredMixin, View):
+@method_decorator(admin_required, name='dispatch')
+class UserBlock(View):
     def get(self, request, pk):
         user_block = get_object_or_404(Accounts, pk=pk)
         user_block.is_blocked = not user_block.is_blocked  # Toggle the blocked status
@@ -83,7 +85,7 @@ class UserBlock(LoginRequiredMixin, View):
         return redirect('admin_panel:admin_view')
     
 #---------------------------------------------- user delete -------------------------------------------------------------#
-
+@method_decorator(admin_required, name='dispatch')
 class UserDelete(View):
     def get(self, request, pk):
         user_delete = get_object_or_404(Accounts, pk=pk)
@@ -91,7 +93,7 @@ class UserDelete(View):
         user_delete.save()
         return redirect('admin_panel:admin_view')
     
-
+@method_decorator(admin_required, name='dispatch')
 class OrderStatus(View):
     def post(self, request, pk):
         fk = pk
@@ -106,13 +108,13 @@ class OrderStatus(View):
         else:
             return HttpResponse("No status selected", status=400)
         
-        
+@method_decorator(admin_required, name='dispatch')
 class SalesReport(View):
     def get(self, request):
         orders = OrderMain.objects.filter(order_status = "Order Placed")
         return render(request, 'Accounts/admin_side/sales_report.html',{'orders':orders                            })
     
-
+@method_decorator(admin_required, name='dispatch')
 class OrderDateFilter(View):
     def post(self, request):
         start_date = request.POST.get('start_date')
@@ -132,3 +134,5 @@ class OrderDateFilter(View):
             return render(request, 'Accounts/admin_side/sales_report.html',{'orders':orders})
         
         return redirect('admin_panel:sales_report')
+    
+

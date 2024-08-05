@@ -2,9 +2,11 @@ from django.shortcuts import render,redirect,get_object_or_404
 from django.views import View
 from . models import *
 from django.contrib import messages
+from utils.decorators import admin_required
+from django.utils.decorators import method_decorator
+from utils.decorators import admin_required
 
-# Create your views here.
-
+@method_decorator(admin_required, name='dispatch')
 class ProductView(View):
     def get(self, request):
         query = request.GET.get('q')
@@ -13,8 +15,9 @@ class ProductView(View):
         else:
             products = Products.objects.all()
         return render(request, 'Products/product.html', {'products':products})
-
-
+    
+    
+@method_decorator(admin_required, name='dispatch')
 class ProductCreate(View):
     def get(self, request):
         if request.user.is_authenticated:
@@ -62,8 +65,7 @@ class ProductCreate(View):
         product.save()
         return redirect('product:product_create')
 
-
-
+@method_decorator(admin_required, name='dispatch')
 class ProductEdit(View):
     def get(self, request, pk):
         categories = Category.objects.all() 
@@ -93,8 +95,7 @@ class ProductEdit(View):
         
 
 
-
-        
+@method_decorator(admin_required, name='dispatch')
 class ProductImage(View):
     def get(self, request, pk):
         products = get_object_or_404(Products, id=pk)
@@ -109,8 +110,7 @@ class ProductImage(View):
         
         return redirect('product:products')
 
-
-
+@method_decorator(admin_required, name='dispatch')
 class VariantCreate(View):
     def get(self, request, pk):
         product = get_object_or_404(Products, pk=pk)
@@ -138,15 +138,13 @@ class VariantCreate(View):
         
         return redirect('product:products')
     
-
-
+@method_decorator(admin_required, name='dispatch')
 class VariantsView(View):
     def get(self, request, pk):
         product = get_object_or_404(Products, id=pk)
         variants = ProductVariant.objects.filter(product=product)
         return render(request, 'Products/product_variants.html', {'product':product, 'variants':variants})
-
-
+@method_decorator(admin_required, name='dispatch')
 class VariantEdit(View):
     def get(self, request, pk):
         variants = ProductVariant.objects.get(id=pk)
@@ -175,7 +173,8 @@ class VariantEdit(View):
         
         return redirect('product:product_variant', pk=pk)
     
-
+    
+@method_decorator(admin_required, name='dispatch')
 class VariantStatus(View):
     def get(self, request, pk):
         variant = get_object_or_404(ProductVariant, id=pk)
@@ -184,16 +183,14 @@ class VariantStatus(View):
         variant.save()
         return redirect('product:product_variant', pk=pk)
 
-
-
+@method_decorator(admin_required, name='dispatch')
 class ProductStocks(View):
     def get(self, request, pk):
         variants = ProductVariant.objects.filter(product_id=pk)
         images = ProductImages.objects.filter(product_id=pk)
         return render(request, 'Products/product_stock.html', {'variants':variants, 'images':images})
 
-
-
+@method_decorator(admin_required, name='dispatch')
 class ProductDelete(View):
     def get(self, request, pk):
         product = get_object_or_404(Products, id=pk)
@@ -201,8 +198,7 @@ class ProductDelete(View):
         product.save()
         return redirect('product:products')
 
-
-
+@method_decorator(admin_required, name='dispatch')
 class ProductInfo(View):
     def get(self, request, pk):
         product = get_object_or_404(Products, id=pk)
@@ -213,7 +209,6 @@ class ProductInfo(View):
 
 
 #---------------------------------------------- Review Page -------------------------------------------------------------#
-
 
 
 class Reviews(View):
@@ -233,8 +228,7 @@ class Reviews(View):
     
         return redirect('accounts:product_details', pk=pk)
 
-
-
+@method_decorator(admin_required, name='dispatch')
 class DeleteImage(View):
     def post(self, request, pk):
         image = get_object_or_404(ProductImages, id=pk)

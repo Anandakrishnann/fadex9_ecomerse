@@ -233,13 +233,13 @@
                                 <div class="header-action-icon-2">
                                     <a href="{% url 'wishlist:wishlist' %}">
                                         <img class="svgInject" alt="Evara" src="{% static 'user_side/assets/imgs/theme/icons/icon-heart.svg' %}">
-                                        {% comment %} <span class="pro-count blue">4</span> {% endcomment %}
+                                        <span class="pro-count blue">{{ wishlist_count }}</span>
                                     </a>
                                 </div>
                                 <div class="header-action-icon-2">
                                     <a href="{% url 'cart:cart_view' %}">
                                         <img class="svgInject" alt="Evara" src="{% static 'user_side/assets/imgs/theme/icons/icon-cart.svg' %}">
-                                        {% comment %} <span class="pro-count blue">4</span> {% endcomment %}
+                                        <span class="pro-count blue">{{ cart_count }}</span> 
                                     </a>
                                 </div>
                                 <div class="header-action-icon-2">
@@ -295,76 +295,20 @@
                         <div class="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block">
                             <nav>
                                 <ul>
-                                    <li><a style="font-weight:bold; font-size:20px;" class="active" href="{% url 'accounts:home' %}">Home <i ></i></a>
+                                    <li><a style="font-weight:bold; font-size:20px; outline:none;" class="active" href="{% url 'accounts:home' %}">Home <i ></i></a>
                                         
                                     </li>
                                     
-                                    <li><a style="font-weight:bold; font-size:20px;" href="{% url 'accounts:product_shop' %}">Shop <i class=""></i></a>
+                                    <li><a style="font-weight:bold; font-size:20px; outline:none;" href="{% url 'accounts:product_shop' %}">Shop <i class=""></i></a>
                                         
-                                    </li>
-                                    {% comment %} <li  class="position-static"><a style="font-weight:bold; font-size:20px;" href="#">Mega menu <i class="fi-rs-angle-down"></i></a>
-                                        <ul class="mega-menu">
-                                            <li class="sub-mega-menu sub-mega-menu-width-22">
-                                                <a class="menu-title" href="#">Women's Fashion</a>
-                                                <ul>
-                                                    <li><a href="shop-product-right.html">Dresses</a></li>
-                                                    <li><a href="shop-product-right.html">Blouses & Shirts</a></li>
-                                                    <li><a href="shop-product-right.html">Hoodies & Sweatshirts</a></li>
-                                                    <li><a href="shop-product-right.html">Wedding Dresses</a></li>
-                                                    <li><a href="shop-product-right.html">Prom Dresses</a></li>
-                                                    <li><a href="shop-product-right.html">Cosplay Costumes</a></li>
-                                                </ul>
-                                            </li>
-                                            <li class="sub-mega-menu sub-mega-menu-width-22">
-                                                <a class="menu-title" href="#">Men's Fashion</a>
-                                                <ul>
-                                                    <li><a href="shop-product-right.html">Jackets</a></li>
-                                                    <li><a href="shop-product-right.html">Casual Faux Leather</a></li>
-                                                    <li><a href="shop-product-right.html">Genuine Leather</a></li>
-                                                    <li><a href="shop-product-right.html">Casual Pants</a></li>
-                                                    <li><a href="shop-product-right.html">Sweatpants</a></li>
-                                                    <li><a href="shop-product-right.html">Harem Pants</a></li>
-                                                </ul>
-                                            </li>
-                                            <li class="sub-mega-menu sub-mega-menu-width-22">
-                                                <a class="menu-title" href="#">Technology</a>
-                                                <ul>
-                                                    <li><a href="shop-product-right.html">Gaming Laptops</a></li>
-                                                    <li><a href="shop-product-right.html">Ultraslim Laptops</a></li>
-                                                    <li><a href="shop-product-right.html">Tablets</a></li>
-                                                    <li><a href="shop-product-right.html">Laptop Accessories</a></li>
-                                                    <li><a href="shop-product-right.html">Tablet Accessories</a></li>
-                                                </ul>
-                                            </li>
-                                            <li class="sub-mega-menu sub-mega-menu-width-34">
-                                                <div class="menu-banner-wrap">
-                                                    <a href="shop-product-right.html"><img src="{% static 'user_side/assets/imgs/banner/menu-banner.jpg' %}" alt="Evara"></a>
-                                                    <div class="menu-banner-content">
-                                                        <h4>Hot deals</h4>
-                                                        <h3>Don't miss<br> Trending</h3>
-                                                        <div class="menu-banner-price">
-                                                            <span class="new-price text-success">Save to 50%</span>
-                                                        </div>
-                                                        <div class="menu-banner-btn">
-                                                            <a href="shop-product-right.html">Shop now</a>
-                                                        </div>
-                                                    </div>
-                                                    <div class="menu-banner-discount">
-                                                        <h3>
-                                                            <span>35%</span>
-                                                            off
-                                                        </h3>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </li> {% endcomment %}
-                                    <li>
-                                        <a style="font-weight:bold; font-size:20px;" href="page-about.html">About</a>
                                     </li>
                                     
                                     <li>
-                                        <a style="font-weight:bold; font-size:20px;" href="page-contact.html">Contact</a>
+                                        <a style="font-weight:bold; font-size:20px; outline:none;" href="{% url 'accounts:about' %}">About</a>
+                                    </li>
+                                    
+                                    <li style=" outline:none;">
+                                        <a style="font-weight:bold; font-size:20px; outline:none;" href="{% url 'accounts:contact' %}">Contact</a>
                                     </li>
                                 </ul>
                             </nav>

@@ -2,9 +2,14 @@ from django.shortcuts import render,redirect,get_object_or_404
 from .models import *
 from django.views import View
 from django.contrib import messages
+from django.utils.decorators import method_decorator
+from utils.decorators import admin_required
+
 
 # Create your views here.
 
+
+@method_decorator(admin_required, name='dispatch')
 class BrandList(View):
     def get(self, request):
         if request.user.is_authenticated:
@@ -17,7 +22,7 @@ class BrandList(View):
         else:
             return render(request, 'Admin_panel/admin_side/admin_login.html')
     
-
+@method_decorator(admin_required, name='dispatch')
 class BrandCreate(View):
     def get(self, request):
         return render(request, 'Brands/brand_create.html')
@@ -40,7 +45,7 @@ class BrandCreate(View):
                 brand.save()
                 return redirect('brand:brand_list')
         return render(request, 'Brands/brand_create.html')
-
+@method_decorator(admin_required, name='dispatch')
 class BrandEdit(View):
     def get(self, request, pk):
         brands = get_object_or_404(Brand, id=pk)
@@ -69,7 +74,7 @@ class BrandEdit(View):
         return render(request, 'Brands/brand_edit.html', {'brands': brands})
     
     
-
+@method_decorator(admin_required, name='dispatch')
 class BrandStatus(View):
     def get(self, request, pk):
         brand = get_object_or_404(Brand, id=pk)

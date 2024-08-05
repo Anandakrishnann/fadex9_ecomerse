@@ -40,7 +40,7 @@
     cursor: pointer; 
     } 
 </style> 
-<div style="height:500px;">
+<div >
     <div style="max-width: 1000px; margin: 0 auto; margin-top:50px; margin-bottom:30px;">
         <h4 style="padding-bottom:20px;">
             <span style="font-size: 24px;">♥️</span> My Wishlist
@@ -57,6 +57,7 @@
                 <p>Price: ₹ {{ wishlist.variant.product.offer_price }}</p>
             </div>
             <a href="#" class="btn btn-sm btn-outline-danger remove-item ms-3" data-url="{% url 'wishlist:remove_wishlist' wishlist.id %}">Remove</a>
+            <a href="#" class="btn btn-sm btn-outline-danger cart-item ms-3" data-product-id="{{ wishlist.variant.product.id }}" data-variant-id="{{ wishlist.variant.id }}">Add To Cart</a>
         </div>
         {% endfor %}
         {% else %}
@@ -126,7 +127,84 @@
             });
         });
     });
+
+    
 </script>
+{% csrf_token %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.cart-item').on('click', function(e) {
+            e.preventDefault();
+
+            var button = $(this);
+            var productId = button.data('product-id');
+            var variantId = button.data('variant-id');  // Ensure your button has this data attribute
+
+            if (button.text() === 'Go to Cart') {
+                // Redirect to the cart view
+                window.location.href = '{% url "cart:cart_view" %}';
+                return;
+            }
+
+            $.ajax({
+                url: '{% url "cart:add_to_cart" %}',
+                type: 'POST',
+                data: {
+                    'product_id': productId,
+                    'variant_id': variantId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        button.text('Go to Cart');
+                        button.removeClass('btn-outline-danger').addClass('btn-success');
+                        
+                        // Show SweetAlert notification
+                        Swal.fire({
+                            position: 'top-end',
+                            icon: 'success',
+                            title: response.message,
+                            showConfirmButton: false,
+                            timer: 1500,
+                            toast: true,
+                            customClass: {
+                                container: 'swal2-container-top-end'
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            position: 'top-end',
+                            icon: 'error',
+                            title: response.message,
+                            showConfirmButton: false,
+                            timer: 1500,
+                            toast: true,
+                            customClass: {
+                                container: 'swal2-container-top-end'
+                            }
+                        });
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    Swal.fire({
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'An error occurred: ' + errmsg,
+                        showConfirmButton: false,
+                        timer: 1500,
+                        toast: true,
+                        customClass: {
+                            container: 'swal2-container-top-end'
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {

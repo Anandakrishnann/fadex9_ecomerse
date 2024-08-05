@@ -70,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'Accounts.Middleware.CheckUserBlockedMiddleware',
     'Accounts.Middleware.SocialAuthExceptionMiddleware',
 ]
 
@@ -88,6 +89,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
+                'cart.context_processor.cart_and_wishlist_counts',
             ],
         },
     },

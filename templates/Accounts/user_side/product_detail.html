@@ -122,16 +122,20 @@
                                     <div class="bt-1 border-color-1 mt-30 mb-30"></div>
                                     <div class="detail-extralink">
                                         <div class="product-extra-link2">
+                                            <!-- Initial button state for adding to cart -->
+                                            <!-- Initial button state for adding to cart -->
                                             <button type="button" id="product-cart-button" class="button button-add-to-cart" style="background-color:black;" data-product-id="{{ products.id }}">Add to Cart</button>
-                                            <button aria-label="Add To Wishlist" class="action-btn hover-up add-to-wishlist-btn" data-variant-id="{{ variant.id }}">
-                                                <i class="fi-rs-heart"></i> 
+
+
+                                            <button style="background-color:black;" aria-label="Add To Wishlist" class="action-btn hover-up add-to-wishlist-btn" data-variant-id="{{ variant.id }}">
+                                                <i style="color:white;" class="fi-rs-heart"></i> 
                                             </button>                                            
                                             <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
                                         </div>
                                     </div>
-                                    <div class="product-extra-link2" style="margin-top:10px;">
+                                    {% comment %} <div class="product-extra-link2" style="margin-top:10px;">
                                         <button type="button" id="product-cart-button" class="button button-add-to-cart" style="background-color:black;" data-product-id="{{ products.id }}">Buy Now</button>
-                                    </div>
+                                    </div> {% endcomment %}
                                     <ul class="product-meta font-xs color-grey mt-50">
                                         {% if products.is_active %}
                                             {% for variant in variants %}
@@ -305,40 +309,40 @@
                             </div>
                             <div class="col-12">
                                 <div class="row related-products">
-                                    {% comment %} {% for related in related_products %} {% endcomment %}
+                                    {% for related in related_products %} 
                                     <div class="col-lg-3 col-md-4 col-12 col-sm-6">
                                         <div class="product-cart-wrap small hover-up">
                                             <div class="product-img-action-wrap">
                                                 <div class="product-img product-img-zoom">
                                                     <a href="shop-product-right.html" tabindex="0">
-                                                        <img class="default-img" src="assets/imgs/shop/product-3-1.jpg" alt="">
-                                                        <img class="hover-img" src="assets/imgs/shop/product-4-2.jpg" alt="">
+                                                        <img class="default-img" src="{{ related.thumbnail.url }}" alt="">
+                                                        <img class="hover-img" src="{{ related.thumbnail.url }}" alt="">
                                                     </a>
                                                 </div>
-                                                <div class="product-action-1">
+                                                {% comment %} <div class="product-action-1">
                                                     <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
 "><i class="fi-rs-search"></i></a>
                                                     <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
                                                     <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                </div>
+                                                </div> {% endcomment %}
                                                 <div class="product-badges product-badges-position product-badges-mrg">
-                                                    <span class="sale">-12%</span>
+                                                    <span style="background-color:red;" class="sale">-{{ related.percentage_discount }}%</span>
                                                 </div>
                                             </div>
                                             <div class="product-content-wrap">
-                                                <h2><a href="shop-product-right.html" tabindex="0">Smart Bluetooth Speaker</a></h2>
+                                                <h2><a href="shop-product-right.html" tabindex="0">{{ related.product_name }}</a></h2>
                                                 <div class="rating-result" title="90%">
                                                     <span>
                                                     </span>
                                                 </div>
                                                 <div class="product-price">
-                                                    <span>₹138.85 </span>
-                                                    <span class="old-price">₹145.8</span>
+                                                    <span>₹{{ related.price }}</span>
+                                                    <span class="old-price">₹{{ related.offerprice }}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -353,6 +357,12 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
+
+<!-- Include SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<!-- Include SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
@@ -414,77 +424,65 @@
  // Cart functionality
 
 
-    $(document).ready(function() {
+ $(document).ready(function() {
     var selectedVariantId = $('.list-filter.size-filter li.active').eq(0).data('variant-id');
-    
+
     // Handle variant selection
     $('.list-filter.size-filter li').on('click', function() {
         $('.list-filter.size-filter li').removeClass('active');
         $(this).addClass('active');
         selectedVariantId = $(this).data('variant-id');
-
     });
 
     // Handle add to cart
     $('.button-add-to-cart').on('click', function() {
-        var productId = $(this).data('product-id');
+        var button = $(this);
+        var productId = button.data('product-id');
         
         $.ajax({
-            url: "{% url 'cart:add_to_cart' %}", // Replace with your actual add to cart URL
+            url: "{% url 'cart:add_to_cart' %}", // Ensure this URL is correct
             method: "POST",
             data: {
                 'product_id': productId,
                 'variant_id': selectedVariantId,
-                'csrfmiddlewaretoken': '{{ csrf_token }}' // Ensure you include the CSRF token
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
             },
             success: function(response) {
-                console.log(response)
+                console.log('Response:', response); // Debug log
                 if (response.success) {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-right',
-                        icon: 'success',
-                        title: 'Product added to cart successfully',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                } else if (response.message === 'Product is unavailable.') {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-right',
-                        icon: 'error',
-                        title: 'Product is unavailable',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                } else if (response.message === 'Product is out of stock.') {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-right',
-                        icon: 'error',
-                        title: 'Product is out of stock',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
+                    if (response.already_in_cart) {
+                        button.text('Go to Cart');
+                        button.off('click').on('click', function() {
+                            window.location.href = "{% url 'cart:cart_view' %}";
+                        });
+                    } else {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-right',
+                            icon: 'success',
+                            title: 'Product added to cart successfully',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
                 } else {
                     Swal.fire({
                         toast: true,
                         position: 'top-right',
                         icon: 'error',
-                        title: 'Login to add product to cart',
+                        title: response.message,
                         showConfirmButton: false,
                         timer: 3000
                     });
                 }
             },
             error: function(xhr, status, error) {
-                var err = eval("(" + xhr.responseText + ")");
-                console.log(err.message)
+                console.log('Error:', xhr.responseText); // Debug log
                 Swal.fire({
                     toast: true,
                     position: 'top-right',
                     icon: 'error',
-                    title: 'Product is out of stock',
+                    title: 'Error occurred',
                     showConfirmButton: false,
                     timer: 3000
                 });
@@ -492,27 +490,54 @@
         });
     });
 
+
 // add to wishlist
 
-    $('.add-to-wishlist-btn').on('click', function(event) {
-        event.preventDefault();
-        var variantId = selectedVariantId;
-        $.ajax({
-            url: "{% url 'wishlist:add_to_wishlist' %}",
-            type: 'POST',
-            data: {
-                'variant': variantId,
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
-            },
-            success: function(response) {
-                console.log(response)
-            },
-            error: function(xhr) {
-                console.log(xhr.responseText)
-               // alert('Error: ' + xhr.responseJSON.message);
-            }
-        });
+$('.add-to-wishlist-btn').on('click', function(event) {
+    event.preventDefault();
+    var variantId = selectedVariantId;
+    $.ajax({
+        url: "{% url 'wishlist:add_to_wishlist' %}",
+        type: 'POST',
+        data: {
+            'variant': variantId,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        success: function(response) {
+            console.log(response);
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'success',
+                title: 'Added to wishlist!',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+        },
+        error: function(xhr) {
+            console.log(xhr.responseText);
+            // alert('Error: ' + xhr.responseJSON.message);
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'error',
+                title: 'Failed to add to wishlist',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+        }
     });
+});
 });
 
 </script>

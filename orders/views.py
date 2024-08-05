@@ -19,7 +19,8 @@ from django .conf import settings
 from coupon.models import *
 from django.db.models import *
 from decimal import Decimal
-
+from django.utils.decorators import method_decorator
+from utils.decorators import admin_required
 # Create your views here.
 
 
@@ -152,7 +153,11 @@ class OrderVerificationView(LoginRequiredMixin, View):
                             transaction_type=transaction_type,
                         )
                         
-                        wallet.balance = order_amount - int(wallet.balance) 
+                        balance = order_amount - int(wallet.balance) 
+                        if balance <=0:
+                            wallet.balance = 0
+                        else:
+                            wallet.balance = balance
                         wallet.save()
                         
                         cart_items.delete()
@@ -429,13 +434,13 @@ class OrderSuccess(LoginRequiredMixin,View):
         
         return render(request, 'Order/order.html', {'formatted_future_date': formatted_future_date, 'order_id':order_id, 'date':date, 'order_status':order_status})
 
-
+@method_decorator(admin_required, name='dispatch')
 class AdminOrder(View):
     def get(self, request):
         orders = OrderMain.objects.all()
         return render(request, 'Order/admin_order.html', {'orders':orders})
 
-
+@method_decorator(admin_required, name='dispatch')
 class AdminOrderDetails(View):
     def get(self, request, pk):
         orders = OrderMain.objects.get(id=pk)
@@ -520,7 +525,7 @@ class ReturnOrders(LoginRequiredMixin,View):
         
         return redirect('user_panel:user_dash')
 
-
+@method_decorator(admin_required, name='dispatch')
 class AdminCancelOrders(View):
     def post(self, request, pk):
         try:

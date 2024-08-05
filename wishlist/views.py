@@ -1,3 +1,4 @@
+import json
 import logging
 from Accounts.models import *
 from products.models import *
@@ -30,23 +31,20 @@ class WishlistView(LoginRequiredMixin, View):
 class AddToWishlist(LoginRequiredMixin, View):
     def post(self, request):
         variant_id = request.POST.get('variant')
-        print(variant_id)
-        if not variant_id:
-            return JsonResponse({'message': 'Variant ID is required'}, status=400)
+        if not variant_id :
+            return JsonResponse({'message': 'Something error '}, status=400)
+        if variant_id:
+            try:
+                user = get_object_or_404(Accounts, id=request.user.id)
+                variant = get_object_or_404(ProductVariant, id=variant_id)
+                
+                wishlist, created = Wishlist.objects.get_or_create(user=user, variant=variant)
+                
+                message = 'Product added to wishlist' if created else 'Product is already in your wishlist'
+                return JsonResponse({'message': message},status=200)
 
-        try:
-            user = get_object_or_404(Accounts, id=request.user.id)
-            variant = get_object_or_404(ProductVariant, id=variant_id)
-            
-            wishlist, created = Wishlist.objects.get_or_create(user=user, variant=variant)
-            
-            message = 'Product added to wishlist' if created else 'Product is already in your wishlist'
-            return JsonResponse({'message': message},status=200)
-
-        except Exception as e:
-            return JsonResponse({'message': f'Error: {e}'}, status=500)
-        
-
+            except Exception as e:
+                return JsonResponse({'message': f'Error: {e}'}, status=500)
 
 class RemoveWishlist(View):
     def post(self, request, pk):

@@ -7,11 +7,12 @@ import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 import uuid
-
+from django.utils.decorators import method_decorator
+from utils.decorators import admin_required
 # Create your views here.
 
 
-
+@method_decorator(admin_required, name='dispatch')
 class CouponCreate(View):
     def get(self, request):
         return render(request, 'Coupon/coupon_create.html')
@@ -40,7 +41,7 @@ class CouponCreate(View):
         return render(request, 'Coupon/coupon_create.html')
         
 
-
+@method_decorator(admin_required, name='dispatch')
 class EditCoupon(View):
     def get(self, request, pk):
         coupon = get_object_or_404(Coupon, id=pk)
@@ -70,14 +71,14 @@ class EditCoupon(View):
             return render(request, 'Coupon/edit_coupon.html', {'coupon':coupon})
 
 
-
+@method_decorator(admin_required, name='dispatch')
 class CouponView(View):
     def get(self, request):
         coupons = Coupon.objects.all()
         return render(request, 'Coupon/coupon.html',{'coupons':coupons})
 
 
-
+@method_decorator(admin_required, name='dispatch')
 class CouponStatus(View):
     def post(self, request, pk):
         try:

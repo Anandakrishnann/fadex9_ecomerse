@@ -15,7 +15,7 @@
                 <div class="card shadow-sm border-0 rounded">
                     <div class="card-body p-4">
                         <div class="text-center mb-4">
-                            <h3 class="card-title">Login</h3>
+                            <h3 class="card-title">Admin Login</h3>
                         </div>
                         <p class="text-danger">{{ error_message }}</p>
                         <form method="post" action="{% url 'admin_panel:admin_login' %}">
@@ -31,7 +31,7 @@
                             </div>
                             
                             <div class="form-group text-center mt-4">
-                                <button type="submit" class="btn btn-primary btn-block" name="login">Log in</button>
+                                <button style="background-color:black; color:white;" type="submit" class="btn btn-block" name="login">Log in</button>
                             </div>
                             
                         </form>
@@ -46,5 +46,27 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                "{{ message }}",
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'error',
+                title: message,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+    {% endif %}
+});
+</script>
 </body>
 </html>
