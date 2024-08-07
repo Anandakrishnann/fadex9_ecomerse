@@ -71,10 +71,7 @@
                                     <li class="nav-item">
                                         <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#address" role="tab" aria-controls="address" aria-selected="true"><i class="fi-rs-marker mr-10"></i>My Address</a>
                                     </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="account-detail-tab" data-bs-toggle="tab" href="#account-add  " role="tab" aria-controls="account-detail" aria-selected="true"><i class="fi-rs-user mr-10"></i>Add Address</a>
-                                    </li>
-                                    
+                                
                                     <li class="nav-item">
                                         <a class="nav-link" href="{% url 'accounts:logout' %}"><i class="fi-rs-sign-out mr-10"></i>Logout</a>
                                     </li>
@@ -91,8 +88,8 @@
                                             </div> 
                                             <h5 class="card-title">{{ user.get_full_name }}</h5> 
                                             <p class="card-text text-muted">{{ user.email }}</p> 
-                                            <a href="{% url 'user_panel:edit_details' user.id %}" class="btn btn-outline-secondary btn-sm mt-2">Edit Profile</a> 
-                                            <a href="{% url 'user_panel:change_password' %}" class="btn btn-outline-secondary btn-sm mt-2">Change Password</a> 
+                                            <a href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal" class="btn btn-outline-secondary btn-sm mt-2">Edit Profile</a> 
+                                            <a href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal" class="btn btn-outline-secondary btn-sm mt-2">Change Password</a>
                                         </div>
                                         <div class="card-header">
                                             <h5 class="mb-0">Hello {{ user.username }}! </h5>
@@ -137,7 +134,7 @@
                                                             <th>Price</th> 
                                                             <th style="width:100px;">Date</th> 
                                                             <th>Status</th> 
-                                                            <th>Action</th> 
+                                                            <th style="width:500px;">Action</th> 
                                                         </tr> 
                                                     </thead> 
                                                     {% for order in orders %}
@@ -162,7 +159,7 @@
                                                                 {{ order.date }}<br>
                                                             </td>
                                                             <td><span {% if order.order_status == "Order Placed" %} class="badge bg-success" {% elif order.order_status == "Confirmed" %} class="badge bg-warning" {% elif order.order_status == "Shipped" %} class="badge bg-primary" {% else %}class="badge bg-danger" {% endif %}>{{ order.order_status }}</span></td> 
-                                                            <td>
+                                                            <td >
                                                                 <div>
                                                                     {% if order.order_status == "Confirmed" or order.order_status == "Awaiting Payment" or order.order_status == "Shipped" %}
                                                                     <form id="cancel-order-form" method="post" action="{% url 'order:cancel_order' order.id %}">
@@ -184,11 +181,12 @@
                                                                     {% endif %}
                                                                 </div>
                                                                 
-                                                                <div style="margin-top:10px;">
+                                                                <div style="margin-top:10px; margin-bottom:10px;">
                                                                     <button class="btn btn-danger btn-sm collapse-btn" type="button" data-bs-toggle="collapse" data-bs-target="#orderDetails{{ order.id }}" aria-expanded="false" aria-controls="orderDetails{{ order.id }}">
                                                                         Details
                                                                     </button>
                                                                 </div>
+                                                                <a style="padding-top:20;" href="{% url 'user_panel:invoice_download' order.id %}" class="btn btn-danger btn-sm collapse-btn">Invoice Download</a>
                                                             </td>
                                                         </tr>
                                                         <tr>
@@ -209,17 +207,22 @@
                                                                                             Size: {{ item.variant.size }}<br>
                                                                                             Price: ₹{{ item.price }}
                                                                                         </p>
+                                                                                        {% if item.main_order.order_status == "Order Placed" %}
+                                                                                        <a href="{% url 'order:individual_cancel' item.variant.id %}" class="btn btn-danger btn-sm collapse-btn">Return</a>
+                                                                                        {% else %}
+                                                                                        <a href="{% url 'order:individual_cancel' item.variant.id %}" class="btn btn-danger btn-sm collapse-btn">Cancel</a>
+                                                                                        {% endif %}
                                                                                     </div>
                                                                                     <div class="col-md-6">
                                                                                         <h5 class="card-title">Delivery Address</h5>
                                                                                         <p class="card-text">
-                                                                                            Name:{{ item.main_order.address.name }}<br>
+                                                                                            Name: {{ item.main_order.address.name }}<br>
                                                                                             House Name: {{ item.main_order.address.house_name }}<br>
                                                                                             Size: {{ item.variant.size }}<br>
                                                                                             Price: ₹{{ item.variant.product.offer_price }}<br>
-                                                                                            
                                                                                         </p>
                                                                                     </div>
+                                                                                    
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -280,6 +283,9 @@
                                     Create Address
                                 </button></a> {% endcomment %}
                                 <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+                                    <button type="button" class="btn mb-2" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                                        Add Address
+                                    </button>
                                     <div class="row">
                                         {% for address in user_address %}
                                         <div class="col-lg-6">
@@ -327,58 +333,7 @@
                                         
                                     </div>
                                 </div>
-                                
-                                <div class="tab-pane fade" id="account-add" role="tabpanel" aria-labelledby="account-detail-tab" style="width:800px">
-                                    <div style="" class="r">
-                                        <h2>Add Address</h2>
-                                    </div>
-                                    <div class="card-body">
-                                        <form method="post" name="edit_address_form" action="{% url 'user_panel:create_address' %}">
-                                            {% csrf_token %}
-                                            <div class="row">
-                                                <div class="form-group col-md-6">
-                                                    <label>Name <span class="required">*</span></label>
-                                                    <input required class="form-control square" name="name" type="text" value="{{ users.name }}">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label>House Name <span class="required">*</span></label>
-                                                    <input required class="form-control square" name="house_name" value="{{ users.house_name }}">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label>Street Name <span class="required">*</span></label>
-                                                    <input required class="form-control square" name="street_name" type="text" value="{{ users.street_name }}">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label>Pin Number <span class="required">*</span></label>
-                                                    <input required class="form-control square" name="pin_number" value="{{ users.pin_number }}">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label>District <span class="required">*</span></label>
-                                                    <input required class="form-control square" name="district" type="text" value="{{ users.district }}">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label>State <span class="required">*</span></label>
-                                                    <input required class="form-control square" name="state" value="{{ users.state }}">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label>Country <span class="required">*</span></label>
-                                                    <input required class="form-control square" name="country" type="text" value="{{ users.country }}">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label>Phone Number <span class="required">*</span></label>
-                                                    <input required class="form-control square" name="phone_number" value="{{ users.phone_number }}">
-                                                </div>
-                                                <div class="form-check mb-3">
-                                                    <input type="checkbox" class="form-check-input" id="is_active" name="status" {% if users.status %}checked{% endif %}>
-                                                    <label class="form-check-label" for="is_active">Status</label>
-                                                </div>
-                                                <div class="col-md-12">
-                                                    <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -387,26 +342,139 @@
         </div>
     </section>
     <!-- Bootstrap Modal -->
-<div class="modal fade" id="reasonModal" tabindex="-1" aria-labelledby="reasonModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="reasonModalLabel">Provide a Reason</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="reason-form" method="post" action="">
-            <div class="mb-3">
-              <label for="reason-text" class="form-label">Reason</label>
-              <textarea class="form-control" id="reason-text" rows="3" required></textarea>
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </form>
+            <div class="modal-body">
+              <form method="post" action="{% url 'user_panel:edit_details' user.id %}">
+                  {% csrf_token %}
+                  <div class="row">
+                      <div class="form-group col-md-6">
+                          <label>First Name<span class="required">*</span></label>
+                          <input required class="form-control square" name="first_name" value="{{ user.first_name }}" type="text">
+                      </div>
+                      <div class="form-group col-md-6">
+                          <label>Last Name<span class="required">*</span></label>
+                          <input required class="form-control square" value="{{ user.last_name }}" name="last_name">
+                      </div>
+                      <div class="form-group col-md-6">
+                          <label>Email<span class="required">*</span></label>
+                          <input required class="form-control square" name="email" value="{{ user.email }}" type="text">
+                      </div>
+                      <div class="form-group col-md-6">
+                          <label>Phone Number<span class="required">*</span></label>
+                          <input required class="form-control square" value="{{ user.phone_number }}" name="phone_number">
+                      </div>
+                      <div class="col-md-12 mt-2">
+                          <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                      </div>
+                  </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
+      
+      <!-- Change Password Modal -->
+      <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div style="margin-left:0px; width:100%">
+                  <div style="margin-top:30px;" class="r">
+                      <h2>Change Password</h2>
+                  </div>
+                  <div class="card-body">
+                      <form method="post" name="edit_address_form" action="{% url 'user_panel:change_password' %}">
+                          {% csrf_token %}
+                          <div class="row">
+                              <div class="form-group col-md-6">
+                                  <label>Old Password <span class="required">*</span></label>
+                                  <input required class="form-control square" name="old_password" type="Password">
+                              </div>
+                              <div class="form-group col-md-6">
+                                  <label> New Password <span class="required">*</span></label>
+                                  <input required class="form-control square" name="new_password" type="Password">
+                              </div>
+                              <div class="form-group col-md-6">
+                                  <label> Confirm New Password <span class="required">*</span></label>
+                                  <input required class="form-control square" name="confirm_new_password" type="Password">
+                              </div>
+                              <div class="col-md-12">
+                                  <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                              </div>
+                          </div>
+                      </form>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressModalLabel">Add Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" name="edit_address_form" action="{% url 'user_panel:create_address' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label>Name <span class="required">*</span></label>
+                            <input required class="form-control square" name="name" type="text" value="{{ users.name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>House Name <span class="required">*</span></label>
+                            <input required class="form-control square" name="house_name" value="{{ users.house_name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Street Name <span class="required">*</span></label>
+                            <input required class="form-control square" name="street_name" type="text" value="{{ users.street_name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Pin Number <span class="required">*</span></label>
+                            <input required class="form-control square" name="pin_number" value="{{ users.pin_number }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>District <span class="required">*</span></label>
+                            <input required class="form-control square" name="district" type="text" value="{{ users.district }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>State <span class="required">*</span></label>
+                            <input required class="form-control square" name="state" value="{{ users.state }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Country <span class="required">*</span></label>
+                            <input required class="form-control square" name="country" type="text" value="{{ users.country }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Phone Number <span class="required">*</span></label>
+                            <input required class="form-control square" name="phone_number" value="{{ users.phone_number }}">
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="is_active" name="status" {% if users.status %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Status</label>
+                        </div>
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
-  
+</div>
 </main>
 <script>
     /*

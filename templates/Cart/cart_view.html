@@ -95,7 +95,11 @@
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Discount</span>
-                        <span style="color:red;" id="discount">0-</span>
+                        <span style="color:red;" id="discount">0%</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Discount Amount</span>
+                        <span style="color:red;" id="discount_amount">₹0-</span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between mb-3">
@@ -228,9 +232,17 @@ document.querySelectorAll('.qty-btn').forEach(button => {
             },
             success: function(response) {
                 if (response.success) {
-                    document.getElementById('cart-subtotal').textContent = `$${response.new_total}`;
-                    document.getElementById('cart-total').textContent = `$${response.new_total}`;
-                    input.closest('.card').querySelector('.h5.mb-0').textContent = `$${response.item_sub_total}`;
+                    document.getElementById('cart-subtotal').textContent = `₹${response.subtotal}`;
+                    document.getElementById('cart-total').textContent = `₹${response.new_total}`;
+                    if (response.item_sub_total !== undefined) {
+                        //input.closest('.card').querySelector('.h5.mb-0').textContent = `₹${response.item_sub_total}`;
+                    }
+                
+
+                    // Update discount amount if coupon is applied
+                    if (response.discount_amount !== undefined) {
+                        document.getElementById('discount_amount').textContent = `₹${response.discount_amount}`;
+                    }
                 }
             },
             error: function(response) {
@@ -241,98 +253,6 @@ document.querySelectorAll('.qty-btn').forEach(button => {
 });
 
 
-/*
-$(document).ready(function() {
-    $('.status-checkbox').change(function() {
-        updateCartStatus($(this), 'status');
-    });
-
-    $('#apply-coupon').click(function() {
-        updateCartStatus(null, 'coupon');
-    });
-
-    function updateCartStatus(checkbox = null, action) {
-        var itemId = checkbox ? checkbox.val() : null;
-        var isActive = checkbox ? checkbox.is(':checked') : null;
-        var couponCode = $('#coupon-code').val();
-
-        var data = {
-            'csrfmiddlewaretoken': '{{ csrf_token }}',
-            'coupon_code': couponCode,
-            'action': action
-        };
-
-        if (itemId !== null && isActive !== null) {
-            data['item_id'] = itemId;
-            data['is_active'] = isActive;
-        }
-
-        $.ajax({
-            type: 'POST',
-            url: '{% url "cart:update_cart_status" %}',
-            data: data,
-            success: function(response) {
-                var title, icon;
-                if (action === 'status') {
-                    if (response.success) {
-                        title = 'Status updated successfully!';
-                        icon = 'success';
-                    } else {
-                        title = 'Failed to update status!';
-                        icon = 'error';
-                    }
-                } else if (action === 'coupon') {
-                    if (response.success) {
-                        title = 'Coupon applied successfully!';
-                        icon = 'success';
-                    } else {
-                        title = response.message || 'Failed to apply coupon!';
-                        icon = 'error';
-                    }
-                }
-
-                Swal.fire({
-                    toast: true,
-                    position: 'top-right',
-                    icon: icon,
-                    title: title,
-                    showConfirmButton: false,
-                    timer: 1500,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer)
-                        toast.addEventListener('mouseleave', Swal.resumeTimer)
-                    }
-                });
-
-                if (response.success) {
-                    $('#cart-total').text(response.new_total);
-                    $('#cart-subtotal').text(response.new_total);
-
-                    if (action === 'coupon' && response.discount !== undefined) {
-                        $('#discount').text(response.discount + '-');
-                    }
-                }
-            },
-            error: function(xhr, status, error) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-right',
-                    icon: 'error',
-                    title: 'Error: ' + xhr.responseText,
-                    showConfirmButton: false,
-                    timer: 1500,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer)
-                        toast.addEventListener('mouseleave', Swal.resumeTimer)
-                    }
-                });
-            }
-        });
-    }
-});
-*/
 $(document).ready(function() {
     $('.status-checkbox').change(function() {
         updateCartStatus($(this));
@@ -366,6 +286,7 @@ $(document).ready(function() {
                 if (response.success) {
                     $('#cart-total').text(response.new_total);
                     $('#cart-subtotal').text(response.new_total);
+                    $('#discount_amount').text('₹' + response.discount_amount);
                 }
             },
             error: function(xhr, status, error) {
@@ -390,6 +311,7 @@ $(document).ready(function() {
         });
     }
 });
+
 
 
 $(document).ready(function() {
@@ -418,10 +340,11 @@ $(document).ready(function() {
                 if (response.success) {
                     title = 'Coupon applied successfully!';
                     icon = 'success';
-                    $('#cart-total').text(response.new_total);
+                    $('#cart-total').text('₹' + response.new_total);
                     //$('#cart-subtotal').text(response.new_total);
                     if (response.discount !== undefined) {
-                        $('#discount').text(response.discount + '-');
+                        $('#discount').text(response.discount + '%');
+                        $('#discount_amount').text(response.discount_amount + '-')
                     }
                 } else {
                     title = response.message || 'Failed to apply coupon!';
@@ -431,7 +354,7 @@ $(document).ready(function() {
                 showNotification(title, icon);
             },
             error: function(xhr, status, error) {
-                showNotification('Error: ' + xhr.responseText, 'error');
+                //showNotification('Error: ' + xhr.responseText, 'error');
             }
         });
     }
@@ -454,7 +377,8 @@ $(document).ready(function() {
                     $('#coupon-code').val(''); // Clear the coupon code input
                     $('#cart-total').text(response.new_total);
                     //$('#cart-subtotal').text(response.new_total);
-                    $('#discount').text('0-');
+                    $('#discount').text('0%');
+                    $('#discount_amount').text('0-')
                 } else {
                     title = 'Failed to remove coupon!';
                     icon = 'error';

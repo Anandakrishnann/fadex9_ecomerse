@@ -93,11 +93,16 @@ class OrderVerificationView(LoginRequiredMixin, View):
                         if coupon_code:
                             try:
                                 coupon = Coupon.objects.get(coupon_code=coupon_code)
-                                discount = coupon.maximum_amount
-                                discount_amount = (new_total * discount / 100)
-                                if discount_amount > discount:
-                                    discount_amount = discount
-                                new_total -= discount_amount
+                                if new_total >= coupon.minimum_amount:
+                                    discount = coupon.discount
+                                    discount_amount = (new_total * discount / 100)
+                                    # Cap the discount amount to the maximum amount
+                                    discount_amount = min(discount_amount, coupon.maximum_amount)
+                                    
+                                    new_total = new_total - discount_amount
+                                    request.session['applied_coupon'] = coupon_code
+                                else:
+                                    messages.error(request, f'Coupon only available for orders over {coupon.minimum_amount}')
                             except Coupon.DoesNotExist:
                                 pass
                         
@@ -124,10 +129,6 @@ class OrderVerificationView(LoginRequiredMixin, View):
                             payment_id=payment_id,
                             payment_status=True
                         )
-                        
-                        if coupon_code:
-                            order_main.coupon = coupon
-                            order_main.save()
 
                         for cart_item in cart_items:
                             OrderSub.objects.create(
@@ -234,9 +235,6 @@ class OrderVerificationView(LoginRequiredMixin, View):
                 payment_status=True
             )
             
-            if coupon_code:
-                order_main.coupon = coupon
-                order_main.save()
 
             for cart_item in cart_items:
                 OrderSub.objects.create(
@@ -276,12 +274,16 @@ class OnlinePayment(LoginRequiredMixin,View):
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(coupon_code=coupon_code)
-                discount = coupon.maximum_amount
-                coupon_name = coupon.coupon_name
-                discount_amount = (new_total * discount / 100)
-                if discount_amount > discount:
-                    discount_amount = discount
-                new_total-= discount_amount
+                if new_total >= coupon.minimum_amount:
+                    discount = coupon.discount
+                    discount_amount = (new_total * discount / 100)
+                    # Cap the discount amount to the maximum amount
+                    discount_amount = min(discount_amount, coupon.maximum_amount)
+                    
+                    new_total = new_total - discount_amount
+                    request.session['applied_coupon'] = coupon_code
+                else:
+                    messages.error(request, f'Coupon only available for orders over {coupon.minimum_amount}')
             except Coupon.DoesNotExist:
                 pass
             
@@ -371,10 +373,6 @@ class OnlinePayment(LoginRequiredMixin,View):
                 payment_id=payment_id,
                 payment_status = True
             )
-            if coupon_code:
-                print(coupon)
-                order_main.coupon = coupon.id
-                order_main.save()
 
             main_order = OrderMain.objects.get(id=order_main.id)
             
@@ -434,11 +432,14 @@ class OrderSuccess(LoginRequiredMixin,View):
         
         return render(request, 'Order/order.html', {'formatted_future_date': formatted_future_date, 'order_id':order_id, 'date':date, 'order_status':order_status})
 
+
+
 @method_decorator(admin_required, name='dispatch')
 class AdminOrder(View):
     def get(self, request):
         orders = OrderMain.objects.all()
         return render(request, 'Order/admin_order.html', {'orders':orders})
+
 
 @method_decorator(admin_required, name='dispatch')
 class AdminOrderDetails(View):
@@ -525,6 +526,7 @@ class ReturnOrders(LoginRequiredMixin,View):
         
         return redirect('user_panel:user_dash')
 
+
 @method_decorator(admin_required, name='dispatch')
 class AdminCancelOrders(View):
     def post(self, request, pk):
@@ -544,3 +546,22 @@ class AdminCancelOrders(View):
         except OrderMain.DoesNotExist:
             messages.error(request, 'Order does not exist.')
         return redirect('admin_panel:admin_orders_details')
+    
+
+class IndividualCancel(View):
+    def post(self, request, pk):
+        order_sub = OrderSub.objects.get(variant=pk)
+        
+        
+        
+#         item_total_cost = Decimal(str(order_item.total_cost())) 
+#         order_total_amount = Decimal(str(main_order.total_amount)) 
+#         order_discount_amount = Decimal(str(main_order.discount_amount)) 
+    
+#         item_discount_amount = (order_discount_amount * item_total_cost) / order_total_amount 
+#         refund_amount = item_total_cost - item_discount_amount 
+    
+#         wallet, created = Wallet.objects.get_or_create(user=request.user) 
+#         wallet.balance = float(Decimal(str(wallet.balance)) + refund_amount) 
+#         wallet.updated_at = timezone.now() 
+#         wallet.save()

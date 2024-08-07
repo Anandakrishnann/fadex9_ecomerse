@@ -110,6 +110,7 @@ class ProductImage(View):
         
         return redirect('product:products')
 
+
 @method_decorator(admin_required, name='dispatch')
 class VariantCreate(View):
     def get(self, request, pk):
@@ -137,13 +138,16 @@ class VariantCreate(View):
         variant.save()
         
         return redirect('product:products')
-    
+
+
 @method_decorator(admin_required, name='dispatch')
 class VariantsView(View):
     def get(self, request, pk):
         product = get_object_or_404(Products, id=pk)
         variants = ProductVariant.objects.filter(product=product)
         return render(request, 'Products/product_variants.html', {'product':product, 'variants':variants})
+    
+    
 @method_decorator(admin_required, name='dispatch')
 class VariantEdit(View):
     def get(self, request, pk):

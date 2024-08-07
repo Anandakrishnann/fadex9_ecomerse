@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.http import JsonResponse
 from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -22,7 +23,7 @@ class UserDashboard(LoginRequiredMixin, View):
         user = request.user
         user_data = Accounts.objects.get(email=user.email)
         user_address = UserAddress.objects.filter(user=user, status=True)
-        orders = OrderMain.objects.filter(user=request.user.id)
+        orders = OrderMain.objects.filter(user=request.user.id).order_by('-updated_at')
         order_sub = OrderSub.objects.filter(user=request.user.id)
         
         balance = 0  # Initialize balance to 0 by default
@@ -31,7 +32,7 @@ class UserDashboard(LoginRequiredMixin, View):
             wallets = Wallet.objects.get(user=user)
             balance = wallets.balance
         except Wallet.DoesNotExist:
-            messages.error(request, "User doesn't have a wallet")
+            pass
         
         transactions = Transaction.objects.filter(wallet=wallets)
         
@@ -57,10 +58,11 @@ class UserDetails(LoginRequiredMixin, View):
             return redirect('accounts:login')
 
 
+
 class EditDetails(LoginRequiredMixin, View):
     def get(self, request, pk):
         user = Accounts.objects.get(id=pk)
-        return render(request, 'user_dashboard/edit_user_details.html', {'user':user})
+        return render(request, 'user_dashboard/user_dash.html', {'user':user})
     
     def post(self, request, pk):
         user = Accounts.objects.get(id=pk)
@@ -76,7 +78,7 @@ class EditDetails(LoginRequiredMixin, View):
 
 class ChangePassword(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'user_dashboard/change_password.html')
+        return render(request, 'user_dashboard/user_dash.html')
     
     def post(self, request):
         user = self.request.user
@@ -103,7 +105,7 @@ class ChangePassword(LoginRequiredMixin, View):
         else:
             messages.error(request, 'Old Password Incorrect')
 
-        return render(request, 'user_dashboard/change_password.html')
+        return render(request, 'user_dashboard/user_dash.html')
 
 
 class CreateAddress(LoginRequiredMixin, View):
@@ -237,3 +239,13 @@ class ToggleAddressStatus(LoginRequiredMixin, View):
             return JsonResponse({'success': False, 'message': 'Address not found.'})
         except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)})
+        
+
+
+class InvoiceDownload(LoginRequiredMixin,View):
+    def get(self, request,pk):
+            order_main = OrderMain.objects.get(id=pk)
+            order_sub = OrderSub.objects.filter(main_order=order_main)
+            current_date = datetime.now().strftime("%b. %d, %Y").replace(' 0', ' ')
+            return render(request, 'user_dashboard/invoice_download.html',{'order_sub':order_sub, 'order_main':order_main,'current_date':current_date})
+        

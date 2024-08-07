@@ -87,24 +87,47 @@ class CartItemsDelete(LoginRequiredMixin, View):
 
 
 
-def update_cart_quantity(request): 
-    if request.method == 'POST': 
-        item_id = request.POST.get('item_id') 
-        new_quantity = int(request.POST.get('quantity')) 
+def update_cart_quantity(request):
+    if request.method == 'POST':
+        item_id = request.POST.get('item_id')
+        new_quantity = int(request.POST.get('quantity'))
 
-        cart_item = CartItem.objects.get(id=item_id, cart__user=request.user) 
-        cart_item.quantity = new_quantity 
-        cart_item.save() 
+        cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+        cart_item.quantity = new_quantity
+        cart_item.save()
 
-        cart_items = CartItem.objects.filter(cart__user=request.user, is_active=True) 
-        new_total = sum(item.sub_total() for item in cart_items) 
-        item_sub_total = cart_item.sub_total() 
+        cart_items = CartItem.objects.filter(cart__user=request.user, is_active=True)
+        new_total = sum(item.sub_total() for item in cart_items)
 
-        return JsonResponse({ 
-            'success': True, 
-            'new_total': new_total, 
-            'item_sub_total': item_sub_total, 
-        }) 
+        response = {
+            'success': True,
+            'new_total': new_total,
+            'item_sub_total': cart_item.sub_total()
+        }
+        
+        # Check if there is an applied coupon
+        coupon_code = request.session.get('applied_coupon', None)
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(coupon_code=coupon_code)
+                if new_total >= coupon.minimum_amount:
+                    discount_amount = (new_total * coupon.discount / 100)
+                    discount_amount = min(discount_amount, coupon.maximum_amount)
+                    new_total = new_total - discount_amount
+                    response['discount_amount'] = round(discount_amount, 2)
+                else:
+                    new_total = new_total
+                    response['discount_amount'] = 0
+            except Coupon.DoesNotExist:
+                # If the coupon doesn't exist, remove it from the session
+                del request.session['applied_coupon']
+                new_total = new_total
+        else:
+            new_total = new_total
+
+        response['new_total'] = round(new_total, 2)
+
+        return JsonResponse(response)
 
     return JsonResponse({'success': False})
 
@@ -112,22 +135,27 @@ def update_cart_quantity(request):
 class ApplyCouponView(View):
     def post(self, request, *args, **kwargs):
         coupon_code = request.POST.get('coupon_code')
-
         response = {'success': False}
-        cart = Cart.objects.get(user=request.user)
-        cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+            current_total = sum(item.sub_total() for item in cart_items)
+        except Cart.DoesNotExist:
+            response['message'] = 'Cart not found.'
+            return JsonResponse(response)
 
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(coupon_code=coupon_code)
-                current_total = sum(item.sub_total() for item in cart_items)
                 
-                if current_total > coupon.minimum_amount:
-                    discount = coupon.maximum_amount
+                if current_total >= coupon.minimum_amount:
+                    discount = coupon.discount
                     discount_amount = (current_total * discount / 100)
 
-                    if discount_amount > discount:
-                        discount_amount = discount
+                    # Cap the discount amount to the maximum amount
+                    discount_amount = min(discount_amount, coupon.maximum_amount)
+                    
                     new_total = current_total - discount_amount
 
                     response.update({
@@ -136,6 +164,7 @@ class ApplyCouponView(View):
                         'current_total': current_total,
                         'new_total': new_total,
                         'discount': discount,
+                        'discount_amount':discount_amount
                     })
                     
                     request.session['applied_coupon'] = coupon_code
@@ -148,7 +177,8 @@ class ApplyCouponView(View):
             response.update({
                 'success': True,
                 'new_total': new_total,
-                'discount': 0
+                'discount': 0,
+                'discount_amount':0,
             })
 
         return JsonResponse(response)
@@ -173,6 +203,46 @@ class RemoveCouponView(View):
         return JsonResponse(response)
 
 
+# class UpdateCartStatus(View):
+    
+    
+    def post(self, request, *args, **kwargs):
+        item_id = request.POST.get('item_id')
+        is_active = request.POST.get('is_active') == 'true'
+
+        response = {'success': False}
+        
+        if item_id is not None and is_active is not None:
+            cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+            cart_item.is_active = is_active
+            cart_item.save()
+            response['success'] = True
+            response['message'] = 'Status updated successfully.'
+            cart = Cart.objects.get(user=request.user)
+            new_total = sum(item.sub_total() for item in CartItem.objects.filter(cart=cart, is_active=True))
+            
+            coupon_code = request.session.get('applied_coupon', None)
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(coupon_code=coupon_code)
+                if new_total >= coupon.minimum_amount:
+                    discount_amount = (new_total * coupon.discount / 100)
+                    discount_amount = min(discount_amount, coupon.maximum_amount)
+                    new_total = new_total - discount_amount
+                    response['discount_amount'] = round(discount_amount, 2)
+                else:
+                    new_total = new_total
+                    response['discount_amount'] = 0
+            except Coupon.DoesNotExist:
+                # If the coupon doesn't exist, remove it from the session
+                del request.session['applied_coupon']
+                new_total = new_total
+        else:
+            new_total = new_total
+            
+        response['new_total'] = new_total
+
+        return JsonResponse(response)
 class UpdateCartStatus(View):
     def post(self, request, *args, **kwargs):
         item_id = request.POST.get('item_id')
@@ -188,8 +258,26 @@ class UpdateCartStatus(View):
             response['message'] = 'Status updated successfully.'
             cart = Cart.objects.get(user=request.user)
             new_total = sum(item.sub_total() for item in CartItem.objects.filter(cart=cart, is_active=True))
-            response['new_total'] = new_total
+            
+            coupon_code = request.session.get('applied_coupon', None)
+            if coupon_code:
+                try:
+                    coupon = Coupon.objects.get(coupon_code=coupon_code)
+                    if new_total >= coupon.minimum_amount:
+                        discount_amount = (new_total * coupon.discount / 100)
+                        discount_amount = min(discount_amount, coupon.maximum_amount)
+                        new_total = new_total - discount_amount
+                        response['discount_amount'] = round(discount_amount, 2)
+                    else:
+                        response['discount_amount'] = 0
+                except Coupon.DoesNotExist:
+                    # If the coupon doesn't exist, remove it from the session
+                    del request.session['applied_coupon']
+                    response['discount_amount'] = 0
+            else:
+                response['discount_amount'] = 0
 
+            response['new_total'] = round(new_total, 2)
         return JsonResponse(response)
 
 

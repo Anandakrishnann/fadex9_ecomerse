@@ -14,21 +14,24 @@ class OrderAddress(models.Model):
     state = models.CharField(max_length=300, null=False)
     country = models.CharField(max_length=50, null=False, default="null")
     phone_number = models.CharField(max_length=50, null=False)
-    
+
 
 class OrderMain(models.Model):
     user = models.ForeignKey(Accounts,  on_delete=models.SET_NULL, null=True)
     address = models.ForeignKey(OrderAddress, on_delete=models.SET_NULL, null=True)
     total_amount = models.FloatField(null=False)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0) 
+    final_amount = models.DecimalField(max_digits=10, decimal_places=2,default=0)
     date = models.DateField(auto_now_add=True)
     order_status = models.CharField( max_length=100, default="Order Placed")
     payment_option = models.CharField(max_length=100, default="Cash_on_delivery")
     order_id = models.CharField(max_length=100)
-    coupon = models.IntegerField( null=True)
     is_active = models.BooleanField(default=True)
     payment_status = models.BooleanField(default=False)
     payment_id = models.CharField(max_length=50)
     
+    updated_at = models.DateTimeField(auto_now=True)  
+
 
 class OrderSub(models.Model):
     user = models.ForeignKey(Accounts, on_delete=models.CASCADE)
@@ -40,6 +43,4 @@ class OrderSub(models.Model):
     
     def total_cost(self):
         return self.quantity * self.variant.product.offer_price
-    
-
 

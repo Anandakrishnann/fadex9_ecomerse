@@ -41,6 +41,7 @@ class CouponCreate(View):
         return render(request, 'Coupon/coupon_create.html')
         
 
+
 @method_decorator(admin_required, name='dispatch')
 class EditCoupon(View):
     def get(self, request, pk):
