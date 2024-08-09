@@ -114,7 +114,7 @@ class ProductImage(View):
 @method_decorator(admin_required, name='dispatch')
 class VariantCreate(View):
     def get(self, request, pk):
-        product = get_object_or_404(Products, pk=pk)
+        product = get_object_or_404(Products, id=pk)
         return render(request, 'Products/product_create_variants.html', {'product': product})
     
     def post(self, request, pk):

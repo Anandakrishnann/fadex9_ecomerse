@@ -12,6 +12,7 @@ urlpatterns = [
     path('orders',AdminOrder.as_view(), name='admin_orders'),
     path('order_details/<int:pk>/',AdminOrderDetails.as_view(), name='admin_orders_details'),
     path('cancel_order/<int:pk>/',CancelOrders.as_view(), name='cancel_order'),
-    path('admin_cancel_order/<int:pk>/',CancelOrders.as_view(), name='admin_cancel_order'),
+    path('admin_cancel_order/<int:pk>/',AdminCancelOrders.as_view(), name='admin_cancel_order'),
     path('return_order/<int:pk>/',ReturnOrders.as_view(), name='return_order'),
+    path('return_requests/',AdminReturnRequests.as_view(), name='return_requests'),
 ]

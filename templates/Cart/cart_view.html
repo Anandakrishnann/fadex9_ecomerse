@@ -235,7 +235,7 @@ document.querySelectorAll('.qty-btn').forEach(button => {
                     document.getElementById('cart-subtotal').textContent = `₹${response.subtotal}`;
                     document.getElementById('cart-total').textContent = `₹${response.new_total}`;
                     if (response.item_sub_total !== undefined) {
-                        //input.closest('.card').querySelector('.h5.mb-0').textContent = `₹${response.item_sub_total}`;
+                        $('#cart-subtotal').text(`₹${response.item_sub_total}`);
                     }
                 
 

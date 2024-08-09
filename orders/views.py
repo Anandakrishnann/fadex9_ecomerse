@@ -89,6 +89,8 @@ class OrderVerificationView(LoginRequiredMixin, View):
 
                         coupon_code = request.session.get('applied_coupon', None)
                         discount = 0
+                        final_amount = new_total
+                        discount_amount = 0
                         
                         if coupon_code:
                             try:
@@ -99,7 +101,7 @@ class OrderVerificationView(LoginRequiredMixin, View):
                                     # Cap the discount amount to the maximum amount
                                     discount_amount = min(discount_amount, coupon.maximum_amount)
                                     
-                                    new_total = new_total - discount_amount
+                                    final_amount = new_total - discount_amount
                                     request.session['applied_coupon'] = coupon_code
                                 else:
                                     messages.error(request, f'Coupon only available for orders over {coupon.minimum_amount}')
@@ -141,8 +143,7 @@ class OrderVerificationView(LoginRequiredMixin, View):
 
                             cart_item.variant.variant_stock -= cart_item.quantity
                             cart_item.variant.save()
-                        
-                        print("hello")
+                            
                         order_amount = new_total
                         description = "Product Purchased With Wallet"
                         transaction_type = "Debited"
@@ -199,7 +200,8 @@ class OrderVerificationView(LoginRequiredMixin, View):
 
             coupon_code = request.session.get('applied_coupon', None)
             discount = 0
-            
+            final_amount = new_total
+            discount_amount = 0
             if coupon_code:
                 try:
                     coupon = Coupon.objects.get(coupon_code=coupon_code)
@@ -207,7 +209,7 @@ class OrderVerificationView(LoginRequiredMixin, View):
                     discount_amount = (new_total * discount / 100)
                     if discount_amount > discount:
                         discount_amount = discount
-                    new_total -= discount_amount
+                    final_amount -= discount_amount
                 except Coupon.DoesNotExist:
                     pass
             
@@ -228,12 +230,15 @@ class OrderVerificationView(LoginRequiredMixin, View):
                 user=current_user,
                 address=order_address,
                 total_amount=new_total,
+                final_amount=final_amount,
+                discount_amount=discount_amount,
                 payment_option=payment_option,
                 order_id=order_id,
                 order_status=order_status,
                 payment_id=payment_id,
                 payment_status=True
             )
+            
             
 
             for cart_item in cart_items:
@@ -336,6 +341,8 @@ class OnlinePayment(LoginRequiredMixin,View):
             
             coupon_code = request.session.get('applied_coupon', None)
             discount = 0
+            final_amount = new_total
+            discount_amount = 0
             if coupon_code:
                 try:
                     coupon = Coupon.objects.get(coupon_code=coupon_code)
@@ -367,6 +374,8 @@ class OnlinePayment(LoginRequiredMixin,View):
                 user=current_user,
                 address=order_address,
                 total_amount=new_total,
+                discount_amount=discount_amount,
+                final_amount=final_amount,
                 payment_option=payment_option,
                 order_id=order_id,
                 order_status = order_status,
@@ -422,6 +431,7 @@ class OnlinePayment(LoginRequiredMixin,View):
             return JsonResponse({'success': False, 'message': str(e)})
 
 
+
 class OrderSuccess(LoginRequiredMixin,View):
     def get(self, request):
         future_date_time = timezone.now() + timedelta(days=5)
@@ -453,15 +463,26 @@ class CancelOrders(LoginRequiredMixin,View):
     def post(self, request, pk):
         try:
             order = OrderMain.objects.get(id=pk)
-            order_items = OrderSub.objects.filter(main_order=order)
+            order_items = OrderSub.objects.filter(main_order=order,is_active=True)
             
-            for order_item in order_items:
-                order_variant = order_item.variant
-                order_quantity = order_item.quantity
+            if not order.is_active: 
+                messages.error(request, 'Order item is already Canceled.') 
+                return redirect('user_panel:user_dash')
+            
+            if len(order_items) > 1:
+                for order_item in order_items:
+                    order_variant = order_item.variant
+                    order_quantity = order_item.quantity
+                    
+                    order_variant.variant_stock += order_quantity
+            else:
+                order_variant = order_items.variant
+                order_quantity = order_items.quantity
                 
                 order_variant.variant_stock += order_quantity
             
             order.order_status = "Canceled"
+            order.order_status = False
             order.save()
             
             if order.payment_option == "Online Payment":
@@ -469,14 +490,39 @@ class CancelOrders(LoginRequiredMixin,View):
                 description = "Product Cancel Amount"
                 transaction_type = "Credited"
                 
-                wallet, created = Wallet.objects.get_or_create(user=request.user,
-                description = description,
-                amount = order_amount,
-                transaction_type = transaction_type,
+                wallet, created = Wallet.objects.get_or_create(user=request.user)
+                
+                transaction = Transaction.objects.create(
+                wallet = wallet,
+                description=description,
+                amount=order_amount,
+                transaction_type=transaction_type,
                 )
+                
+                wallet.balance += Decimal(order_amount)  # Ensure Decimal type for accurate calculation
+                wallet.save()
             
+            if order.payment_option == "Wallet":
+                order_amount = order.total_amount
+                description = "Product Cancel Amount"
+                transaction_type = "Credited"
+                
+                wallet, created = Wallet.objects.get_or_create(user=request.user)
+                
+                transaction = Transaction.objects.create(
+                wallet = wallet,
+                description=description,
+                amount=order_amount,
+                transaction_type=transaction_type,
+                )
+                
+                wallet.balance += Decimal(order_amount)  # Ensure Decimal type for accurate calculation
+                wallet.save()
+        
         except OrderMain.DoesNotExist:
             messages.error(request, 'Order does not exist.')
+            return redirect('user_panel:user_dash')
+        
         return redirect('user_panel:user_dash')
 
 
@@ -485,7 +531,14 @@ class ReturnOrders(LoginRequiredMixin,View):
         try:
             order = OrderMain.objects.get(id=pk)
             order_items = OrderSub.objects.filter(main_order=order)
-            user = Accounts.objects.get(id=request.user.id)
+            
+            if not order.is_active: 
+                messages.error(request, 'Order item is already Returned.') 
+                return redirect('user_panel:user_dash')
+            
+            if order.order_status in ['Pending', 'Confirmed', 'Shipped']: 
+                messages.error(request, 'Order cannot be canceled at this stage.') 
+                return redirect('user_panel:user_dash') 
             
             # Get the reason from the form
             reason = request.POST.get('reason', '')
@@ -496,29 +549,15 @@ class ReturnOrders(LoginRequiredMixin,View):
                 
                 order_variant.variant_stock += order_quantity
                 order_variant.save()
-                
-            order.order_status = "Returned"
-            order.return_reason = reason  # Save the reason
-            order.save()
             
-            order_amount = order.total_amount
-            description = f"Product Return Amount - Reason: {reason}"
-            transaction_type = "Credited"
-            
-            wallet, created = Wallet.objects.get_or_create(user=user)
-            
-            transaction = Transaction.objects.create(
-                wallet = wallet,
-                description=description,
-                amount=order_amount,
-                transaction_type=transaction_type,
+            ReturnRequest.objects.create(
+                order_main = order,
+                reason = reason
             )
             
-            wallet.balance += Decimal(order_amount)  # Ensure Decimal type for accurate calculation
-            wallet.save()
-            
-            messages.success(request, "Order successfully returned.")
-            
+            order.order_status = "Pending"
+            order.save()
+            messages.success(request, "Please wait for the admin's approval.")
         except OrderMain.DoesNotExist:
             messages.error(request, "Order does not exist.")
         except Exception as e:
@@ -541,27 +580,100 @@ class AdminCancelOrders(View):
                 order_variant.variant_stock += order_quantity
             
             order.order_status = "Canceled"
+            order.order_status = False
             order.save()
+            
+            if order.payment_option == "Online Payment":
+                order_amount = order.total_amount
+                description = "Product Cancel Amount"
+                transaction_type = "Credited"
+                user = order.user
+                
+                wallet, created = Wallet.objects.get_or_create(user=user)
+                
+                Transaction.objects.create(
+                    wallet=wallet,
+                    description = description,
+                    amount = order_amount,
+                    transaction_type = transaction_type,
+                )
+            
+            if order.payment_option == "Wallet":
+                order_amount = order.total_amount
+                description = "Product Cancel Amount"
+                transaction_type = "Credited"
+                user = order.user
+                
+                wallet, created = Wallet.objects.get_or_create(user=user)
+                
+                Transaction.objects.create(
+                    wallet=wallet,
+                    description = description,
+                    amount = order_amount,
+                    transaction_type = transaction_type,
+                )
             
         except OrderMain.DoesNotExist:
             messages.error(request, 'Order does not exist.')
         return redirect('admin_panel:admin_orders_details')
     
 
+@method_decorator(admin_required, name='dispatch')
+class AdminReturnRequests(View):
+    def get(self, request):
+        return_request = ReturnRequest.objects.all().order_by('id')
+        return render(request, 'Order/return_request.html',{'return_request':return_request})
+
+
 class IndividualCancel(View):
     def post(self, request, pk):
-        order_sub = OrderSub.objects.get(variant=pk)
+        order_sub = OrderSub.objects.get(id=pk, user=request.user)
+
+        if not order_sub.is_active: 
+            messages.error(request, 'Order item is already canceled.') 
+            return redirect('user_panel:user_dash') 
         
+        if order_sub.main_order.order_status not in ['Pending', 'Confirmed', 'Shipped', 'Order Placed']: 
+            messages.error(request, 'Order cannot be canceled at this stage.') 
+            return redirect('user_panel:user_dash') 
         
-        
-#         item_total_cost = Decimal(str(order_item.total_cost())) 
-#         order_total_amount = Decimal(str(main_order.total_amount)) 
-#         order_discount_amount = Decimal(str(main_order.discount_amount)) 
+        if order_sub.main_order.payment_option == 'Online Payment' or order_sub.main_order.payment_option == 'Wallet': 
+
+            item_total_cost = Decimal(str(order_sub.total_cost())) 
+            order_total_amount = Decimal(str(order_sub.main_order.total_amount)) 
+            order_discount_amount = Decimal(str(order_sub.main_order.discount_amount)) 
     
-#         item_discount_amount = (order_discount_amount * item_total_cost) / order_total_amount 
-#         refund_amount = item_total_cost - item_discount_amount 
+            item_discount_amount = (order_discount_amount * item_total_cost) / order_total_amount 
+            refund_amount = item_total_cost - item_discount_amount 
     
-#         wallet, created = Wallet.objects.get_or_create(user=request.user) 
-#         wallet.balance = float(Decimal(str(wallet.balance)) + refund_amount) 
-#         wallet.updated_at = timezone.now() 
-#         wallet.save()
+            wallet, created = Wallet.objects.get_or_create(user=request.user) 
+            
+            wallet.balance = float(Decimal(str(wallet.balance)) + refund_amount) 
+            wallet.updated_at = timezone.now() 
+            wallet.save() 
+    
+            Transaction.objects.create( 
+                wallet=wallet, 
+                amount=float(refund_amount), 
+                description=f'Refund for canceled item {order_sub.variant.product.product_name}', 
+                transaction_type='credited' 
+            ) 
+
+        order_sub.is_active = False 
+        order_sub.save() 
+    
+        all_canceled = not order_sub.main_order.ordersub_set.filter(is_active=True).exists() 
+        
+        if all_canceled: 
+            order_sub.main_order.order_status = 'Canceled' 
+            order_sub.main_order.save() 
+        
+        variant = order_sub.variant
+        quantity = order_sub.quantity
+        
+        variant.variant_stock += quantity
+        
+        messages.success(request, 'Order item canceled successfully.') 
+        return redirect('user_panel:user_dash')
+    
+    

@@ -22,7 +22,7 @@ class UserDashboard(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         user_data = Accounts.objects.get(email=user.email)
-        user_address = UserAddress.objects.filter(user=user, status=True)
+        user_address = UserAddress.objects.filter(user=user, status=True, is_deleted=False)
         orders = OrderMain.objects.filter(user=request.user.id).order_by('-updated_at')
         order_sub = OrderSub.objects.filter(user=request.user.id)
         
@@ -197,8 +197,8 @@ class AddAddress(LoginRequiredMixin, View):
         
         address.save()
         return redirect('cart:cart_checkout')
-    
-        
+
+
 class MakeAsDefault(LoginRequiredMixin, View):
     def get(self, request, pk):
         user = request.user
@@ -211,16 +211,17 @@ class MakeAsDefault(LoginRequiredMixin, View):
         address.save()
         
         return redirect('user_panel:user_dash')
-    
+
+
 class AddressDelete(LoginRequiredMixin, View):
     def post(self, request, pk):
         address = get_object_or_404(UserAddress, id=pk) 
-        address.status=False
+        address.is_deleted=True
         address.save()
         
         return redirect('user_panel:user_dash')
-    
-    
+
+
 class ToggleAddressStatus(LoginRequiredMixin, View):
     def post(self, request):
         try:

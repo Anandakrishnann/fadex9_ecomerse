@@ -4,7 +4,7 @@
 <section class="content-main">
         <div class="content-header">
             <div>
-                <h2 class="content-title card-title">Order List </h2>
+                <h2 class="content-title card-title">Return Requests </h2>
             </div>
             <div>
                 <input type="text" placeholder="Search order ID" class="form-control bg-white">
@@ -48,7 +48,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for order in orders %}
+                            {% for order in return_request %}
                             <tr>
                                 <td>{{ order.id }}</td>
                                 <td><b>{{ order.address.name }}</b></td>
@@ -56,10 +56,6 @@
                                 <td>₹{{ order.total_amount }}</td>
                                 <td><span class="badge rounded-pill {% if order.order_status == 'Order Placed' %}alert-success{% else %}alert-danger{% endif%}">{{ order.order_status }}</span></td>
                                 <td>{{ order.date }}</td>
-                                <td class="text-end">
-                                    <a href="{% url 'order:admin_orders_details' order.id %}" class="btn btn-md rounded font-sm">Detail</a>
-                                   
-                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

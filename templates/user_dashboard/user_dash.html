@@ -207,10 +207,23 @@
                                                                                             Size: {{ item.variant.size }}<br>
                                                                                             Price: ₹{{ item.price }}
                                                                                         </p>
+                                                                                        {% if item.is_active %}
                                                                                         {% if item.main_order.order_status == "Order Placed" %}
-                                                                                        <a href="{% url 'order:individual_cancel' item.variant.id %}" class="btn btn-danger btn-sm collapse-btn">Return</a>
+                                                                                        <form method="post" action="">
+                                                                                            {% csrf_token %}
+                                                                                            <button type="submit" class="btn btn-danger btn-sm collapse-btn">Return</button>
+                                                                                        </form>
+                                                                                        
                                                                                         {% else %}
-                                                                                        <a href="{% url 'order:individual_cancel' item.variant.id %}" class="btn btn-danger btn-sm collapse-btn">Cancel</a>
+                                                                                        <form method="post" action="{% url 'order:individual_cancel' item.id %}">
+                                                                                            {% csrf_token %}
+                                                                                            <button type="submit" class="btn btn-danger btn-sm collapse-btn">Cancel</button>
+                                                                                        </form>
+                                                                                        {% endif %}
+                                                                                        {% else %}
+                                                                                        <span class="badge {% if item.transaction_type == 'Credited' %}badge-success{% else %}badge-danger{% endif %} px-2 py-1">
+                                                                                            {{ item.main_order.order_status }}
+                                                                                        </span>
                                                                                         {% endif %}
                                                                                     </div>
                                                                                     <div class="col-md-6">
@@ -569,7 +582,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         hiddenInput.value = reason;
                         form.appendChild(hiddenInput);
 
-                        // Submit the original form
+                        // Hide the modal
+                        reasonModal.hide();
+
+                        // Submit the original form after the modal is hidden
                         form.submit();
                     });
                 }
@@ -589,6 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
         handleSweetAlert(returnForm, 'Are you sure?', 'Do you really want to return this order?');
     }
 });
+
 
 </script>
 

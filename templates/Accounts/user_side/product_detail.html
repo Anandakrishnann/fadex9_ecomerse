@@ -186,7 +186,7 @@
                                                                 <div class="thumb text-center">
                                                                     <img src="{% static 'user_side/assets/imgs/page/avatar-6.jpg' %}" alt="">
                                                                     <h6><a href="#">{{ review.user }}</a></h6>
-                                                                    <p class="font-xxs">Since 2012</p>
+                                                                    <p class="font-xxs">{{ review.created_at }}</p>
                                                                 </div>
                                                                 <div class="desc">
                                                                     <div class="star-rating-display" data-rating="{{ review.rating }}">
