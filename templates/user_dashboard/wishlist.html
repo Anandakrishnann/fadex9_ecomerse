@@ -41,7 +41,7 @@
     } 
 </style> 
 <div >
-    <div style="max-width: 1000px; margin: 0 auto; margin-top:50px; margin-bottom:30px;">
+    <div style="max-width: 1000px; margin: 0 auto; max-height: 1000px; margin-bottom:30px;">
         <h4 style="padding-bottom:20px;">
             <span style="font-size: 24px;">♥️</span> My Wishlist
         </h4>
@@ -61,9 +61,11 @@
         </div>
         {% endfor %}
         {% else %}
-        <h4>
-            <span style="font-size: 24px;"></span> No Items Found
-        </h4>
+        <div class="position-relative">
+            <img src="{% static 'banner/977032.jpg' %}" alt="" class="img-fluid">
+            <a href="{% url 'accounts:product_shop' %}" class="btn btn-sm btn-outline-danger position-absolute top-50 start-50 translate-middle">Shop Now</a>
+        </div>
+        
         {% endif %}
     </div>
 </div>

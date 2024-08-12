@@ -166,12 +166,31 @@ class ResendOtp(View):
             request.session.set_expiry(120)  # OTP expires in 2 minutes 
     
             send_mail( 
-                'Your OTP Code', 
-                f'Your OTP code is {otp}', 
-                settings.DEFAULT_FROM_EMAIL, 
-                [user_data['email']], 
-                fail_silently=False, 
-            ) 
+                    'Your OTP Code', 
+                    f"""Dear {user_data.first_name},
+
+                    Welcome to FADEX.9!
+
+                    Thank you for joining our fashion community. We're excited to have you as a part of the FADEX.9 family, where style meets exclusivity. Our collections are carefully curated with the most unique and hyped apparel that you won't find anywhere else.
+
+                    To complete your registration and start shopping for these exclusive pieces, please verify your email address using the One-Time Password (OTP) provided below:
+
+                    Your OTP: {otp}
+
+                    Enter this OTP on our website to verify your account and unlock access to the latest trends in men's fashion.
+
+                    If you have any questions or need assistance, our support team is here to help. Reach out to us anytime at infofadex9@.com.
+
+                    Stay ahead of the fashion curve!
+
+                    Best regards,
+                    The FADEX.9 Team""", 
+                    settings.DEFAULT_FROM_EMAIL, 
+                    [user_data['email']], 
+                    fail_silently=False, 
+                ) 
+
+
             
             messages.success(request, 'A new OTP has been sent to your email.') 
         else: 

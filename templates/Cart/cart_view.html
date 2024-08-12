@@ -30,6 +30,7 @@
 
     <div class="row">
         <div class="col-lg-8">
+            {% if cart_item %}
                 {% for item in cart_item %}
                 
                     <div class="card mb-3"> 
@@ -79,6 +80,12 @@
                         </div> 
                     </div>
                 {% endfor %}
+            {% else %}
+            <div class="position-relative">
+                <img src="{% static 'banner/977032.jpg' %}" alt="" class="img-fluid">
+                <a href="{% url 'accounts:product_shop' %}" class="btn btn-sm btn-outline-danger position-absolute top-50 start-50 translate-middle">Shop Now</a>
+            </div>
+            {% endif %}
             
         </div>
         <div class="col-lg-4">

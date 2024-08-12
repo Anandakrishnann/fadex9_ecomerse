@@ -1,116 +1,195 @@
-{% extends 'Base/user_base.html' %}
 {% load static %}
-{% block content %}
-<style>
-    #timer {
-        font-size: 18px;
-        font-weight: bold;
-        color: #ff0000;
-        margin-top: 10px;
-    }
-</style>
+<!DOCTYPE html>
+<html lang="en">
 
-    <main class="main">
-        <div class="page-header breadcrumb-wrap">
-            <div class="container">
-                <div class="breadcrumb">
-                    <a href="index.html" rel="nofollow">Home</a>
-                    <span></span> Pages
-                    <span></span> Login / Register
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <style>
+        #timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff0000;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        body {
+            background-color: #4A4A4A;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .login-container {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .login-image {
+            background-image: url('{% static "banner/otp.jpg" %}');
+            background-size: cover;
+            background-position: center;
+            width: 50%;
+        }
+
+        .login-form {
+            padding: 40px;
+            width: 50%;
+        }
+
+        .login-form h1 {
+            font-weight: bold;
+            font-size: 50px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-google {
+            background-color: #db4437;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .btn-google:hover {
+            background-color: #c33d2e;
+        }
+
+        #resend-btn {
+            display: none;
+            background-color: #ff9900;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .text-center a {
+            text-decoration: none;
+            color: #007bff;
+            transition: color 0.3s ease;
+        }
+
+        .text-center a:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-image"></div>
+        <div class="login-form">
+            <h1>FADEX.9</h1>
+            {% if messages %}
+            <div>
+                {% for message in messages %}
+                <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.otp.label_tag }}
+                    {{ form.otp }}
                 </div>
+                <div id="timer">02:00</div>
+                <button type="submit" id="verify-btn" style="background-color:black;" class="btn mt-3">Verify OTP</button>
+            </form>
+            <form method="post" action="{% url 'accounts:resend-otp' %}">
+                {% csrf_token %}
+                <button id="resend-btn" style="background-color:black;" class="btn mt-3">Resend OTP</button>
+            </form>
+            <div class="text-center mt-3">
+                <a href="{% url 'accounts:login' %}" style="color:black;">Go back</a>
             </div>
         </div>
-        <section style="padding-left: 500px;" class=" ">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-30 m-auto">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="login_wrap widget-taber-content p-40 background-white border-radius-5">
-                                    <div class="padding_eight_all bg-white">
-                                        <div class="heading_s1">
-                                            <h3 class="mb-10">Verify OTP</h3>
-                                        </div>
-                                        {% if messages %}
-                                        <div>
-                                            {% for message in messages %}
-                                                <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
-                                            {% endfor %}
-                                        </div>
-                                        {% endif %}
-                                        <form method="post">
-                                            {% csrf_token %}
-                                            <div class="form-group">
-                                                {{ form.otp.label_tag }}
-                                                {{ form.otp }}
-                                            </div>
-                                            <div style=" margin-left:180px;" class="timer" id="timer">02:00</div>
-                                            <button  type="submit" style=" margin-left:110px; margin-top:20px" class="btn">Verify OTP</button>
-                                        </form>
-                                        
-                                        <form method="post" action="{% url 'accounts:resend-otp' %}">
-                                            {% csrf_token %}
-                                            <button style="margin-top:10px; margin-left:115px;" class="btn" id="resend-btn" disabled>Resend OTP</button>
-                                        </form>
-                                        
-                                        <ul style="padding-top:20px;" class="btn-login list_none text-center mb-15">
-                                        go back
-                                        </ul>
-                                        
-                                    </div>
-                                    <div class="col-lg-1"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-    
-    
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var timerDisplay = document.getElementById('timer');
+            var verifyButton = document.getElementById('verify-btn');
             var resendButton = document.getElementById('resend-btn');
             var totalTime = 120; // 2 minutes in seconds
-    
+
             var remainingTime = sessionStorage.getItem('remainingTime');
             var lastSavedTime = sessionStorage.getItem('lastSavedTime');
-    
+
             if (remainingTime !== null && lastSavedTime !== null) {
                 var elapsedTime = Math.floor(Date.now() / 1000) - parseInt(lastSavedTime, 10);
                 remainingTime = parseInt(remainingTime, 10) - elapsedTime;
             } else {
                 remainingTime = totalTime;
             }
-    
-            if (remainingTime <= 0) {
-                remainingTime = 0;
-                resendButton.disabled = false;
-                sessionStorage.removeItem('remainingTime');
-                sessionStorage.removeItem('lastSavedTime');
-            } else {
-                resendButton.disabled = true;
-            }
-    
+
             function updateDisplay(time) {
                 var minutes = Math.floor(time / 60);
                 var seconds = time % 60;
-    
+
                 if (seconds < 10) {
                     seconds = '0' + seconds;
                 }
-    
+
                 timerDisplay.textContent = minutes + ':' + seconds;
             }
-    
+
             updateDisplay(remainingTime);
-    
+
             var interval = setInterval(function() {
                 if (remainingTime <= 0) {
                     clearInterval(interval);
-                    resendButton.disabled = false;
+                    verifyButton.style.display = 'none';
+                    resendButton.style.display = 'block';
                     sessionStorage.removeItem('remainingTime');
                     sessionStorage.removeItem('lastSavedTime');
                 } else {
@@ -120,12 +199,41 @@
                     sessionStorage.setItem('lastSavedTime', Math.floor(Date.now() / 1000));
                 }
             }, 1000);
+
+            resendButton.addEventListener('click', function() {
+                verifyButton.style.display = 'block';
+                resendButton.style.display = 'none';
+                sessionStorage.setItem('remainingTime', totalTime);
+                sessionStorage.setItem('lastSavedTime', Math.floor(Date.now() / 1000));
+            });
         });
     </script>
-    
-    
-    
-    
-    
-    
-{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            {% if messages %}
+            const messages = [
+                {% for message in messages %}
+                {
+                    level: "{{ message.tags }}",
+                    text: "{{ message }}"
+                },
+                {% endfor %}
+            ];
+            messages.forEach(message => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-right',
+                    icon: message.level === 'success' ? 'success' : 'error',
+                    title: message.text,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            });
+            {% endif %}
+        });
+    </script>
+</body>
+
+</html>

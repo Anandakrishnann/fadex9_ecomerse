@@ -6,9 +6,7 @@
             <div>
                 <h2 class="content-title card-title">Return Requests </h2>
             </div>
-            <div>
-                <input type="text" placeholder="Search order ID" class="form-control bg-white">
-            </div>
+        
         </div>
         <div class="card mb-4">
             <header class="card-header">
@@ -44,18 +42,20 @@
                                 <th scope="col">Total</th>
                                 <th scope="col">Status</th>
                                 <th scope="col">Date</th>
-                                <th scope="col" class="text-end"> Action </th>
+                                <th scope="col" > Action </th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for order in return_request %}
                             <tr>
                                 <td>{{ order.id }}</td>
-                                <td><b>{{ order.address.name }}</b></td>
-                                <td>{{ order.order_id }}</td>
-                                <td>₹{{ order.total_amount }}</td>
-                                <td><span class="badge rounded-pill {% if order.order_status == 'Order Placed' %}alert-success{% else %}alert-danger{% endif%}">{{ order.order_status }}</span></td>
-                                <td>{{ order.date }}</td>
+                                <td><b>{{ order.order_main.address.name }}</b></td>
+                                <td>{{ order.order_main.order_id }}</td>
+                                <td>₹{{ order.order_main.final_amount }}</td>
+                                <td><span class="badge rounded-pill {% if order.order_status == 'Order Placed' %}alert-success{% else %}alert-danger{% endif%}">{{ order.order_main.order_status }}</span></td>
+                                <td>{{ order.order_main.date }}</td>
+                                <td>
+                                <a href="" class="btn btn-md rounded font-sm">Detail</a></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -90,5 +90,39 @@
             </div>
         </div>
     </footer>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+        {% if messages %}
+            const messages = [
+                {% for message in messages %}
+                    {
+                        type: "{{ message.tags }}",  // assuming message.tags contains the type ('success', 'error', etc.)
+                        text: "{{ message }}"
+                    },
+                {% endfor %}
+            ];
+            messages.forEach(message => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-right',
+                    icon: message.type === 'error' ? 'error' : 'success',  // Show error icon for error messages
+                    title: message.text,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    background: message.type === 'error' ? '#f8d7da' : '', // Optional: customize background color for errors
+                    color: message.type === 'error' ? '#721c24' : ''       // Optional: customize text color for errors
+                });
+            });
+        {% endif %}
+    });
+    </script>
 {% endblock %}

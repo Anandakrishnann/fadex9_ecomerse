@@ -5,6 +5,7 @@ from django.contrib import messages
 from utils.decorators import admin_required
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 @method_decorator(admin_required, name='dispatch')
 class ProductView(View):
@@ -20,17 +21,15 @@ class ProductView(View):
 @method_decorator(admin_required, name='dispatch')
 class ProductCreate(View):
     def get(self, request):
-        if request.user.is_authenticated:
-            categories = Category.objects.all()
-            brands = Brand.objects.all()
-            return render(request, 'Products/product_create.html', {'categories':categories, 'brands':brands})
-        else:
-            return render(request, 'Accounts/admin_side/admin_login.html')
+        categories = Category.objects.all()
+        brands = Brand.objects.all()
+        return render(request, 'Products/product_create.html', {'categories':categories, 'brands':brands})
+
 
 
     def post(self, request):
-        product_name = request.POST.get('product_name')
-        product_description = request.POST.get('product_description')
+        product_name = request.POST.get('product_name', '').strip()
+        product_description = request.POST.get('product_description', '').strip()
         product_brand_id = request.POST.get('product_brand')
         product_category_id = request.POST.get('product_category')
         price = request.POST.get('price')
@@ -38,60 +37,145 @@ class ProductCreate(View):
         status = request.POST.get('is_active') == 'on'
         thumbnail = request.FILES.get('thumbnail')
 
+        errors = []
 
+        
+        if not product_name:
+            errors.append('Product name is required.')
+        
+        
+        if not product_description:
+            errors.append('Product description is required.')
+
+        
+        try:
+            price = float(price) if price else None
+            offer_price = float(offer_price) if offer_price else None
+        except ValueError:
+            errors.append('Price and offer price must be valid numbers.')
+
+        if price is not None and price <= 0:
+            errors.append('Price must be greater than 0.')
+        if offer_price is not None and offer_price < 0:
+            errors.append('Offer price cannot be negative.')
+
+        
         try:
             product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None
         except Brand.DoesNotExist:
-            messages.error(request, "Selected brand does not exist.")
-            return redirect('product:product_create')
-        
+            errors.append("Selected brand does not exist.")
+            product_brand = None
+
         try:
             product_category = Category.objects.get(id=product_category_id) if product_category_id else None
         except Category.DoesNotExist:
-            messages.error(request, "Selected category does not exist.")
+            errors.append("Selected category does not exist.")
+            product_category = None
+
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
             return redirect('product:product_create')
 
-
+        
         product = Products.objects.create(
-            product_name = product_name,
-            product_description = product_description,
-            product_category = product_category,
-            product_brand = product_brand,
-            price = price,
-            offer_price = offer_price,
-            is_active = status,
-            thumbnail = thumbnail
+            product_name=product_name,
+            product_description=product_description,
+            product_category=product_category,
+            product_brand=product_brand,
+            price=price,
+            offer_price=offer_price,
+            is_active=status,
+            thumbnail=thumbnail
         )
         product.save()
+
+        messages.success(request, 'Product created successfully.')
         return redirect('product:product_create')
+    
+    
 
 @method_decorator(admin_required, name='dispatch')
 class ProductEdit(View):
     def get(self, request, pk):
-        categories = Category.objects.all() 
-        brands = Brand.objects.all() 
+        categories = Category.objects.all()
+        brands = Brand.objects.all()
         product = get_object_or_404(Products, id=pk)
         return render(request, 'Products/product_edit.html', {'product': product, 'categories': categories, 'brands': brands})
     
     def post(self, request, pk):
         product = get_object_or_404(Products, id=pk)
-        product.product_name = request.POST.get('product_name')
-        product.product_description = request.POST.get('product_description')
+        errors = []
+
+        product_name = request.POST.get('product_name', '').strip()
+        product_description = request.POST.get('product_description', '').strip()
         product_category_id = request.POST.get('product_category')
         product_brand_id = request.POST.get('product_brand')
-        product.price = request.POST.get('price')
-        product.offer_price = request.POST.get('offer_price')
-        product.is_active = request.POST.get('is_active') == 'on'
+        price = request.POST.get('price')
+        offer_price = request.POST.get('offer_price')
+        status = request.POST.get('is_active') == 'on'
+        thumbnail = request.FILES.get('thumbnail')
+
         
-        if request.FILES.get('thumbnail'):
-            product.thumbnail = request.FILES.get('thumbnail')
+        if not product_name:
+            errors.append('Product name is required.')
+
         
-        product.product_category = Category.objects.get(id=product_category_id) if product_category_id else None 
-        product.product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None 
+        if not product_description:
+            errors.append('Product description is required.')
+
+        
+        try:
+            price = float(price) if price else None
+            offer_price = float(offer_price) if offer_price else None
+        except ValueError:
+            errors.append('Price and offer price must be valid numbers.')
+
+        if price is not None and price <= 0:
+            errors.append('Price must be greater than 0.')
+        if offer_price is not None and offer_price < 0:
+            errors.append('Offer price cannot be negative.')
+
+        
+        try:
+            product_category = Category.objects.get(id=product_category_id) if product_category_id else None
+        except Category.DoesNotExist:
+            errors.append("Selected category does not exist.")
+            product_category = None
+
+        try:
+            product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None
+        except Brand.DoesNotExist:
+            errors.append("Selected brand does not exist.")
+            product_brand = None
+
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            
+            categories = Category.objects.all()
+            brands = Brand.objects.all()
+            return render(request, 'Products/product_edit.html', {'product': product, 'categories': categories, 'brands': brands})
+
+        
+        product.product_name = product_name
+        product.product_description = product_description
+        product.product_category = product_category
+        product.product_brand = product_brand
+        product.price = price
+        product.offer_price = offer_price
+        product.is_active = status
+
+        if thumbnail:
+            product.thumbnail = thumbnail
         
         product.save()
-        
+
+        messages.success(request, 'Product updated successfully.')
         return redirect('product:products')
+
         
 
 
@@ -119,25 +203,47 @@ class VariantCreate(View):
     
     def post(self, request, pk):
         product = get_object_or_404(Products, id=pk)
-        
-        size = request.POST.get('size')
-        variant_stock = request.POST.get('variant_stock')
+        errors = []
+
+        size = request.POST.get('size', '').strip()
+        variant_stock = request.POST.get('variant_stock', '').strip()
         variant_status = request.POST.get('variant_status') == 'on'
+
         
-        # Check if the variant with the same size already exists for the product
+        if not size:
+            errors.append('Size is required.')
+        
+        
+        try:
+            variant_stock = int(variant_stock) if variant_stock else None
+        except ValueError:
+            errors.append('Variant stock must be a valid number.')
+        
+        if variant_stock is not None and variant_stock < 0:
+            errors.append('Variant stock cannot be negative.')
+
+        
         if ProductVariant.objects.filter(product=product, size=size).exists():
-            messages.error(request, 'A variant with this size already exists for this product.')
+            errors.append('A variant with this size already exists for this product.')
+
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
             return render(request, 'Products/product_create_variants.html', {'product': product})
 
+        
         variant = ProductVariant.objects.create(
             product=product,
             size=size,
-            variant_stock=variant_stock,   
+            variant_stock=variant_stock,
             variant_status=variant_status,
         )
         variant.save()
-        
+
+        messages.success(request, 'Product variant created successfully.')
         return redirect('product:products')
+
 
 
 @method_decorator(admin_required, name='dispatch')
@@ -148,26 +254,46 @@ class VariantsView(View):
         return render(request, 'Products/product_variants.html', {'product':product, 'variants':variants})
     
     
+    
 @method_decorator(admin_required, name='dispatch')
 class VariantEdit(View):
     def get(self, request, pk):
-        variants = ProductVariant.objects.get(id=pk)
-        return render(request, 'Products/product_edit_variant.html', {'variants':variants})
+        variant = get_object_or_404(ProductVariant, id=pk)
+        return render(request, 'Products/product_edit_variant.html', {'variant': variant})
     
     def post(self, request, pk):
-        variant = ProductVariant.objects.get(id=pk)
+        variant = get_object_or_404(ProductVariant, id=pk)
         product = variant.product
         
-        size = request.POST.get('size')
-        variant_stock = request.POST.get('variant_stock')
+        errors = []
+        
+        size = request.POST.get('size', '').strip()
+        variant_stock = request.POST.get('variant_stock', '').strip()
         variant_status = request.POST.get('variant_status') == 'on'
         
-        # Check if another variant with the new size already exists for the product
-        if ProductVariant.objects.filter(product=product, size=size).exclude(id=pk).exists():
-            messages.error(request, 'A variant with this size already exists for this product.')
-            return render(request, 'Products/product_edit_variant.html', {'variant': variant})
         
-        pk=product.id
+        if not size:
+            errors.append('Size is required.')
+        
+        
+        try:
+            variant_stock = int(variant_stock) if variant_stock else None
+        except ValueError:
+            errors.append('Variant stock must be a valid number.')
+        
+        if variant_stock is not None and variant_stock < 0:
+            errors.append('Variant stock cannot be negative.')
+
+        
+        if ProductVariant.objects.filter(product=product, size=size).exclude(id=pk).exists():
+            errors.append('A variant with this size already exists for this product.')
+
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'Products/product_edit_variant.html', {'variant': variant})
+
         
         variant.size = size
         variant.variant_stock = variant_stock
@@ -175,7 +301,9 @@ class VariantEdit(View):
         
         variant.save()
         
-        return redirect('product:product_variant', pk=pk)
+        messages.success(request, 'Product variant updated successfully.')
+        return redirect('product:product_variant', pk=product.id)
+
     
     
 @method_decorator(admin_required, name='dispatch')
@@ -187,12 +315,16 @@ class VariantStatus(View):
         variant.save()
         return redirect('product:product_variant', pk=pk)
 
+
+
 @method_decorator(admin_required, name='dispatch')
 class ProductStocks(View):
     def get(self, request, pk):
         variants = ProductVariant.objects.filter(product_id=pk)
         images = ProductImages.objects.filter(product_id=pk)
         return render(request, 'Products/product_stock.html', {'variants':variants, 'images':images})
+
+
 
 @method_decorator(admin_required, name='dispatch')
 class ProductDelete(View):
@@ -201,6 +333,8 @@ class ProductDelete(View):
         product.is_active = not product.is_active
         product.save()
         return redirect('product:products')
+
+
 
 @method_decorator(admin_required, name='dispatch')
 class ProductInfo(View):
@@ -215,9 +349,13 @@ class ProductInfo(View):
 #---------------------------------------------- Review Page -------------------------------------------------------------#
 
 
-class Reviews(View):
+class Reviews(LoginRequiredMixin,View):
     def post(self, request, pk):
-        user = request.user
+        try:
+            user = Accounts.objects.get(id=request.user.id, is_active=True,is_blocked=False)
+        except:
+            messages.error(request,'Login to Add review')
+            return redirect('accounts:login')
         
         product = get_object_or_404(Products, pk=pk)
         rating = request.POST.get('rating')
@@ -231,6 +369,7 @@ class Reviews(View):
         review.save()
     
         return redirect('accounts:product_details', pk=pk)
+    
 
 @method_decorator(admin_required, name='dispatch')
 class DeleteImage(View):
@@ -240,31 +379,20 @@ class DeleteImage(View):
         image.delete()
         return redirect('product:product_info', pk=pk)
 
-
-
+        
+            
 class DeleteReview(View):
     def post(self, request, pk):
         review = get_object_or_404(Review, id=pk)
-        if request.user == review.user:
-            print(request.user)
-            print(review.user)
-            pk = review.product.id 
-            review.delete()
-            return redirect('accounts:product_details', pk=pk)
-        
-            
-# class DeleteReview(View):
-#     def post(self, request, pk):
-#         review = get_object_or_404(Review, id=pk)
-#         try:
-#             if request.user == review.user:
-#                 print(request.user)
-#                 print(review.user)
-#                 pk = review.product.id 
-#                 review.delete()
-#                 return redirect('accounts:product_details', pk=pk)
-#         except:
-#             messages.error('No You Cant Delete Someones Review')
-#             print(messages)
-#             return redirect('accounts:product_details',{'messages':messages}, pk=pk)
-        
+        try:
+            if request.user == review.user:
+                product_pk = review.product.id 
+                review.delete()
+                messages.success(request, 'Review deleted successfully.')
+                return redirect('accounts:product_details', pk=product_pk)
+            else:
+                messages.error(request, "You cannot delete someone else's review.")
+                return redirect('accounts:product_details', pk=review.product.id)
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('accounts:product_details', pk=review.product.id)

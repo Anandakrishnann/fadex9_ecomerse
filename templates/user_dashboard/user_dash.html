@@ -154,7 +154,7 @@
                                                                 {{ order.address.state}}<br>
                                                                 {{ order.address.pin_number}} 
                                                             </td> 
-                                                            <td>₹{{ order.total_amount }}</td> 
+                                                            <td>₹{{ order.final_amount }}</td> 
                                                             <td> 
                                                                 {{ order.date }}<br>
                                                             </td>
@@ -186,7 +186,7 @@
                                                                         Details
                                                                     </button>
                                                                 </div>
-                                                                <a style="padding-top:20;" href="{% url 'user_panel:invoice_download' order.id %}" class="btn btn-danger btn-sm collapse-btn">Invoice Download</a>
+                                                                <a style="padding-top:20;" href="{% url 'user_panel:user_invoice' order.id %}" class="btn btn-danger btn-sm collapse-btn">Invoice Download</a>
                                                             </td>
                                                         </tr>
                                                         <tr>
@@ -207,15 +207,14 @@
                                                                                             Size: {{ item.variant.size }}<br>
                                                                                             Price: ₹{{ item.price }}
                                                                                         </p>
-                                                                                        {% if item.is_active %}
+                                                                                        {% if item.is_active and item.main_order.is_active and not item.main_order.order_status == "Pending" %}
                                                                                         {% if item.main_order.order_status == "Order Placed" %}
-                                                                                        <form method="post" action="">
+                                                                                        <form class="item-return-form" method="post" action="">
                                                                                             {% csrf_token %}
                                                                                             <button type="submit" class="btn btn-danger btn-sm collapse-btn">Return</button>
                                                                                         </form>
-                                                                                        
                                                                                         {% else %}
-                                                                                        <form method="post" action="{% url 'order:individual_cancel' item.id %}">
+                                                                                        <form class="item-cancel-form" method="post" action="{% url 'order:individual_cancel' item.id %}">
                                                                                             {% csrf_token %}
                                                                                             <button type="submit" class="btn btn-danger btn-sm collapse-btn">Cancel</button>
                                                                                         </form>
@@ -488,6 +487,25 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="reasonModal" tabindex="-1" aria-labelledby="reasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reasonModalLabel">Provide Reason</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reason-form">
+                    <div class="mb-3">
+                        <label for="reason-text" class="form-label">Reason:</label>
+                        <textarea class="form-control" id="reason-text" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 </main>
 <script>
     /*
@@ -548,10 +566,12 @@
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Function to handle SweetAlert confirmation
-    function handleSweetAlert(form, title, text) {
+    let currentForm;
+
+    function handleConfirmation(form, title, text, isReturn = false) {
         form.addEventListener('submit', function(event) {
             event.preventDefault();
+            event.stopPropagation();
             
             Swal.fire({
                 title: title,
@@ -560,53 +580,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, do it!'
+                confirmButtonText: 'Yes, proceed'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Show the reason modal
-                    const reasonModal = new bootstrap.Modal(document.getElementById('reasonModal'));
-                    reasonModal.show();
-
-                    // Handle reason form submission
-                    const reasonForm = document.getElementById('reason-form');
-                    reasonForm.addEventListener('submit', function(event) {
-                        event.preventDefault();
-                        
-                        // Get the reason from the textarea
-                        const reason = document.getElementById('reason-text').value;
-
-                        // Add the reason to the form as a hidden input
-                        const hiddenInput = document.createElement('input');
-                        hiddenInput.type = 'hidden';
-                        hiddenInput.name = 'reason';
-                        hiddenInput.value = reason;
-                        form.appendChild(hiddenInput);
-
-                        // Hide the modal
-                        reasonModal.hide();
-
-                        // Submit the original form after the modal is hidden
+                    if (isReturn) {
+                        currentForm = form;
+                        const reasonModal = new bootstrap.Modal(document.getElementById('reasonModal'));
+                        reasonModal.show();
+                    } else {
                         form.submit();
-                    });
+                    }
                 }
             });
         });
     }
 
-    // Cancel order form
-    const cancelForm = document.getElementById('cancel-order-form');
-    if (cancelForm) {
-        handleSweetAlert(cancelForm, 'Are you sure?', 'Do you really want to cancel this order?');
+    // Handle reason form submission
+    const reasonForm = document.getElementById('reason-form');
+    reasonForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const reason = document.getElementById('reason-text').value;
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'reason';
+        hiddenInput.value = reason;
+        currentForm.appendChild(hiddenInput);
+
+        const reasonModal = bootstrap.Modal.getInstance(document.getElementById('reasonModal'));
+        reasonModal.hide();
+        currentForm.submit();
+    });
+
+    // Order-level cancel
+    const cancelOrderForm = document.getElementById('cancel-order-form');
+    if (cancelOrderForm) {
+        handleConfirmation(cancelOrderForm, 'Cancel Order?', 'Are you sure you want to cancel this order?');
     }
 
-    // Return order form
-    const returnForm = document.getElementById('return-order-form');
-    if (returnForm) {
-        handleSweetAlert(returnForm, 'Are you sure?', 'Do you really want to return this order?');
+    // Order-level return
+    const returnOrderForm = document.getElementById('return-order-form');
+    if (returnOrderForm) {
+        handleConfirmation(returnOrderForm, 'Return Order?', 'Are you sure you want to return this order?', true);
     }
+
+    // Item-level cancel
+    const itemCancelForms = document.querySelectorAll('.item-cancel-form');
+    itemCancelForms.forEach(form => {
+        handleConfirmation(form, 'Cancel Item?', 'Are you sure you want to cancel this item?');
+    });
+
+    // Item-level return
+    const itemReturnForms = document.querySelectorAll('.item-return-form');
+    itemReturnForms.forEach(form => {
+        handleConfirmation(form, 'Return Item?', 'Are you sure you want to return this item?', true);
+    });
 });
-
-
 </script>
 
 <!-- Include Bootstrap JS for collapse functionality -->
@@ -629,5 +658,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
 
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                {
+                    type: "{{ message.tags }}",  // assuming message.tags contains the type ('success', 'error', etc.)
+                    text: "{{ message }}"
+                },
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: message.type === 'error' ? 'error' : 'success',  // Show error icon for error messages
+                title: message.text,
+                showConfirmButton: false,
+                timer: 3000,
+                background: message.type === 'error' ? '#f8d7da' : '', // Optional: customize background color for errors
+                color: message.type === 'error' ? '#721c24' : ''       // Optional: customize text color for errors
+            });
+        });
+    {% endif %}
+});
+</script>
 {% endblock %} 

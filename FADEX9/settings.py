@@ -200,3 +200,17 @@ RAZORPAY_KEY = 'rzp_test_k3jJlpvXZAD5FJ'
 RAZORPAY_SECRET = 'VXKhYVud2BI4kVnLPWqBEIlJ'
 
 
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'Accounts.pipeline.save_user_details',
+    'Accounts.pipeline.set_user_phone_number',
+    'Accounts.pipeline.activate_user',
+    'Accounts.pipeline.check_if_user_blocked',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+)

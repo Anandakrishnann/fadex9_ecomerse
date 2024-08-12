@@ -23,23 +23,23 @@
                             </div>
                             <div class="col-md-6 mb-4">
                                 <label style="font-weight: bold;" class="form-label">Minimum Amount</label>
-                                <input type="number" placeholder="Type here" class="form-control" name="minimum_amount" required>
+                                <input type="number" placeholder="Type here" class="form-control" name="minimum_amount" required min="0">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-4">
                                 <label style="font-weight: bold;" class="form-label">Discount</label>
-                                <input type="number" placeholder="Type here" class="form-control" name="discount" required>
+                                <input type="number" placeholder="Type here" class="form-control" name="discount" required min="0">
                             </div>
                             <div class="col-md-6 mb-4">
                                 <label style="font-weight: bold;" class="form-label">Maximum Amount</label>
-                                <input type="number" placeholder="Type here" class="form-control" name="maximum_amount" required>
+                                <input type="number" placeholder="Type here" class="form-control" name="maximum_amount" required min="0">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-4">
                                 <label style="font-weight: bold;" class="form-label">Expiry Date</label>
-                                <input type="date" class="form-control" name="expiry_date" required>
+                                <input type="date" class="form-control" name="expiry_date" required min="{{ today_date }}">
                             </div>
                         </div>
                         <div class="card mb-8">
@@ -65,38 +65,13 @@
         </div>
     </div>
 </section> <!-- content-main end// -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-    {% if messages %}
-        const messages = [
-            {% for message in messages %}
-                "{{ message }}",
-            {% endfor %}
-        ];
-        messages.forEach(message => {
-            Swal.fire({
-                toast: true,
-                position: 'top-right',
-                icon: 'success',
-                title: message,
-                showConfirmButton: false,
-                timer: 3000
-            });
-        });
-    {% endif %}
-});
+    // Setting the minimum date for the expiry date input to today
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.querySelector('input[name="expiry_date"]').setAttribute('min', today);
+    });
 </script>
-<script>
-    function generateCouponCode() {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let result = '';
-        const length = 10; // Set the length of the random string here
-        for (let i = 0; i < length; i++) {
-            result += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-        document.getElementById('generated_coupon_code').value = result;
-        document.getElementById('hidden_coupon_code').value = result;
-    }
-</script>
+
 {% endblock %}

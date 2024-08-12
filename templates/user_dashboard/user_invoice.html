@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .invoice-box {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+            border: 1px solid #eee;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+        .invoice-box h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .invoice-box table {
+            width: 100%;
+            line-height: 24px;
+            text-align: left;
+        }
+        .invoice-box table td {
+            padding: 5px;
+            vertical-align: top;
+        }
+        .invoice-box table tr td:nth-child(2) {
+            text-align: right;
+        }
+        .invoice-box table tr.top table td {
+            padding-bottom: 20px;
+        }
+        .invoice-box table tr.top table td.title {
+            font-size: 45px;
+            line-height: 45px;
+            color: #333;
+        }
+        .invoice-box table tr.information table td {
+            padding-bottom: 40px;
+        }
+        .invoice-box table tr.heading td {
+            background: #eee;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+        .invoice-box table tr.details td {
+            padding-bottom: 20px;
+        }
+        .invoice-box table tr.item td {
+            border-bottom: 1px solid #eee;
+        }
+        .invoice-box table tr.item.last td {
+            border-bottom: none;
+        }
+        .invoice-box table tr.total td:nth-child(2) {
+            border-top: 2px solid #eee;
+            font-weight: bold;
+        }
+        .invoice-box .image {
+            width: 50px;
+            height: auto;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="invoice-box">
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <h1 style="font-family: 'Poppins', sans-serif; font-weight: 900; font-size: 40px; width: 100%; text-align: center;">
+                    FADEX.9
+                </h1>
+            </div>
+            <div>
+                <h1 style="font-family: 'Poppins', sans-serif; font-weight: 900; font-size: 40px; width: 100%; text-align: center;">
+                    Invoice
+                </h1>
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="title">
+                
+            </div>
+            <hr style="flex-grow: 1; margin: 0 10px;">
+            <div>
+                
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; width: 100%;">
+            <!-- Left side information -->
+            <div style="width: 48%;">
+                <table>
+                    <tr class="information">
+                        <td>
+                            <strong style="font-weight:bold;">Order Number:</strong> {{ order_main.order_id }}<br>
+                            <strong>Order Date:</strong> {{ order_main.date }}<br>
+                            <strong>Customer Name:</strong> {{ order_main.address.name }}<br>
+                            <strong>Email:</strong> {{ order_main.user.email }}<br>
+                            <strong>Phone:</strong> {{ order_main.address.phone_number}}<br>
+                            <strong>Address:</strong> {{ order_main.address.house_name}}, {{ order_main.address.street_name}}, {{ order_main.address.discrict }}, {{ order_main.address.state }},<br> 
+                            {{ order_main.address.pin_number}}, {{ order_main.address.country }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        
+            <!-- Right side information -->
+            <div style="width: 48%;">
+                <table>
+                    <tr class="information">
+                        <td>
+                            <strong style="font-weight:bold;">Order Number:</strong> {{ order_main.order_id }}<br>
+                            <strong>Order Date:</strong> {{ order_main.date }}<br>
+                            <strong>Customer Name:</strong> {{ order_main.address.name }}<br>
+                            <strong>Email:</strong> {{ order_main.user.email }}<br>
+                            <strong>Phone:</strong> {{ order_main.address.phone_number}}<br>
+                            <strong>Address:</strong> {{ order_main.address.house_name}}, {{ order_main.address.street_name}}, {{ order_main.address.discrict }}, {{ order_main.address.state }},<br> 
+                            {{ order_main.address.pin_number}}, {{ order_main.address.country }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <table>
+
+            <tr class="heading">
+                <td>Items Purchased</td>
+                
+            </tr>
+            
+            <tr class="heading">
+                <td>Product</td>
+                <td>Image</td>
+                <td>Quantity</td>
+                <td>Unit Price</td>
+                <td>Total Price</td>
+            </tr>
+            {% for item in order_sub %}
+            <tr class="item">
+                
+                <td>{{ item.variant.product.product_name }}</td>
+                <td><img src="{{ item.variant.product.thumbnail.url }}" alt="Product Image" class="image"></td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.price }}</td>
+                <td>₹{{ item.price }}</td>
+                
+            </tr>
+        {% endfor %}
+            <tr class="total">
+                <td colspan="4"></td>
+                <td>Subtotal: ₹{{ order_main.total_amount }}</td>
+            </tr>
+            <tr class="total">
+                <td colspan="4"></td>
+                <td>Discount: ₹{{ order_main.discount_amount }}</td>
+            </tr>
+            <tr class="total">
+                <td colspan="4"></td>
+                <td>Shipping: Free</td>
+            </tr>
+            <tr class="total">
+                <td colspan="4"></td>
+                <td><strong>Total: ₹{{ order_main.final_amount }}</strong></td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

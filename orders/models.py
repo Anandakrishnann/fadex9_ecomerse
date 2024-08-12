@@ -56,4 +56,4 @@ class ReturnRequest(models.Model):
     reason = models.TextField()
     status = models.CharField(max_length=10, choices=RETURN_STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)    

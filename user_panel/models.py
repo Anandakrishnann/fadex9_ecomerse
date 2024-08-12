@@ -17,4 +17,5 @@ class UserAddress(models.Model):
     status = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     order_status = models.BooleanField(default=False)
+    updated_at = models.DateField(default=timezone.now)
     

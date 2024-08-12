@@ -22,6 +22,10 @@ class AddToCart(LoginRequiredMixin, View):
             user = get_object_or_404(Accounts, id=user_id)
             product = get_object_or_404(Products, id=product_id)
             variant = get_object_or_404(ProductVariant, id=variant_id)
+            
+            if not user:
+                messages.error(request, 'Login to add product to the cart')
+                return redirect('accounts:login')
 
             # Check if the product is active
             if not product.is_active:
@@ -102,7 +106,7 @@ def update_cart_quantity(request):
         response = {
             'success': True,
             'new_total': new_total,
-            'item_sub_total': cart_item.sub_total()
+            'item_sub_total': new_total 
         }
         
         # Check if there is an applied coupon
@@ -189,7 +193,7 @@ class RemoveCouponView(View):
         response = {'success': False}
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart, is_active=True)
-
+        
         request.session.pop('applied_coupon', None)
 
         new_total = sum(item.sub_total() for item in cart_items)
@@ -203,46 +207,7 @@ class RemoveCouponView(View):
         return JsonResponse(response)
 
 
-# class UpdateCartStatus(View):
-    
-    
-    def post(self, request, *args, **kwargs):
-        item_id = request.POST.get('item_id')
-        is_active = request.POST.get('is_active') == 'true'
 
-        response = {'success': False}
-        
-        if item_id is not None and is_active is not None:
-            cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-            cart_item.is_active = is_active
-            cart_item.save()
-            response['success'] = True
-            response['message'] = 'Status updated successfully.'
-            cart = Cart.objects.get(user=request.user)
-            new_total = sum(item.sub_total() for item in CartItem.objects.filter(cart=cart, is_active=True))
-            
-            coupon_code = request.session.get('applied_coupon', None)
-        if coupon_code:
-            try:
-                coupon = Coupon.objects.get(coupon_code=coupon_code)
-                if new_total >= coupon.minimum_amount:
-                    discount_amount = (new_total * coupon.discount / 100)
-                    discount_amount = min(discount_amount, coupon.maximum_amount)
-                    new_total = new_total - discount_amount
-                    response['discount_amount'] = round(discount_amount, 2)
-                else:
-                    new_total = new_total
-                    response['discount_amount'] = 0
-            except Coupon.DoesNotExist:
-                # If the coupon doesn't exist, remove it from the session
-                del request.session['applied_coupon']
-                new_total = new_total
-        else:
-            new_total = new_total
-            
-        response['new_total'] = new_total
-
-        return JsonResponse(response)
 class UpdateCartStatus(View):
     def post(self, request, *args, **kwargs):
         item_id = request.POST.get('item_id')

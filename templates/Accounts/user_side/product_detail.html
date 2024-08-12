@@ -448,23 +448,24 @@
                 'csrfmiddlewaretoken': '{{ csrf_token }}'
             },
             success: function(response) {
-                console.log('Response:', response); // Debug log
                 if (response.success) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-right',
+                        icon: 'success',
+                        title: 'Product added to cart successfully',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+
                     if (response.already_in_cart) {
-                        button.text('Go to Cart');
-                        button.off('click').on('click', function() {
-                            window.location.href = "{% url 'cart:cart_view' %}";
-                        });
-                    } else {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-right',
-                            icon: 'success',
-                            title: 'Product added to cart successfully',
-                            showConfirmButton: false,
-                            timer: 3000
-                        });
-                    }
+                        setTimeout(function() { 
+                            button.text('Go to Cart');
+                            button.off('click').on('click', function() {
+                                window.location.href = "{% url 'cart:cart_view' %}";
+                            });
+                        }, 3000);  // Delay the button change by the toast timer duration
+                    } 
                 } else {
                     Swal.fire({
                         toast: true,
@@ -490,55 +491,87 @@
         });
     });
 
-
-// add to wishlist
-
-$('.add-to-wishlist-btn').on('click', function(event) {
-    event.preventDefault();
-    var variantId = selectedVariantId;
-    $.ajax({
-        url: "{% url 'wishlist:add_to_wishlist' %}",
-        type: 'POST',
-        data: {
-            'variant': variantId,
-            'csrfmiddlewaretoken': '{{ csrf_token }}'
-        },
-        success: function(response) {
-            console.log(response);
-            Swal.fire({
-                toast: true,
-                position: 'top-right',
-                icon: 'success',
-                title: 'Added to wishlist!',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer);
-                    toast.addEventListener('mouseleave', Swal.resumeTimer);
-                }
-            });
-        },
-        error: function(xhr) {
-            console.log(xhr.responseText);
-            // alert('Error: ' + xhr.responseJSON.message);
-            Swal.fire({
-                toast: true,
-                position: 'top-right',
-                icon: 'error',
-                title: 'Failed to add to wishlist',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer);
-                    toast.addEventListener('mouseleave', Swal.resumeTimer);
-                }
-            });
-        }
+    // add to wishlist (this part remains unchanged)
+    $('.add-to-wishlist-btn').on('click', function(event) {
+        event.preventDefault();
+        var variantId = selectedVariantId;
+        $.ajax({
+            url: "{% url 'wishlist:add_to_wishlist' %}",
+            type: 'POST',
+            data: {
+                'variant': variantId,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                console.log(response);
+                Swal.fire({
+                    toast: true,
+                    position: 'top-right',
+                    icon: 'success',
+                    title: 'Added to wishlist!',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                });
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText);
+                Swal.fire({
+                    toast: true,
+                    position: 'top-right',
+                    icon: 'error',
+                    title: 'Failed to add to wishlist',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                });
+            }
+        });
     });
 });
-});
 
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                {
+                    type: "{{ message.tags }}",  // assuming message.tags contains the type ('success', 'error', etc.)
+                    text: "{{ message }}"
+                },
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: message.type === 'error' ? 'error' : 'success',  // Show error icon for error messages
+                title: message.text,
+                showConfirmButton: false,
+                timer: 3000,
+                background: message.type === 'error' ? '#f8d7da' : '', // Optional: customize background color for errors
+                color: message.type === 'error' ? '#721c24' : ''       // Optional: customize text color for errors
+            });
+        });
+    {% endif %}
+});
 </script>
 {% endblock %}

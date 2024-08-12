@@ -401,31 +401,6 @@
     {% endif %}
 });
 
-// add to wishlist
 
-/* document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.add-to-wishlist-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            let productId = this.getAttribute('data-product-id');
-            
-            fetch("{% url 'wishlist:add_to_wishlist' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}',
-                },
-                body: JSON.stringify({ product_id: productId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
-    });
-});
-*/
 </script>
 {% endblock %}

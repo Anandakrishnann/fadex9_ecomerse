@@ -15,5 +15,6 @@ urlpatterns = [
     path('default/<int:pk>/',MakeAsDefault.as_view(),name='make_as_default'),
     path('delete/<int:pk>/',AddressDelete.as_view(),name='address_delete'),
     path('toggle-address-status/', ToggleAddressStatus.as_view(), name='toggle_address_status'),
-    path('invoice/<int:pk>/',InvoiceDownload.as_view(),name='invoice_download')
+    path('invoice/<int:pk>/',InvoiceDownload.as_view(),name='invoice_download'),
+    path('user_invoice/<int:pk>/',UserInvoice.as_view(),name='user_invoice')
 ]

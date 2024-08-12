@@ -22,7 +22,7 @@ class UserDashboard(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         user_data = Accounts.objects.get(email=user.email)
-        user_address = UserAddress.objects.filter(user=user, status=True, is_deleted=False)
+        user_address = UserAddress.objects.filter(user=user, is_deleted=False).order_by('-updated_at')
         orders = OrderMain.objects.filter(user=request.user.id).order_by('-updated_at')
         order_sub = OrderSub.objects.filter(user=request.user.id)
         
@@ -74,7 +74,8 @@ class EditDetails(LoginRequiredMixin, View):
         user.save()
         
         return redirect('user_panel:user_dash')
-        
+
+
 
 class ChangePassword(LoginRequiredMixin, View):
     def get(self, request):
@@ -106,6 +107,7 @@ class ChangePassword(LoginRequiredMixin, View):
             messages.error(request, 'Old Password Incorrect')
 
         return render(request, 'user_dashboard/user_dash.html')
+
 
 
 class CreateAddress(LoginRequiredMixin, View):
@@ -208,9 +210,11 @@ class MakeAsDefault(LoginRequiredMixin, View):
         updated_count = UserAddress.objects.filter(user=user).update(status=False)
         
         address.status = True
+        address.updated_at = timezone.now()
         address.save()
-        
+        messages.success(request, 'Default Address set successfully')
         return redirect('user_panel:user_dash')
+
 
 
 class AddressDelete(LoginRequiredMixin, View):
@@ -218,15 +222,16 @@ class AddressDelete(LoginRequiredMixin, View):
         address = get_object_or_404(UserAddress, id=pk) 
         address.is_deleted=True
         address.save()
-        
+        messages.success(request, 'Address Deleted Successfully')
         return redirect('user_panel:user_dash')
+
 
 
 class ToggleAddressStatus(LoginRequiredMixin, View):
     def post(self, request):
         try:
             address_id = request.POST.get('address_id')
-            address = get_object_or_404(UserAddress, id=address_id, user=request.user)
+            address = get_object_or_404(UserAddress, id=address_id, user=request.user,is_deleted=False)
             
             # Set all addresses to inactive
             UserAddress.objects.filter(user=request.user).update(order_status=False)
@@ -250,3 +255,10 @@ class InvoiceDownload(LoginRequiredMixin,View):
             current_date = datetime.now().strftime("%b. %d, %Y").replace(' 0', ' ')
             return render(request, 'user_dashboard/invoice_download.html',{'order_sub':order_sub, 'order_main':order_main,'current_date':current_date})
         
+        
+        
+class UserInvoice(View):
+    def get(self, request,pk):
+        order_main = OrderMain.objects.get(id=pk)
+        order_sub = OrderSub.objects.filter(main_order=order_main)
+        return render(request, 'user_dashboard/user_invoice.html',{'order_main':order_main, 'order_sub':order_sub})
