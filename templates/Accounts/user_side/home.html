@@ -130,18 +130,18 @@
                                             <a href="shop-grid-right.html">{{ product.product_brand.brand_name }}</a>
                                         </div>
                                         <h2><a href="{% url 'accounts:product_details' product.id %}">{{ product.product_name }}</a></h2>
-                                        <div class="rating-result" title="90%">
+                                        <div  title="90%">
                                             <span>
-                                                <span>{{ product.percentage_discount }}%</span>
+                                                <span style="color:red; font-weight:blod;">{{ product.percentage_discount }}%</span>
                                             </span>
                                         </div>
                                         <div class="product-price">
                                             <span>₹{{ product.offer_price }} </span>
                                             <span class="old-price">₹{{ product.price }}</span>
                                         </div>
-                                        <div class="product-action-1 show">
+                                        {% comment %} <div class="product-action-1 show">
                                             <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>
-                                        </div>
+                                        </div> {% endcomment %}
                                     </div>
                                 </div>
                             </div>
@@ -339,7 +339,7 @@
                                                 <a href="{% url 'accounts:product_details' product.id %}">{{ product.product_category.category_name }}</a>
                                             </div>
                                         <h2><a href="{% url 'accounts:product_details' product.id %}">{{ product.product_name }}</a></h2>
-                                            <div class="rating-result" title="90%">
+                                            <div  title="90%">
                                                 <span>
                                                     <span>{{ product.percentage_discount }}%</span>
                                                 </span>

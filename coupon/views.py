@@ -107,7 +107,7 @@ class EditCoupon(View):
         
         errors = []
 
-        # Retrieve and strip values safely
+        
         coupon_name = request.POST.get('coupon_name', '').strip()
         minimum_amount = request.POST.get('minimum_amount', '').strip()
         maximum_amount = request.POST.get('maximum_amount', '').strip()
