@@ -31,6 +31,8 @@ class OrderMain(models.Model):
     payment_id = models.CharField(max_length=50)
     
     updated_at = models.DateTimeField(auto_now=True)  
+    
+
 
 
 class OrderSub(models.Model):
@@ -43,6 +45,9 @@ class OrderSub(models.Model):
     
     def total_cost(self):
         return self.quantity * self.variant.product.offer_price
+    
+    def final_total_cost(self):
+        return self.quantity * self.price
 
 
 class ReturnRequest(models.Model):
@@ -51,7 +56,7 @@ class ReturnRequest(models.Model):
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
     ]
-    order_main = models.ForeignKey(OrderMain, on_delete=models.CASCADE)
+    order_main = models.ForeignKey(OrderMain, on_delete=models.CASCADE, null=True,blank=True)
     order_sub = models.ForeignKey(OrderSub, on_delete=models.CASCADE, null=True, blank=True)
     reason = models.TextField()
     status = models.CharField(max_length=10, choices=RETURN_STATUS_CHOICES, default='Pending')

@@ -186,7 +186,9 @@
                                                                         Details
                                                                     </button>
                                                                 </div>
+                                                                {% if order.order_status == "Order Placed" %}
                                                                 <a style="padding-top:20;" href="{% url 'user_panel:user_invoice' order.id %}" class="btn btn-danger btn-sm collapse-btn">Invoice Download</a>
+                                                                {% endif %}
                                                             </td>
                                                         </tr>
                                                         <tr>
@@ -209,7 +211,7 @@
                                                                                         </p>
                                                                                         {% if item.is_active and item.main_order.is_active and not item.main_order.order_status == "Pending" %}
                                                                                         {% if item.main_order.order_status == "Order Placed" %}
-                                                                                        <form class="item-return-form" method="post" action="">
+                                                                                        <form class="item-return-form" method="post" action="{% url 'order:individual_return' item.id %}">
                                                                                             {% csrf_token %}
                                                                                             <button type="submit" class="btn btn-danger btn-sm collapse-btn">Return</button>
                                                                                         </form>

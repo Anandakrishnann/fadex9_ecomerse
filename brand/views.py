@@ -43,6 +43,15 @@ class BrandCreate(View):
         if Brand.objects.filter(brand_name__iexact=brand_name).exists():
             messages.error(request, f'The brand name "{brand_name}" already exists.')
             return redirect('brand:brand_create')
+        
+        if not brand_image.content_type.startswith('image/'):
+            messages.error(request, 'Uploaded file is not an image.')
+            return redirect('brand:brand_create')
+
+        max_file_size = 5 * 1024 * 1024  
+        if brand_image.size > max_file_size:
+            messages.error(request, 'Image size should not exceed 5 MB.')
+            return redirect('brand:brand_create')
 
         
         brand = Brand.objects.create(
@@ -79,6 +88,17 @@ class BrandEdit(View):
         if not brand_name or not description:
             messages.error(request, 'All fields are required.')
             return redirect('brand:brand_edit', pk=brands.id)
+        
+        
+        if not brand_image.content_type.startswith('image/'):
+            messages.error(request, 'Uploaded file is not an image.')
+            return render(request, 'Brand_side/create.html')
+
+        max_file_size = 5 * 1024 * 1024  
+        if brand_image.size > max_file_size:
+            messages.error(request, 'Image size should not exceed 5 MB.')
+            return render(request, 'Brand_side/create.html')
+        
         
         brands.brand_name = brand_name
         brands.description = description

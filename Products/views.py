@@ -56,9 +56,15 @@ class ProductCreate(View):
 
         if price is not None and price <= 0:
             errors.append('Price must be greater than 0.')
+            
+        elif price > offer_price:
+            errors.append('Price Must Be Lesser Than Offer Price')
+        
         if offer_price is not None and offer_price < 0:
             errors.append('Offer price cannot be negative.')
 
+        elif offer_price < price:
+            errors.append('Offer Price Must Be Greater Than Price')
         
         try:
             product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None
@@ -77,6 +83,13 @@ class ProductCreate(View):
             for error in errors:
                 messages.error(request, error)
             return redirect('product:product_create')
+        
+        if not thumbnail.content_type.startswith('image/'):
+            errors.append('Uploaded file is not an image.')
+
+        max_file_size = 5 * 1024 * 1024  
+        if thumbnail.size > max_file_size:
+            errors.append('Image size should not exceed 5 MB.')
 
         
         product = Products.objects.create(
@@ -118,6 +131,13 @@ class ProductEdit(View):
         thumbnail = request.FILES.get('thumbnail')
 
         
+        if not thumbnail.content_type.startswith('image/'):
+            errors.append('Uploaded file is not an image.')
+
+        max_file_size = 5 * 1024 * 1024  
+        if thumbnail.size > max_file_size:
+            errors.append('Image size should not exceed 5 MB.')
+        
         if not product_name:
             errors.append('Product name is required.')
 
@@ -129,11 +149,13 @@ class ProductEdit(View):
         try:
             price = float(price) if price else None
             offer_price = float(offer_price) if offer_price else None
+            
         except ValueError:
             errors.append('Price and offer price must be valid numbers.')
 
         if price is not None and price <= 0:
             errors.append('Price must be greater than 0.')
+            
         if offer_price is not None and offer_price < 0:
             errors.append('Offer price cannot be negative.')
 

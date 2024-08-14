@@ -12,6 +12,8 @@ from django.db.models import *
 from datetime import datetime
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
+from datetime import datetime, timedelta
+
 
 # Create your views here.
 
@@ -49,8 +51,21 @@ class AdminDash( View):
     def get(self, request):
         total_order_amount = OrderMain.objects.filter(order_status="Order Placed").aggregate(total=Sum('total_amount'))['total'] or 0
         total_order_count = OrderMain.objects.filter(order_status="Order Placed").aggregate(total_orders=Count('id'))['total_orders'] or 0
+        total_discount = OrderMain.objects.filter(order_status="Order Placed").aggregate(
+            total_discount=Sum(F('discount_amount'))
+        )['total_discount'] or 0
         
-        return render(request, 'Accounts/admin_side/admin.html',{'total_order_amount':total_order_amount, 'total_order_count':total_order_count})
+        now = timezone.now()
+        current_year = now.year
+        current_month = now.month
+        
+        monthly_earnings = OrderMain.objects.filter(
+            order_status="Order Placed",
+            date__year=current_year,
+            date__month=current_month
+        ).aggregate(monthly_total=Sum('total_amount'))['monthly_total'] or 0
+        
+        return render(request, 'Accounts/admin_side/admin.html',{'total_order_amount':total_order_amount, 'total_order_count':total_order_count,'total_discount':total_discount,'monthly_earnings':monthly_earnings})
 
 
 def logout(request):
@@ -108,11 +123,48 @@ class OrderStatus(View):
         else:
             return HttpResponse("No status selected", status=400)
         
+        
+        
 @method_decorator(admin_required, name='dispatch')
 class SalesReport(View):
     def get(self, request):
-        orders = OrderMain.objects.filter(order_status = "Order Placed")
-        return render(request, 'Accounts/admin_side/sales_report.html',{'orders':orders                            })
+        filter_type = request.GET.get('filter', None)
+
+        now = timezone.now()
+        start_date = end_date = None  # Initialize to None
+
+        if filter_type == 'weekly':
+            start_date = now - timedelta(days=now.weekday())
+            end_date = now
+        elif filter_type == 'monthly':
+            start_date = now.replace(day=1)
+            end_date = now
+
+        # Filter orders based on whether a date range is defined
+        if start_date and end_date:
+            orders = OrderMain.objects.filter(
+                order_status="Order Placed",
+                is_active=True,
+                date__range=[start_date, end_date]
+            )
+        else:
+            # No specific filter, show all "Order Placed" orders
+            orders = OrderMain.objects.filter(
+                order_status="Order Placed",
+                is_active=True
+            )
+
+        total_discount = orders.aggregate(total=Sum('discount_amount'))['total']
+        total_orders = orders.aggregate(total=Count('id'))['total']
+        total_order_amount = orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+        return render(request, 'Accounts/admin_side/sales_report.html', {
+            'orders': orders,
+            'total_discount': total_discount,
+            'total_orders': total_orders,
+            'total_order_amount': total_order_amount
+        })
+    
     
 @method_decorator(admin_required, name='dispatch')
 class OrderDateFilter(View):
@@ -130,9 +182,13 @@ class OrderDateFilter(View):
                 return redirect('admin_panel:sales_report')
             
             orders = OrderMain.objects.filter(date__range=[start_date,end_date], order_status="Order Placed")
+            total_discount = orders.aggregate(total=Sum('discount_amount'))['total']
+            total_orders = orders.aggregate(total=Count('id'))['total']
+            total_order_amount = orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
             
-            return render(request, 'Accounts/admin_side/sales_report.html',{'orders':orders})
+            return render(request, 'Accounts/admin_side/sales_report.html',{'orders':orders,'total_discount':total_discount,'total_orders':total_orders,'total_order_amount':total_order_amount})
         
         return redirect('admin_panel:sales_report')
     
+
 

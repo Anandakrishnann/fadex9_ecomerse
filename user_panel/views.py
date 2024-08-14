@@ -10,6 +10,7 @@ from orders.models import *
 from django.contrib.auth import authenticate, login
 from wallet.models import *
 from django.db.models import *
+from django.http import HttpResponse
 
 # Create your views here.
 
@@ -66,13 +67,30 @@ class EditDetails(LoginRequiredMixin, View):
     
     def post(self, request, pk):
         user = Accounts.objects.get(id=pk)
-        user.first_name = request.POST.get('first_name')
-        user.last_name = request.POST.get('last_name')
-        user.email = request.POST.get('email')
-        user.phone_number = request.POST.get('phone_number')
+        first_name = request.POST.get('first_name').strip()
+        last_name = request.POST.get('last_name').strip()
+        email = request.POST.get('email').strip()
+        phone_number = request.POST.get('phone_number').strip()
         
+        if not first_name or not last_name:
+            messages.error(request, "First name and last name cannot be empty.")
+            return render(request, 'user_dashboard/user_dash.html', {'user': user})
+
+        if Accounts.objects.filter(email=email).exclude(id=user.id).exists():
+            messages.error(request, "This email is already in use.")
+            return render(request, 'user_dashboard/user_dash.html', {'user': user})
+
+        if len(phone_number) != 10 or not phone_number.isdigit():
+            messages.error(request, "Phone number must be 10 digits and contain only numbers.")
+            return render(request, 'user_dashboard/user_dash.html', {'user': user})
+
+        
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.phone_number = phone_number
         user.save()
-        
+        messages.success(request, 'Address Edited Successfully')
         return redirect('user_panel:user_dash')
 
 
@@ -113,27 +131,43 @@ class ChangePassword(LoginRequiredMixin, View):
 class CreateAddress(LoginRequiredMixin, View):
     def post(self, request):
         users = request.user
-        name = request.POST.get('name')
-        house_name = request.POST.get('house_name')
-        street_name = request.POST.get('street_name')
-        pin_number = request.POST.get('pin_number')
-        district  = request.POST.get('district')
-        state = request.POST.get('state')
-        country = request.POST.get('country')
-        phone_number = request.POST.get('phone_number')
+        name = request.POST.get('name').strip()
+        house_name = request.POST.get('house_name').strip()
+        street_name = request.POST.get('street_name').strip()
+        pin_number = request.POST.get('pin_number').strip()
+        district = request.POST.get('district').strip()
+        state = request.POST.get('state').strip()
+        country = request.POST.get('country').strip()
+        phone_number = request.POST.get('phone_number').strip()
         status = request.POST.get('status') == "on"
+
+        
+        if not name or not house_name or not street_name or not pin_number or not district or not state or not country or not phone_number:
+            messages.error(request, "All fields are required.")
+            return redirect('user_panel:user_dash')
+        
+        
+        if not pin_number.isdigit() or len(pin_number) != 6:
+            messages.error(request, "Please enter a valid 6-digit PIN number.")
+            return redirect('user_panel:user_dash')
+
+        
+        if not phone_number.isdigit() or len(phone_number) not in [10, 12]:
+            messages.error(request, "Please enter a valid phone number with 10 or 12 digits.")
+            return redirect('user_panel:user_dash')
+
         
         address = UserAddress.objects.create(
-            user = users,
-            name = name,
-            house_name = house_name,
-            street_name = street_name,
-            pin_number = pin_number,
-            district = district,
-            state = state,
-            country = country,
-            phone_number = phone_number,
-            status = status,
+            user=users,
+            name=name,
+            house_name=house_name,
+            street_name=street_name,
+            pin_number=pin_number,
+            district=district,
+            state=state,
+            country=country,
+            phone_number=phone_number,
+            status=status,
         )
         
         address.save()
@@ -150,20 +184,47 @@ class EditAddress(LoginRequiredMixin, View):
         users = get_object_or_404(UserAddress, id=pk)
         
         users.user = request.user
-        users.name = request.POST.get('name')
-        users.house_name = request.POST.get('house_name')
-        users.street_name = request.POST.get('street_name')
-        users.pin_number = request.POST.get('pin_number')
-        users.district  = request.POST.get('district')
-        users.state = request.POST.get('state')
-        users.country = request.POST.get('country')
-        users.phone_number = request.POST.get('phone_number')
-        
+        name = request.POST.get('name').strip()
+        house_name = request.POST.get('house_name').strip()
+        street_name = request.POST.get('street_name').strip()
+        pin_number = request.POST.get('pin_number').strip()
+        district = request.POST.get('district').strip()
+        state = request.POST.get('state').strip()
+        country = request.POST.get('country').strip()
+        phone_number = request.POST.get('phone_number').strip()
+        status = request.POST.get('status') == "on"
+
+        # Validate required fields
+        if not name or not house_name or not street_name or not pin_number or not district or not state or not country or not phone_number:
+            messages.error(request, "All fields are required.")
+            return redirect('user_panel:user_dash')
+
+        # Validate pin number
+        if not pin_number.isdigit() or len(pin_number) != 6:
+            messages.error(request, "Please enter a valid 6-digit PIN number.")
+            return redirect('user_panel:user_dash')
+
+        # Validate phone number
+        if not phone_number.isdigit() or len(phone_number) not in [10, 12]:
+            messages.error(request, "Please enter a valid phone number with 10 or 12 digits.")
+            return redirect('user_panel:user_dash')
+
+        # Update the user address
+        users.name = name
+        users.house_name = house_name
+        users.street_name = street_name
+        users.pin_number = pin_number
+        users.district = district
+        users.state = state
+        users.country = country
+        users.phone_number = phone_number
+
+        # Handle the status update
         if users.status:
-            updated_count = UserAddress.objects.filter(user=users.user).update(status=False)
-            users.status = request.POST.get('status') == "on"
+            UserAddress.objects.filter(user=users.user).update(status=False)
+        users.status = status
         
-            users.save()
+        users.save()
 
         return redirect('user_panel:user_dash')
 
@@ -174,30 +235,46 @@ class AddAddress(LoginRequiredMixin, View):
     
     def post(self, request):
         users = request.user
-        name = request.POST.get('name')
-        house_name = request.POST.get('house_name')
-        street_name = request.POST.get('street_name')
-        pin_number = request.POST.get('pin_number')
-        district  = request.POST.get('district')
-        state = request.POST.get('state')
-        country = request.POST.get('country')
-        phone_number = request.POST.get('phone_number')
+        name = request.POST.get('name').strip()
+        house_name = request.POST.get('house_name').strip()
+        street_name = request.POST.get('street_name').strip()
+        pin_number = request.POST.get('pin_number').strip()
+        district = request.POST.get('district').strip()
+        state = request.POST.get('state').strip()
+        country = request.POST.get('country').strip()
+        phone_number = request.POST.get('phone_number').strip()
         status = request.POST.get('status') == "on"
+
+        
+        if not name or not house_name or not street_name or not pin_number or not district or not state or not country or not phone_number:
+            messages.error(request, "All fields are required.")
+            return redirect('user_panel:user_dash')
+
+        
+        if not pin_number.isdigit() or len(pin_number) != 6:
+            messages.error(request, "Please enter a valid 6-digit PIN number.")
+            return redirect('user_panel:user_dash')
+
+        
+        if not phone_number.isdigit() or len(phone_number) not in [10, 12]:
+            messages.error(request, "Please enter a valid phone number with 10 or 12 digits.")
+            return redirect('user_panel:user_dash')
+
         
         address = UserAddress.objects.create(
-            user = users,
-            name = name,
-            house_name = house_name,
-            street_name = street_name,
-            pin_number = pin_number,
-            district = district,
-            state = state,
-            country = country,
-            phone_number = phone_number,
-            status = status,
+            user=users,
+            name=name,
+            house_name=house_name,
+            street_name=street_name,
+            pin_number=pin_number,
+            district=district,
+            state=state,
+            country=country,
+            phone_number=phone_number,
+            status=status,
         )
-        
         address.save()
+        messages.success(request, 'Address Added Successfully')
         return redirect('cart:cart_checkout')
 
 
@@ -247,18 +324,27 @@ class ToggleAddressStatus(LoginRequiredMixin, View):
             return JsonResponse({'success': False, 'message': str(e)})
         
 
-
-class InvoiceDownload(LoginRequiredMixin,View):
-    def get(self, request,pk):
-            order_main = OrderMain.objects.get(id=pk)
-            order_sub = OrderSub.objects.filter(main_order=order_main)
-            current_date = datetime.now().strftime("%b. %d, %Y").replace(' 0', ' ')
-            return render(request, 'user_dashboard/invoice_download.html',{'order_sub':order_sub, 'order_main':order_main,'current_date':current_date})
-        
-        
-        
 class UserInvoice(View):
     def get(self, request,pk):
         order_main = OrderMain.objects.get(id=pk)
-        order_sub = OrderSub.objects.filter(main_order=order_main)
+        order_sub = OrderSub.objects.filter(main_order=order_main,is_active=True)
         return render(request, 'user_dashboard/user_invoice.html',{'order_main':order_main, 'order_sub':order_sub})
+    
+
+# def download_invoice_pdf(request, order_id):
+#     # Fetch the order details from the database
+#     order_main = get_object_or_404(OrderMain, pk=order_id)
+#     order_sub = OrderSub.objects.filter(order_main=order_main)
+
+#     # Render the HTML template with the context data
+#     html_string = render_to_string('user_dashboard/user_invoice.html', {'order_main': order_main, 'order_sub': order_sub})
+
+#     # Generate the PDF
+#     html = HTML(string=html_string)
+#     pdf_file = html.write_pdf()
+
+#     # Create the response as a PDF file
+#     response = HttpResponse(pdf_file, content_type='application/pdf')
+#     response['Content-Disposition'] = f'attachment; filename="invoice_{order_main.order_id}.pdf"'
+
+#     return response

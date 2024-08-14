@@ -37,12 +37,15 @@ class OrderVerificationView(LoginRequiredMixin, View):
         
         payment_option = request.POST.get('payment_option')
         
-        if new_total > 6000:
-            messages.error(request, 'Cash On Delivery is only available for orders up to ₹6000. Please choose another payment method.')
-            return redirect('cart:cart_checkout')
-        
         if payment_option is None:
             messages.error(request, 'Select Payment Option')
+            return redirect('cart:cart_checkout')
+        
+        if not address:
+            messages.error(request, 'Select Address To Continue')
+        
+        if payment_option == "Cash On Delivery" and new_total > 6000:
+            messages.error(request, 'Cash On Delivery Only Available Upto 6000')
             return redirect('cart:cart_checkout')
         
         for cart_item in cart_items:
@@ -65,7 +68,7 @@ class OrderVerificationView(LoginRequiredMixin, View):
         coupon_code = request.session.get('applied_coupon', None)
         discount = 0
         
-        if payment_option == "Online Payment" and new_total > 6000:
+        if payment_option == "Online Payment":
             return redirect('order:online_payment')
         
         if payment_option == "Wallet" and new_total > 6000:
@@ -276,7 +279,6 @@ class OnlinePayment(LoginRequiredMixin,View):
         cart_items = CartItem.objects.filter(cart__user=user, is_active=True) 
         new_total = sum(item.sub_total() for item in cart_items) 
         
-        # Get applied coupon from the session (if exists)
         coupon_code = request.session.get('applied_coupon', None)
         discount = 0
         if coupon_code:
@@ -285,7 +287,6 @@ class OnlinePayment(LoginRequiredMixin,View):
                 if new_total >= coupon.minimum_amount:
                     discount = coupon.discount
                     discount_amount = (new_total * discount / 100)
-                    # Cap the discount amount to the maximum amount
                     discount_amount = min(discount_amount, coupon.maximum_amount)
                     
                     new_total = new_total - discount_amount
@@ -354,7 +355,7 @@ class OnlinePayment(LoginRequiredMixin,View):
                     discount_amount = (new_total * discount / 100)
                     if discount_amount > discount:
                         discount_amount = discount
-                    new_total-= discount_amount
+                    final_amount-= discount_amount
                 except Coupon.DoesNotExist:
                     pass
                 
@@ -450,8 +451,12 @@ class OrderSuccess(LoginRequiredMixin,View):
 @method_decorator(admin_required, name='dispatch')
 class AdminOrder(View):
     def get(self, request):
-        orders = OrderMain.objects.all()
-        return render(request, 'Order/admin_order.html', {'orders':orders})
+        search_query = request.GET.get('search', '').strip()
+        if search_query:
+            orders = OrderMain.objects.filter(order_id__icontains=search_query)
+        else:
+            orders = OrderMain.objects.all()
+        return render(request, 'Order/admin_order.html', {'orders': orders, 'search_query': search_query})
 
 
 @method_decorator(admin_required, name='dispatch')
@@ -522,40 +527,44 @@ class CancelOrders(LoginRequiredMixin,View):
         return redirect('user_panel:user_dash')
 
 
-class ReturnOrders(LoginRequiredMixin,View):
+class ReturnOrders(LoginRequiredMixin, View):
     def post(self, request, pk):
         try:
             order = OrderMain.objects.get(id=pk)
             order_items = OrderSub.objects.filter(main_order=order)
             
             if not order.is_active: 
-                messages.error(request, 'Order item is already Returned.') 
+                messages.error(request, 'Order item is already returned.') 
                 return redirect('user_panel:user_dash')
             
             if order.order_status in ['Pending', 'Confirmed', 'Shipped']: 
-                messages.error(request, 'Order cannot be canceled at this stage.') 
+                messages.error(request, 'Order cannot be returned at this stage.') 
                 return redirect('user_panel:user_dash') 
             
-            # Get the reason from the form
             reason = request.POST.get('reason', '').strip()
             if not reason:
                 messages.error(request, 'A reason must be provided for returns.')
                 return redirect('user_panel:user_dash')
             
             ReturnRequest.objects.create(
-                order_main = order,
-                reason = reason
+                order_main=order,
+                reason=reason
             )
             
-            order.order_status = "Pending"
+            order.order_status = "Pending" 
             order.save()
+            
             messages.success(request, "Please wait for the admin's approval.")
+            return redirect('user_panel:user_dash')
+        
         except OrderMain.DoesNotExist:
             messages.error(request, "Order does not exist.")
+        
         except Exception as e:
             messages.error(request, f"An error occurred: {e}")
         
         return redirect('user_panel:user_dash')
+
 
 
 @method_decorator(admin_required, name='dispatch')
@@ -613,11 +622,108 @@ class AdminCancelOrders(View):
 @method_decorator(admin_required, name='dispatch')
 class AdminReturnRequests(View):
     def get(self, request):
-        return_request = ReturnRequest.objects.all().order_by('-created_at')
-        return render(request, 'Order/return_request.html',{'return_request':return_request})
+        search_query = request.GET.get('search', '').strip()
+        
+        if search_query:
+            
+            return_requests = ReturnRequest.objects.filter(order_main__order_id__icontains=search_query).order_by('-created_at')
+        else:
+            
+            return_requests = ReturnRequest.objects.all().order_by('-created_at')
+        
+        return render(request, 'Order/return_request.html', {'return_requests': return_requests, 'search_query': search_query})
 
 
-class IndividualCancel(View):
+
+@method_decorator(admin_required, name='dispatch')
+class AdminReturnApproval(View):
+    def post(self, request, pk):
+        return_request = get_object_or_404(ReturnRequest, id=pk) 
+        action = request.POST.get('action')
+        
+        if action == 'Approve':
+            return_request.status = "Approved"
+            return_request.save()
+            
+            refund_amount = Decimal('0.00') 
+            
+            if return_request.order_sub:  
+
+                item = return_request.order_sub 
+                main_order = item.main_order 
+                item_total_cost = Decimal(str(item.final_total_cost()))
+                order_total_amount = Decimal(str(main_order.total_amount)) 
+                order_discount_amount = Decimal(str(main_order.discount_amount)) 
+                
+                item_discount_amount = (order_discount_amount * item_total_cost) / order_total_amount 
+                refund_amount = item_total_cost - item_discount_amount 
+                
+                item.is_active = False 
+                item.save() 
+                
+                all_canceled = not main_order.ordersub_set.filter(is_active=True).exists() 
+                
+                if all_canceled: 
+
+                    main_order.order_status = 'Returned' 
+                    main_order.save() 
+                messages.success(request, 'Return request approved and amount credited to the user\'s wallet.')
+                return redirect('order:return_requests')
+            else:
+
+                order = return_request.order_main 
+                active_items = order.ordersub_set.filter(is_active=True) 
+                
+                for item in active_items: 
+                    item_total_cost = Decimal(str(item.final_total_cost())) 
+                    order_total_amount = Decimal(str(order.total_amount)) 
+                    order_discount_amount = Decimal(str(order.discount_amount)) 
+
+                    item_discount_amount = (order_discount_amount * item_total_cost) / order_total_amount 
+                    item_refund_amount = item_total_cost - item_discount_amount 
+
+                    refund_amount += item_refund_amount 
+                    item.is_active = False 
+                    item.save() 
+
+                order.order_status = 'Returned' 
+                order.is_active = False 
+                order.save() 
+                
+                if refund_amount > 0 and return_request.order_main.payment_status: 
+                    wallet, created = Wallet.objects.get_or_create(user=return_request.order_main.user) 
+
+                    wallet.balance += refund_amount 
+                    wallet.updated_at = timezone.now() 
+                    wallet.save() 
+                    
+                    Transaction.objects.create( 
+                        wallet=wallet, 
+                        amount=float(refund_amount), 
+                        description=f"Refund for {'order' if return_request.order_sub is None else 'item'} {return_request.order_main.order_id if return_request.order_sub is None else return_request.order_sub.variant.product.product_name}", 
+                        transaction_type='Credited' 
+                    ) 
+                    messages.success(request, 'Return request approved and amount credited to the user\'s wallet.') 
+                    return redirect('order:return_requests')
+                else: 
+                    messages.success(request, 'Return request approved. No payment was made or payment status is not confirmed.') 
+                    return redirect('order:return_requests')
+
+        elif action == "Reject": 
+            print("hello1")
+            return_request.status = "Rejected" 
+            return_request.save() 
+            messages.success(request, 'Return request rejected.') 
+            return redirect('order:return_requests')
+
+
+        messages.error(request, 'Invalid action.')
+        return redirect('order:return_requests')
+
+
+
+
+class IndividualCancel(LoginRequiredMixin,View):
     def post(self, request, pk):
         order_sub = get_object_or_404(OrderSub, id=pk, user=request.user)
 
@@ -662,6 +768,37 @@ class IndividualCancel(View):
 
         order_sub.variant.variant_stock += order_sub.quantity
         order_sub.variant.save()
-        
+
         messages.success(request, 'Order item canceled successfully.') 
+        return redirect('user_panel:user_dash')
+
+
+class IndividualReturn(View):
+    def post(self, request, pk):
+        order_sub = get_object_or_404(OrderSub, id=pk, user=request.user)
+
+        if not order_sub.is_active: 
+            messages.error(request, 'Order item is already Returned.') 
+            return redirect('user_panel:user_dash') 
+
+        if order_sub.main_order.order_status in ['Pending', 'Confirmed', 'Shipped', 'Canceled']: 
+            messages.error(request, 'Order cannot be Return at this stage.') 
+            return redirect('user_panel:user_dash') 
+
+        reason = request.POST.get('reason', '').strip()
+
+        if not reason:
+            messages.error(request, 'A reason must be provided for returns.')
+            return redirect('user_panel:user_dash')
+
+        ReturnRequest.objects.create(
+            order_main = order_sub.main_order,
+            order_sub = order_sub,
+            reason = reason
+        )
+
+        order_sub.main_order.order_status = "Pending"
+        order_sub.main_order.save()
+
+        messages.success(request, "Please wait for the admin's approval.") 
         return redirect('user_panel:user_dash')
