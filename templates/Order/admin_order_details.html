@@ -39,7 +39,6 @@
                         <button class="btn btn-primary" type="submit">Save</button>
                         {% endif %}
                     </form>
-                    <a class="btn btn-secondary print ms-2 mb-10" href="#"><i class="icon material-icons md-print"></i></a>
                     <form method="post" action="">
                     <button class="btn btn-primary" type="submit">Save</button>
                     </form>
@@ -93,16 +92,19 @@
                 </div> <!-- col// -->
             </div> <!-- row // -->
             <div class="row">
-                <div class="col-lg-7">
+                <div class="col-lg-12">
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th width="40%">Product</th>
-                                    <th width="40%">Name</th>
-                                    <th width="20%">Unit Price</th>
-                                    <th width="20%">Quantity</th>
-                                    <th width="20%" class="text-end">Total</th>
+                                    <th width="10%">Product</th>
+                                    <th width="10%">Name</th>
+                                    <th width="10%">Unit Price</th>
+                                    <th width="10%">Quantity</th>
+                                    <th width="10%">Status</th>
+                                    <th width="10%">Total</th>
+                                    <th width="10%">Discount Amount</th>
+                                    <th width="10%" class="text-end">Final Total</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -120,20 +122,27 @@
                                     <td class="align-middle">{{ item.variant.product.product_name }}</td>
                                     <td class="align-middle">₹{{ item.price }}</td>
                                     <td class="align-middle">{{ item.quantity }}</td>
-                                    <td class="align-middle text-end">₹{{ item.total_cost }}</td>
+                                    <td class="align-middle">{% if item.status %}{{ item.status }}{% else %}Order Placed{% endif %}</td>
+                                    <td class="align-middle">₹{{ item.final_total_cost }}</td>
+                                    <td class="align-middle">₹{{ item.main_order.discount_amount }}</td>
+                                    <td class="align-middle text-end">₹{{ item.main_order.final_amount }}</td>
                                 </tr>
                                 {% endfor %}
                                 <tr>
-                                    <td colspan="5">
+                                    <td colspan="8">
                                         <div class="float-end text-end">
                                             <dl class="dlist">
                                                 <dt>Subtotal:</dt>
                                                 <dd>₹{{ orders.total_amount }}</dd>
                                             </dl>
+                                            <dl class="dlist">
+                                                <dt>Discount Amount:</dt>
+                                                <dd>₹{{ orders.discount_amount }}</dd>
+                                            </dl>
                                             
                                             <dl class="dlist">
                                                 <dt>Grand total:</dt>
-                                                <dd><b class="h5">{{ orders.total_amount }}</b></dd>
+                                                <dd><b class="h5">{{ orders.final_amount }}</b></dd>
                                             </dl>
                                             <dl class="dlist">
                                                 <dt class="text-muted">Status:</dt>
@@ -149,30 +158,7 @@
                     </div> <!-- table-responsive// -->
                     
                 </div> <!-- col// -->
-                <div class="col-lg-1"></div>
-                <div  class="col-lg-4">
-                    <div class="box shadow-sm bg-light">
-                        <h6 class="mb-15">Payment info</h6>
-                        <p>
-                            {% if orders.payment_option == "Online Payment" %}
-                            <img src="{% static 'admin_side/assets/imgs/card-brands/2.png' %}" class="border" height="20"><h4>Online Payment<h4>
-                            Name: {{ orders.address.name }}<br>
-                            Phone: +91 {{ orders.address.phone_number}}
-                            {% elif orders.payment_option == "Cash On Delivery" %}
-                            <img src="{% static 'admin_side/assets/imgs/card-brands/2.png' %}" class="border" height="20"><h4>Cash On Delivery<h4>
-                                Name: {{ orders.address.name }}<br>
-                                Phone: +91 {{ orders.address.phone_number}}
-                            {% endif %}
-                        </p>
-                    </div>
-                    {% comment %} <div class="h-25 pt-4">
-                        <div class="mb-3">
-                            <label>Notes</label>
-                            <textarea class="form-control" name="notes" id="notes" placeholder="Type some note"></textarea>
-                        </div>
-                        <button class="btn btn-primary">Save note</button>
-                    </div> {% endcomment %}
-                </div> <!-- col// -->
+                
             </div>
         </div> <!-- card-body end// -->
     </div> <!-- card end// -->

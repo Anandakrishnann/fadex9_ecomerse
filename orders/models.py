@@ -42,6 +42,7 @@ class OrderSub(models.Model):
     price = models.FloatField(null=False, default=0)
     quantity = models.IntegerField(null=False, default=0)
     is_active = models.BooleanField(default=True)
+    status = models.CharField(max_length=10, null=True,blank=True)
     
     def total_cost(self):
         return self.quantity * self.variant.product.offer_price

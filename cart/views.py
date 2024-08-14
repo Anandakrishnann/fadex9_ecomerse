@@ -288,7 +288,7 @@ class CartCheckout(LoginRequiredMixin, View):
             except Coupon.DoesNotExist:
                 pass
             
-        user_address = UserAddress.objects.filter(user=request.user.id, status=True).order_by('-status', 'id')
+        user_address = UserAddress.objects.filter(user=request.user.id, status=True,is_deleted=False).order_by('-status', 'id')
         
         return render(request, 'Cart/checkout.html', {
             'cart_items': cart_items,

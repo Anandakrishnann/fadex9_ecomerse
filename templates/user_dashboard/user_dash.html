@@ -209,23 +209,34 @@
                                                                                             Size: {{ item.variant.size }}<br>
                                                                                             Price: ₹{{ item.price }}
                                                                                         </p>
-                                                                                        {% if item.is_active and item.main_order.is_active and not item.main_order.order_status == "Pending" %}
-                                                                                        {% if item.main_order.order_status == "Order Placed" %}
-                                                                                        <form class="item-return-form" method="post" action="{% url 'order:individual_return' item.id %}">
-                                                                                            {% csrf_token %}
-                                                                                            <button type="submit" class="btn btn-danger btn-sm collapse-btn">Return</button>
-                                                                                        </form>
+                                                                                        {% if item.is_active and item.main_order.is_active %}
+                                                                                            {% if item.status != "Return Requested" and item.status != "Canceled" %}
+                                                                                                {% if item.main_order.order_status == "Order Placed" %}
+                                                                                                    <form class="item-return-form" method="post" action="{% url 'order:individual_return' item.id %}">
+                                                                                                        {% csrf_token %}
+                                                                                                        <button type="submit" class="btn btn-danger btn-sm collapse-btn">Return</button>
+                                                                                                    </form>
+                                                                                                {% else %}
+                                                                                                    <form class="item-cancel-form" method="post" action="{% url 'order:individual_cancel' item.id %}">
+                                                                                                        {% csrf_token %}
+                                                                                                        <button type="submit" class="btn btn-danger btn-sm collapse-btn">Cancel</button>
+                                                                                                    </form>
+                                                                                                {% endif %}
+                                                                                            {% else %}
+                                                                                                <span class="badge badge-warning px-2 py-1">
+                                                                                                    {{ item.status }}
+                                                                                                </span>
+                                                                                            {% endif %}
                                                                                         {% else %}
-                                                                                        <form class="item-cancel-form" method="post" action="{% url 'order:individual_cancel' item.id %}">
-                                                                                            {% csrf_token %}
-                                                                                            <button type="submit" class="btn btn-danger btn-sm collapse-btn">Cancel</button>
-                                                                                        </form>
+                                                                                            <span class="badge {% if item.transaction_type == 'Credited' %}badge-success{% else %}badge-danger{% endif %} px-2 py-1">
+                                                                                                {% if item.status %}
+                                                                                                {{ item.status }}
+                                                                                                {% else %}
+                                                                                                {{ item.main_order.order_status }}
+                                                                                                {% endif %}
+                                                                                            </span>
                                                                                         {% endif %}
-                                                                                        {% else %}
-                                                                                        <span class="badge {% if item.transaction_type == 'Credited' %}badge-success{% else %}badge-danger{% endif %} px-2 py-1">
-                                                                                            {{ item.main_order.order_status }}
-                                                                                        </span>
-                                                                                        {% endif %}
+
                                                                                     </div>
                                                                                     <div class="col-md-6">
                                                                                         <h5 class="card-title">Delivery Address</h5>

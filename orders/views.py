@@ -388,7 +388,7 @@ class OnlinePayment(LoginRequiredMixin,View):
             )
 
             main_order = OrderMain.objects.get(id=order_main.id)
-            
+
             if coupon_code:
                 coupon = Coupon.objects.get(coupon_code=coupon_code)
                 coupon = UserCoupon.objects.create(
@@ -502,6 +502,7 @@ class CancelOrders(LoginRequiredMixin,View):
 
                     item_refund += item_refund_amount
                     item.is_active = False
+                    item.main_order.final_amount -= item_refund
                     item.save()
                 
                 if item_refund >= 0:
@@ -659,7 +660,13 @@ class AdminReturnApproval(View):
                 refund_amount = item_total_cost - item_discount_amount 
                 
                 item.is_active = False 
+                item.status = "Returned"
                 item.save() 
+                
+                order = return_request.order_main
+                order.final_amount -= refund_amount
+                order.save()
+                
                 
                 all_canceled = not main_order.ordersub_set.filter(is_active=True).exists() 
                 
@@ -667,8 +674,7 @@ class AdminReturnApproval(View):
 
                     main_order.order_status = 'Returned' 
                     main_order.save() 
-                messages.success(request, 'Return request approved and amount credited to the user\'s wallet.')
-                return redirect('order:return_requests')
+                    
             else:
 
                 order = return_request.order_main 
@@ -684,13 +690,15 @@ class AdminReturnApproval(View):
 
                     refund_amount += item_refund_amount 
                     item.is_active = False 
+                    item.status = "Returned"
                     item.save() 
 
                 order.order_status = 'Returned' 
                 order.is_active = False 
+                order.final_amount -= refund_amount
                 order.save() 
-                
-                if refund_amount > 0 and return_request.order_main.payment_status: 
+
+            if refund_amount > 0 and return_request.order_main.payment_status: 
                     wallet, created = Wallet.objects.get_or_create(user=return_request.order_main.user) 
 
                     wallet.balance += refund_amount 
@@ -702,21 +710,22 @@ class AdminReturnApproval(View):
                         amount=float(refund_amount), 
                         description=f"Refund for {'order' if return_request.order_sub is None else 'item'} {return_request.order_main.order_id if return_request.order_sub is None else return_request.order_sub.variant.product.product_name}", 
                         transaction_type='Credited' 
-                    ) 
+                    )
+                    
+                    
                     messages.success(request, 'Return request approved and amount credited to the user\'s wallet.') 
                     return redirect('order:return_requests')
-                else: 
-                    messages.success(request, 'Return request approved. No payment was made or payment status is not confirmed.') 
-                    return redirect('order:return_requests')
-
+            else: 
+                messages.success(request, 'Return request approved. No payment was made or payment status is not confirmed.') 
+                return redirect('order:return_requests')
+            
         elif action == "Reject": 
-            print("hello1")
             return_request.status = "Rejected" 
+            return_request.order_sub.status = "Return Rejected"
             return_request.save() 
             messages.success(request, 'Return request rejected.') 
             return redirect('order:return_requests')
-
-
+        
         messages.error(request, 'Invalid action.')
         return redirect('order:return_requests')
 
@@ -758,6 +767,7 @@ class IndividualCancel(LoginRequiredMixin,View):
             ) 
 
         order_sub.is_active = False 
+        order_sub.main_order.final_amount -= refund_amount
         order_sub.save() 
 
         all_canceled = not order_sub.main_order.ordersub_set.filter(is_active=True).exists() 
@@ -767,6 +777,7 @@ class IndividualCancel(LoginRequiredMixin,View):
             order_sub.main_order.save() 
 
         order_sub.variant.variant_stock += order_sub.quantity
+        order_sub.status="Canceled"
         order_sub.variant.save()
 
         messages.success(request, 'Order item canceled successfully.') 
@@ -797,8 +808,8 @@ class IndividualReturn(View):
             reason = reason
         )
 
-        order_sub.main_order.order_status = "Pending"
-        order_sub.main_order.save()
+        order_sub.status = "Return Requested"
+        order_sub.save()
 
         messages.success(request, "Please wait for the admin's approval.") 
         return redirect('user_panel:user_dash')

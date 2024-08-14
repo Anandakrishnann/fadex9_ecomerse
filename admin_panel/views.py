@@ -13,6 +13,9 @@ from datetime import datetime
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
 from datetime import datetime, timedelta
+from django.utils import timezone
+import json
+from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
 
 
 # Create your views here.
@@ -47,14 +50,20 @@ class AdminLogin(View):
 #---------------------------------------------- admin dash -------------------------------------------------------------#
 
 @method_decorator(admin_required, name='dispatch')
-class AdminDash( View):
+class AdminDash(View):
     def get(self, request):
+        # Total order amount
         total_order_amount = OrderMain.objects.filter(order_status="Order Placed").aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        # Total order count
         total_order_count = OrderMain.objects.filter(order_status="Order Placed").aggregate(total_orders=Count('id'))['total_orders'] or 0
+        
+        # Total discount
         total_discount = OrderMain.objects.filter(order_status="Order Placed").aggregate(
             total_discount=Sum(F('discount_amount'))
         )['total_discount'] or 0
         
+        # Monthly earnings
         now = timezone.now()
         current_year = now.year
         current_month = now.month
@@ -64,8 +73,100 @@ class AdminDash( View):
             date__year=current_year,
             date__month=current_month
         ).aggregate(monthly_total=Sum('total_amount'))['monthly_total'] or 0
+
+        # Data for the order chart
+        monthly_order_count = OrderMain.objects.filter(
+            order_status="Order Placed"
+        ).annotate(
+            month=ExtractMonth('date'),
+            year=ExtractYear('date')
+        ).values('year', 'month').annotate(count=Count('id')).order_by('year', 'month')
+
+        labels = [f'{entry["month"]}/{entry["year"]}' for entry in monthly_order_count]
+        data = [entry['count'] for entry in monthly_order_count]
+
+        # User registration data
+        user_registrations = Accounts.objects.annotate(
+            month=TruncMonth('date_joined')
+        ).values('month').annotate(count=Count('id')).order_by('month')
+
+        user_labels = [entry['month'].strftime('%b %Y') for entry in user_registrations]
+        user_data = [entry['count'] for entry in user_registrations]
+
+        context = {
+            'total_order_amount': total_order_amount,
+            'total_order_count': total_order_count,
+            'total_discount': total_discount,
+            'monthly_earnings': monthly_earnings,
+            'labels': json.dumps(labels),
+            'data': json.dumps(data),
+            'user_labels': json.dumps(user_labels),
+            'user_data': json.dumps(user_data)
+        }
         
-        return render(request, 'Accounts/admin_side/admin.html',{'total_order_amount':total_order_amount, 'total_order_count':total_order_count,'total_discount':total_discount,'monthly_earnings':monthly_earnings})
+        return render(request, 'Accounts/admin_side/admin.html', context)
+
+
+class BestSellingProducts(View):
+    def get(self,request):
+        
+        best_selling_products = OrderSub.objects.filter(
+            main_order__order_status="Order Placed"
+        ).values(
+            'variant__product__id',
+            'variant__product__product_name'
+        ).annotate(
+            total_sold=Sum('quantity')
+        ).order_by('-total_sold')
+        
+        top_product = best_selling_products.first()
+        
+        return render(request, 'Accounts/admin_side/best_selling_product.html',{'top_product':top_product,'best_selling_products':best_selling_products})
+
+
+class BestSellingCategory(View):
+    def get(self, request):
+        best_selling_categories = OrderSub.objects.filter(
+            main_order__order_status="Order Placed"
+        ).values(
+            'variant__product__product_category__id',
+            'variant__product__product_category__category_name',
+            'variant__product__thumbnail',  # Include the thumbnail
+        ).annotate(
+            total_sold=Sum('quantity')
+        ).order_by('-total_sold')
+        
+        top_category = best_selling_categories.first()
+        
+        return render(request, 'Accounts/admin_side/best_selling_category.html', {
+            'top_category': top_category,
+            'best_selling_categories': best_selling_categories
+        })
+
+
+class BestSellingBrands(View):
+    def get(self, request):
+        best_selling_brands = OrderSub.objects.filter(
+            main_order__order_status="Order Placed"
+        ).values(
+            'variant__product__product_brand__id',
+            'variant__product__product_brand__brand_name',
+            'variant__product__product_brand__brand_image'  # Include brand image
+        ).annotate(
+            total_sold=Sum('quantity')
+        ).order_by('-total_sold')
+
+        top_brand = best_selling_brands.first()
+
+        return render(request, 'Accounts/admin_side/best_selling_brand.html', {
+            'top_brand': top_brand,
+            'best_selling_brands': best_selling_brands
+        })
+
+
+
+
+
 
 
 def logout(request):

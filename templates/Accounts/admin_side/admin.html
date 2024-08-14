@@ -71,7 +71,7 @@
                     <div class="card mb-4">
                         <article class="card-body">
                             <h5 class="card-title">Sale statistics</h5>
-                            <canvas id="myChart" height="120px"></canvas>
+                            <canvas id="orderChart"></canvas>
                         </article>
                     </div>
                     
@@ -79,25 +79,195 @@
                 <div class="col-xl-4 col-lg-12">
                     <div class="card mb-4">
                         <article class="card-body">
-                            <h5 class="card-title">Revenue Base on Area</h5>
-                            <canvas id="myChart2" height="217"></canvas>
+                            <h4 class="card-title">Monthly User Registrations</h4>
+                            <canvas id="userChart"></canvas>
                         </article>
                     </div>
                     
                 </div>
             </div>
-            
-            <div class="pagination-area mt-30 mb-50">
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-start">
-                        <li class="page-item active"><a class="page-link" href="#">01</a></li>
-                        <li class="page-item"><a class="page-link" href="#">02</a></li>
-                        <li class="page-item"><a class="page-link" href="#">03</a></li>
-                        <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">16</a></li>
-                        <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li>
-                    </ul>
-                </nav>
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><a href="{% url 'admin_panel:best_selling_product' %}">Best Selling Product</a></span>
+                                <span class="text-sm">
+                                </span>
+                                
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><a href="{% url 'admin_panel:best_selling_category' %}">Best Selling Category</a></span>
+                                <span class="text-sm">
+                                </span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="card card-body mb-4">
+                        <article class="icontext">
+                            <div class="text">
+                                <h6 class="mb-1 card-title"></h6>
+                                <span><a href="{% url 'admin_panel:best_selling_brand' %}">Best Selling Brands</a></span>
+                                <span class="text-sm">
+                                </span>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                
             </div>
+           
         </section> <!-- content-main end// -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+        
+        <script>
+            Chart.register(ChartDataLabels);
+        
+            const orderCtx = document.getElementById('orderChart').getContext('2d');
+            const userCtx = document.getElementById('userChart').getContext('2d');
+        
+            const orderGradient = orderCtx.createLinearGradient(0, 0, 0, 400);
+            orderGradient.addColorStop(0, 'rgba(54, 162, 235, 0.8)');
+            orderGradient.addColorStop(1, 'rgba(54, 162, 235, 0.1)');
+        
+            const userGradient = userCtx.createLinearGradient(0, 0, 0, 400);
+            userGradient.addColorStop(0, 'rgba(255, 99, 132, 0.8)');
+            userGradient.addColorStop(1, 'rgba(255, 99, 132, 0.1)');
+        
+            const commonOptions = {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 5,
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                        borderRadius: 4,
+                        backgroundColor: (context) => context.dataset.borderColor,
+                        font: {
+                            weight: 'bold',
+                        },
+                        formatter: (value) => Math.round(value),
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)',
+                        },
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                        },
+                    },
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeInOutSine',
+                },
+            };
+
+            function generateWaveData(length) {
+                const data = [];
+                const frequency = 0.1;
+                const amplitude = 10;
+                for (let i = 0; i < length; i++) {
+                    data.push(amplitude * Math.sin(frequency * i) + Math.random() * 10);
+                }
+                return data;
+            }
+
+            new Chart(orderCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ labels|safe }},
+                    datasets: [{
+                        label: 'Number of Orders',
+                        data: generateWaveData({{ labels|length }}),
+                        backgroundColor: orderGradient,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        fill: 'start',
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: {
+                            display: true,
+                            text: 'Monthly Order Trends',
+                            font: {
+                                size: 18,
+                                weight: 'bold',
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 30,
+                            },
+                        },
+                    },
+                }
+            });
+        
+            new Chart(userCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ user_labels|safe }},
+                    datasets: [{
+                        label: 'New User Registrations',
+                        data: generateWaveData({{ user_labels|length }}),
+                        backgroundColor: userGradient,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2,
+                        borderRadius: 5,
+                        borderSkipped: false,
+                        barThickness: 20,
+                        maxBarThickness: 30,
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: {
+                            display: true,
+                            text: 'Monthly User Registrations',
+                            font: {
+                                size: 18,
+                                weight: 'bold',
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 20,
+                            },
+                        },
+                    },
+                },
+            });
+        </script>
 {% endblock %}

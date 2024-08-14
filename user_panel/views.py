@@ -171,6 +171,7 @@ class CreateAddress(LoginRequiredMixin, View):
         )
         
         address.save()
+        messages.success(request, 'Address Created Successfully')
         return redirect('user_panel:user_dash')
 
 
