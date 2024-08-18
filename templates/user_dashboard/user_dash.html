@@ -45,7 +45,7 @@
     <div class="page-header breadcrumb-wrap">
         <div class="container">
             <div class="breadcrumb">
-                <a href="index.html" rel="nofollow">Home</a>
+                <a href="{% url 'accounts:home' %}" rel="nofollow">Home</a>
                 <span></span> Pages
                 <span></span> Account
             </div>
@@ -123,7 +123,7 @@
                                         <div class="card-header">
                                             <h5 class="mb-0">Your Orders</h5>
                                         </div>
-                                        
+                                        {% if orders %}
                                         <div class="card-body"> 
                                             <div class="table-responsive"> 
                                                 <table class="table"> 
@@ -254,13 +254,20 @@
                                                                         {% endfor %}
                                                                     </div>
                                                                 </div>
+                                                    
                                                             </td>
                                                         </tr>
+                                                        
                                                     </tbody> 
                                                     {% endfor %}
                                                 </table> 
                                             </div> 
                                         </div>
+                                        {% else %}
+                                        <h4 style="padding-left:20px;">
+                                            No Orders Yet
+                                        </h4>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 
@@ -274,6 +281,7 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="table-responsive">
+                                                {% if transactions %}
                                                 <table class="table table-hover ">
                                                     <thead class="thead-light">
                                                         <tr>
@@ -300,6 +308,11 @@
                                                         {% endfor %}
                                                     </tbody>
                                                 </table>
+                                                {% else %}
+                                                <h4>
+                                                    No Transactions Yet
+                                            </h4>
+                                            {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -385,10 +398,6 @@
                       <div class="form-group col-md-6">
                           <label>Last Name<span class="required">*</span></label>
                           <input required class="form-control square" value="{{ user.last_name }}" name="last_name">
-                      </div>
-                      <div class="form-group col-md-6">
-                          <label>Email<span class="required">*</span></label>
-                          <input required class="form-control square" name="email" value="{{ user.email }}" type="text">
                       </div>
                       <div class="form-group col-md-6">
                           <label>Phone Number<span class="required">*</span></label>

@@ -99,7 +99,7 @@
                                         <div class="product-price primary-color float-left">
                                             <ins><span style="color:black;" class="">₹ {{ products.offer_price }}</span></ins>
                                             <ins><span class="old-price font-md ml-15">₹ {{ products.price }}</span></ins>
-                                            <span class="save-price font-md color3 ml-15">{{ products.percentage_discount }}% Off</span>
+                                            <span class="save-price font-md color3 ml-15" style="color:red; font-weight:bold;">{{ products.percentage_discount }}% Off</span>
                                         </div>
                                     </div>
                                     <div class="bt-1 border-color-1 mt-15 mb-15"></div>
@@ -127,9 +127,14 @@
                                             <button type="button" id="product-cart-button" class="button button-add-to-cart" style="background-color:black;" data-product-id="{{ products.id }}">Add to Cart</button>
 
 
-                                            <button style="background-color:black;" aria-label="Add To Wishlist" class="action-btn hover-up add-to-wishlist-btn" data-variant-id="{{ variant.id }}">
-                                                <i style="color:white;" class="fi-rs-heart"></i> 
-                                            </button>                                            
+                                            <button 
+                                                style="background-color: black; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; transition: background-color 0.3s ease, transform 0.3s ease;" 
+                                                aria-label="Add To Wishlist" 
+                                                class="action-btn hover-up add-to-wishlist-btn" 
+                                                data-variant-id="{{ variant.id }}">
+                                                <i class="fi-rs-heart"></i>
+                                            </button>
+                                            
                                             <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
                                         </div>
                                     </div>
@@ -314,7 +319,7 @@
                                         <div class="product-cart-wrap small hover-up">
                                             <div class="product-img-action-wrap">
                                                 <div class="product-img product-img-zoom">
-                                                    <a href="shop-product-right.html" tabindex="0">
+                                                    <a href="{% url 'accounts:product_details' related.id %}" tabindex="0">
                                                         <img class="default-img" src="{{ related.thumbnail.url }}" alt="">
                                                         <img class="hover-img" src="{{ related.thumbnail.url }}" alt="">
                                                     </a>
@@ -368,50 +373,54 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Star rating functionality
         const stars = $('.star-rating .star');
         const ratingInput = $('#rating');
-    
-        function fillStars(upToIndex, className) {
+        
+        function fillStars(upToIndex) {
             stars.each(function(index) {
-                if (index <= upToIndex) {
-                    $(this).addClass(className);
+                if (index >= upToIndex) {
+                    $(this).addClass('selected');
                 } else {
-                    $(this).removeClass(className);
+                    $(this).removeClass('selected');
                 }
             });
         }
-    
+        
         function clearHoverStars() {
             stars.removeClass('hovered');
         }
-    
+        
         stars.each(function(index) {
             // Handle click event
             $(this).on('click', function() {
-                ratingInput.val(index + 1);
-                fillStars(index, 'selected');
+                const value = $(this).data('value');
+                ratingInput.val(value -1);
+                fillStars(value); // Adjust for the desired index
             });
-    
+        
             // Handle mouseover event
             $(this).on('mouseover', function() {
                 clearHoverStars();
-                fillStars(index, 'hovered');
+                stars.each(function(i) {
+                    if (i >= index) {
+                        $(this).addClass('hovered');
+                    }
+                });
             });
-    
+        
             // Handle mouseout event
             $(this).on('mouseout', function() {
                 clearHoverStars();
-                fillStars(ratingInput.val() - 1, 'selected'); // Keep the selected stars filled on mouseout
+                fillStars(ratingInput.val()); // Keep the selected stars filled on mouseout
             });
         });
-    
+        
         // Initial rendering based on data-rating attribute for static star displays
         const starContainers = $('.star-rating-display');
         starContainers.each(function() {
             const rating = parseInt($(this).attr('data-rating'));
             const stars = $(this).find('.star');
-    
+        
             stars.each(function(index) {
                 if (index < rating) {
                     $(this).addClass('filled');
@@ -419,7 +428,7 @@
             });
         });
     });
-
+    
 
  // Cart functionality
 
@@ -478,12 +487,12 @@
                 }
             },
             error: function(xhr, status, error) {
-                console.log('Error:', xhr.responseText); // Debug log
+                console.log('Error:', xhr.responseJSON.message); // Debug log
                 Swal.fire({
                     toast: true,
                     position: 'top-right',
                     icon: 'error',
-                    title: 'Error occurred',
+                    title: xhr.responseJSON.message || "Error occured",
                     showConfirmButton: false,
                     timer: 3000
                 });
@@ -508,7 +517,7 @@
                     toast: true,
                     position: 'top-right',
                     icon: 'success',
-                    title: 'Added to wishlist!',
+                    title: response.message, // Display the server response message
                     showConfirmButton: false,
                     timer: 3000,
                     timerProgressBar: true,
@@ -536,6 +545,7 @@
             }
         });
     });
+    
 });
 
 </script>

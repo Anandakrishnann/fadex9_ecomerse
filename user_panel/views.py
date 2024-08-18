@@ -11,6 +11,7 @@ from django.contrib.auth import authenticate, login
 from wallet.models import *
 from django.db.models import *
 from django.http import HttpResponse
+from shared.mixins import PreventBackMixin  # Import the mixin
 
 # Create your views here.
 
@@ -19,7 +20,7 @@ from django.http import HttpResponse
 #---------------------------------------------- User Address Page -------------------------------------------------------------#
 
 
-class UserDashboard(LoginRequiredMixin, View):
+class UserDashboard(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request):
         user = request.user
         user_data = Accounts.objects.get(email=user.email)
@@ -49,7 +50,7 @@ class UserDashboard(LoginRequiredMixin, View):
 
 
 
-class UserDetails(LoginRequiredMixin, View):
+class UserDetails(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request):
         user = request.user
         try:
@@ -60,7 +61,7 @@ class UserDetails(LoginRequiredMixin, View):
 
 
 
-class EditDetails(LoginRequiredMixin, View):
+class EditDetails(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request, pk):
         user = Accounts.objects.get(id=pk)
         return render(request, 'user_dashboard/user_dash.html', {'user':user})
@@ -69,15 +70,10 @@ class EditDetails(LoginRequiredMixin, View):
         user = Accounts.objects.get(id=pk)
         first_name = request.POST.get('first_name').strip()
         last_name = request.POST.get('last_name').strip()
-        email = request.POST.get('email').strip()
         phone_number = request.POST.get('phone_number').strip()
         
         if not first_name or not last_name:
             messages.error(request, "First name and last name cannot be empty.")
-            return render(request, 'user_dashboard/user_dash.html', {'user': user})
-
-        if Accounts.objects.filter(email=email).exclude(id=user.id).exists():
-            messages.error(request, "This email is already in use.")
             return render(request, 'user_dashboard/user_dash.html', {'user': user})
 
         if len(phone_number) != 10 or not phone_number.isdigit():
@@ -87,7 +83,6 @@ class EditDetails(LoginRequiredMixin, View):
         
         user.first_name = first_name
         user.last_name = last_name
-        user.email = email
         user.phone_number = phone_number
         user.save()
         messages.success(request, 'Address Edited Successfully')
@@ -95,7 +90,7 @@ class EditDetails(LoginRequiredMixin, View):
 
 
 
-class ChangePassword(LoginRequiredMixin, View):
+class ChangePassword(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request):
         return render(request, 'user_dashboard/user_dash.html')
     
@@ -128,7 +123,7 @@ class ChangePassword(LoginRequiredMixin, View):
 
 
 
-class CreateAddress(LoginRequiredMixin, View):
+class CreateAddress(LoginRequiredMixin,PreventBackMixin, View):
     def post(self, request):
         users = request.user
         name = request.POST.get('name').strip()
@@ -176,7 +171,7 @@ class CreateAddress(LoginRequiredMixin, View):
 
 
 
-class EditAddress(LoginRequiredMixin, View):
+class EditAddress(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request, pk):
         users = get_object_or_404(UserAddress, id=pk)
         return render(request, 'user_dashboard/edit_address.html', {'users':users})
@@ -230,7 +225,7 @@ class EditAddress(LoginRequiredMixin, View):
         return redirect('user_panel:user_dash')
 
 
-class AddAddress(LoginRequiredMixin, View):
+class AddAddress(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request):
         return render(request, 'user_dashboard/add_new_address.html' )
     
@@ -249,17 +244,17 @@ class AddAddress(LoginRequiredMixin, View):
         
         if not name or not house_name or not street_name or not pin_number or not district or not state or not country or not phone_number:
             messages.error(request, "All fields are required.")
-            return redirect('user_panel:user_dash')
+            return redirect('cart:cart_checkout')
 
         
         if not pin_number.isdigit() or len(pin_number) != 6:
             messages.error(request, "Please enter a valid 6-digit PIN number.")
-            return redirect('user_panel:user_dash')
+            return redirect('cart:cart_checkout')
 
         
         if not phone_number.isdigit() or len(phone_number) not in [10, 12]:
             messages.error(request, "Please enter a valid phone number with 10 or 12 digits.")
-            return redirect('user_panel:user_dash')
+            return redirect('cart:cart_checkout')
 
         
         address = UserAddress.objects.create(
@@ -279,7 +274,7 @@ class AddAddress(LoginRequiredMixin, View):
         return redirect('cart:cart_checkout')
 
 
-class MakeAsDefault(LoginRequiredMixin, View):
+class MakeAsDefault(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request, pk):
         user = request.user
         
@@ -295,7 +290,7 @@ class MakeAsDefault(LoginRequiredMixin, View):
 
 
 
-class AddressDelete(LoginRequiredMixin, View):
+class AddressDelete(LoginRequiredMixin,PreventBackMixin, View):
     def post(self, request, pk):
         address = get_object_or_404(UserAddress, id=pk) 
         address.is_deleted=True
@@ -305,16 +300,14 @@ class AddressDelete(LoginRequiredMixin, View):
 
 
 
-class ToggleAddressStatus(LoginRequiredMixin, View):
+class ToggleAddressStatus(LoginRequiredMixin,PreventBackMixin, View):
     def post(self, request):
         try:
             address_id = request.POST.get('address_id')
             address = get_object_or_404(UserAddress, id=address_id, user=request.user,is_deleted=False)
             
-            # Set all addresses to inactive
             UserAddress.objects.filter(user=request.user).update(order_status=False)
             
-            # Set the selected address to active
             address.order_status = True
             address.save()
             
@@ -325,27 +318,9 @@ class ToggleAddressStatus(LoginRequiredMixin, View):
             return JsonResponse({'success': False, 'message': str(e)})
         
 
-class UserInvoice(View):
+class UserInvoice(PreventBackMixin,View):
     def get(self, request,pk):
         order_main = OrderMain.objects.get(id=pk)
         order_sub = OrderSub.objects.filter(main_order=order_main,is_active=True)
         return render(request, 'user_dashboard/user_invoice.html',{'order_main':order_main, 'order_sub':order_sub})
     
-
-# def download_invoice_pdf(request, order_id):
-#     # Fetch the order details from the database
-#     order_main = get_object_or_404(OrderMain, pk=order_id)
-#     order_sub = OrderSub.objects.filter(order_main=order_main)
-
-#     # Render the HTML template with the context data
-#     html_string = render_to_string('user_dashboard/user_invoice.html', {'order_main': order_main, 'order_sub': order_sub})
-
-#     # Generate the PDF
-#     html = HTML(string=html_string)
-#     pdf_file = html.write_pdf()
-
-#     # Create the response as a PDF file
-#     response = HttpResponse(pdf_file, content_type='application/pdf')
-#     response['Content-Disposition'] = f'attachment; filename="invoice_{order_main.order_id}.pdf"'
-
-#     return response

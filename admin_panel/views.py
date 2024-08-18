@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 import json
 from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
-
+from shared.mixins import PreventBackMixin  # Import the mixin
 
 # Create your views here.
 
@@ -25,7 +25,7 @@ from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
 
 
 @method_decorator(admin_required, name='dispatch')
-class AdminLogin(View):
+class AdminLogin(PreventBackMixin,View):
     def get(self, request):
         return render(request, 'Accounts/admin_side/admin_login.html')
     
@@ -50,7 +50,7 @@ class AdminLogin(View):
 #---------------------------------------------- admin dash -------------------------------------------------------------#
 
 @method_decorator(admin_required, name='dispatch')
-class AdminDash(View):
+class AdminDash(PreventBackMixin,View):
     def get(self, request):
         # Total order amount
         total_order_amount = OrderMain.objects.filter(order_status="Order Placed").aggregate(total=Sum('total_amount'))['total'] or 0
@@ -107,7 +107,7 @@ class AdminDash(View):
         return render(request, 'Accounts/admin_side/admin.html', context)
 
 
-class BestSellingProducts(View):
+class BestSellingProducts(PreventBackMixin,View):
     def get(self,request):
         
         best_selling_products = OrderSub.objects.filter(
@@ -124,7 +124,7 @@ class BestSellingProducts(View):
         return render(request, 'Accounts/admin_side/best_selling_product.html',{'top_product':top_product,'best_selling_products':best_selling_products})
 
 
-class BestSellingCategory(View):
+class BestSellingCategory(PreventBackMixin,View):
     def get(self, request):
         best_selling_categories = OrderSub.objects.filter(
             main_order__order_status="Order Placed"
@@ -144,7 +144,7 @@ class BestSellingCategory(View):
         })
 
 
-class BestSellingBrands(View):
+class BestSellingBrands(PreventBackMixin,View):
     def get(self, request):
         best_selling_brands = OrderSub.objects.filter(
             main_order__order_status="Order Placed"
@@ -165,10 +165,6 @@ class BestSellingBrands(View):
 
 
 
-
-
-
-
 def logout(request):
     auth_logout(request)
     return redirect('admin_panel:admin_login')   
@@ -178,39 +174,45 @@ def logout(request):
 #---------------------------------------------- users -------------------------------------------------------------#
 
 @method_decorator(admin_required, name='dispatch')
-class AdminUsers(View):
+class AdminUsers(PreventBackMixin,View):
     def get(self, request):
         if request.user.is_authenticated:
             query = request.GET.get('q')
             if query:
-                users = Accounts.objects.filter(email__icontains=query)
+                users = Accounts.objects.filter(
+                    Q(email__icontains=query) | Q(first_name__icontains=query)
+                )
             else:
-                users = Accounts.objects.filter(is_admin=False)
-            return render(request, 'Accounts/admin_side/admin_users.html', {'users':users})
+                users = Accounts.objects.filter(is_admin=False).order_by('-is_blocked')
+                print(users.values_list())
+            return render(request, 'Accounts/admin_side/admin_users.html', {'users': users})
         else:
             return render(request, 'Accounts/admin_side/admin_login.html')
 
 
+
 #---------------------------------------------- user block -------------------------------------------------------------#
 @method_decorator(admin_required, name='dispatch')
-class UserBlock(View):
+class UserBlock(PreventBackMixin,View):
     def get(self, request, pk):
         user_block = get_object_or_404(Accounts, pk=pk)
         user_block.is_blocked = not user_block.is_blocked  # Toggle the blocked status
         user_block.save()
         return redirect('admin_panel:admin_view')
-    
+
+
 #---------------------------------------------- user delete -------------------------------------------------------------#
 @method_decorator(admin_required, name='dispatch')
-class UserDelete(View):
+class UserDelete(PreventBackMixin,View):
     def get(self, request, pk):
         user_delete = get_object_or_404(Accounts, pk=pk)
         user_delete.is_active = not user_delete.is_active  # Toggle the blocked status
         user_delete.save()
         return redirect('admin_panel:admin_view')
-    
+
+
 @method_decorator(admin_required, name='dispatch')
-class OrderStatus(View):
+class OrderStatus(PreventBackMixin,View):
     def post(self, request, pk):
         fk = pk
         order = get_object_or_404(OrderMain, id=pk)
@@ -227,7 +229,7 @@ class OrderStatus(View):
         
         
 @method_decorator(admin_required, name='dispatch')
-class SalesReport(View):
+class SalesReport(PreventBackMixin,View):
     def get(self, request):
         filter_type = request.GET.get('filter', None)
 
@@ -268,7 +270,7 @@ class SalesReport(View):
     
     
 @method_decorator(admin_required, name='dispatch')
-class OrderDateFilter(View):
+class OrderDateFilter(PreventBackMixin,View):
     def post(self, request):
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')

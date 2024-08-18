@@ -9,11 +9,12 @@ from django.contrib import messages
 import uuid
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
+from shared.mixins import PreventBackMixin  # Import the mixin
 # Create your views here.
 
 
 @method_decorator(admin_required, name='dispatch')
-class CouponCreate(View):
+class CouponCreate(PreventBackMixin,View):
     def get(self, request):
         return render(request, 'Coupon/coupon_create.html')
     
@@ -97,7 +98,7 @@ class CouponCreate(View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class EditCoupon(View):
+class EditCoupon(PreventBackMixin,View):
     def get(self, request, pk):
         coupon = get_object_or_404(Coupon, id=pk)
         return render(request, 'Coupon/edit_coupon.html', {'coupon': coupon})
@@ -180,14 +181,14 @@ class EditCoupon(View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class CouponView(View):
+class CouponView(PreventBackMixin,View):
     def get(self, request):
         coupons = Coupon.objects.all()
         return render(request, 'Coupon/coupon.html',{'coupons':coupons})
 
 
 @method_decorator(admin_required, name='dispatch')
-class CouponStatus(View):
+class CouponStatus(PreventBackMixin,View):
     def post(self, request, pk):
         try:
             coupon = get_object_or_404(Coupon, id=pk)

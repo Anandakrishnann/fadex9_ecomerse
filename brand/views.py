@@ -4,13 +4,14 @@ from django.views import View
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
+from shared.mixins import PreventBackMixin  # Import the mixin
 
 
 # Create your views here.
 
 
 @method_decorator(admin_required, name='dispatch')
-class BrandList(View):
+class BrandList(PreventBackMixin,View):
     def get(self, request):
         if request.user.is_authenticated:
             query = request.GET.get('q')
@@ -21,10 +22,12 @@ class BrandList(View):
             return render(request, 'Brands/brand.html',{'brands':brands})
         else:
             return render(request, 'Admin_panel/admin_side/admin_login.html')
+        
+        
     
     
 @method_decorator(admin_required, name='dispatch')
-class BrandCreate(View):
+class BrandCreate(PreventBackMixin,View):
     def get(self, request):
         return render(request, 'Brands/brand_create.html')
     
@@ -43,15 +46,6 @@ class BrandCreate(View):
         if Brand.objects.filter(brand_name__iexact=brand_name).exists():
             messages.error(request, f'The brand name "{brand_name}" already exists.')
             return redirect('brand:brand_create')
-        
-        if not brand_image.content_type.startswith('image/'):
-            messages.error(request, 'Uploaded file is not an image.')
-            return redirect('brand:brand_create')
-
-        max_file_size = 5 * 1024 * 1024  
-        if brand_image.size > max_file_size:
-            messages.error(request, 'Image size should not exceed 5 MB.')
-            return redirect('brand:brand_create')
 
         
         brand = Brand.objects.create(
@@ -67,7 +61,7 @@ class BrandCreate(View):
     
 @method_decorator(admin_required, name='dispatch')
 
-class BrandEdit(View):
+class BrandEdit(PreventBackMixin,View):
     def get(self, request, pk):
         brands = get_object_or_404(Brand, id=pk)
         return render(request, 'Brands/brand_edit.html', {'brands': brands})
@@ -90,16 +84,6 @@ class BrandEdit(View):
             return redirect('brand:brand_edit', pk=brands.id)
         
         
-        if not brand_image.content_type.startswith('image/'):
-            messages.error(request, 'Uploaded file is not an image.')
-            return render(request, 'Brand_side/create.html')
-
-        max_file_size = 5 * 1024 * 1024  
-        if brand_image.size > max_file_size:
-            messages.error(request, 'Image size should not exceed 5 MB.')
-            return render(request, 'Brand_side/create.html')
-        
-        
         brands.brand_name = brand_name
         brands.description = description
         brands.status = brand_status
@@ -115,7 +99,7 @@ class BrandEdit(View):
     
     
 @method_decorator(admin_required, name='dispatch')
-class BrandStatus(View):
+class BrandStatus(PreventBackMixin,View):
     def get(self, request, pk):
         brand = get_object_or_404(Brand, id=pk)
         brand.status = not brand.status

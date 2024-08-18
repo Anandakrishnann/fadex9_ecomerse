@@ -13,16 +13,30 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import logout as auth_logout
 from products.models import *
 from cart.models import *
+from django.db.models import *
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Avg
+from shared.mixins import PreventBackMixin  # Import the mixin
+from django.contrib.auth.forms import PasswordResetForm
+from django.db.models.query_utils import Q
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.template.loader import render_to_string
+from django.core.mail import send_mail, BadHeaderError
+from django.http import HttpResponse
+from django.contrib.auth.forms import SetPasswordForm
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+
 
 #---------------------------------------------- User Side -------------------------------------------------------------#
 
 User = get_user_model() 
 
 # ---------------------------------------------Login View---------------------------------------------------------------
-class LoginView(View):
+class LoginView(PreventBackMixin,View):
     def get(self, request):
         # if request.user.is_authenticated:
         #     return redirect('home')
@@ -49,7 +63,7 @@ def logout(request):
     return redirect('accounts:home')    
 
 
-class RegisterView(View):
+class RegisterView(PreventBackMixin,View):
     
     def get(self, request):
         form = RegistrationForm()
@@ -97,7 +111,7 @@ class RegisterView(View):
 
 #---------------------------------------------- verify otp -------------------------------------------------------------#
 
-class VerifyOtp(View):
+class VerifyOtp(PreventBackMixin,View):
 
     def get(self, request):
         form = OTPForm()
@@ -152,7 +166,7 @@ class VerifyOtp(View):
     
 #---------------------------------------------- resend otp -------------------------------------------------------------#
 
-class ResendOtp(View):
+class ResendOtp(PreventBackMixin,View):
     
     def post(self, request):
         user_data = request.session.get('user_data') 
@@ -199,7 +213,7 @@ class ResendOtp(View):
     
 #---------------------------------------------- Home Page -------------------------------------------------------------#
 
-class IndexView(View):
+class IndexView(PreventBackMixin,View):
     def get(self, request):
         all_products = Products.objects.all()
         products = all_products.order_by('?')[:8]
@@ -211,7 +225,7 @@ class IndexView(View):
 #---------------------------------------------- Product Detail Page -------------------------------------------------------------#
 
 
-class ProductView(View):
+class ProductView(PreventBackMixin,View):
     def get(self, request, pk):
         products = get_object_or_404(Products, pk=pk)
         images = ProductImages.objects.filter(product=products)
@@ -227,7 +241,7 @@ class ProductView(View):
         })
 
 
-class ProductShop(View):
+class ProductShop(PreventBackMixin,View):
     def get(self, request):
         category_slug = request.GET.get('category', '')
         brand_slug = request.GET.get('brand', '')
@@ -237,14 +251,19 @@ class ProductShop(View):
 
         products = Products.objects.all()
 
+        count = 0
+        
         if search_query:
             products = products.filter(product_name__icontains=search_query)
+            
         
         if category_slug:
             products = products.filter(product_category__slug=category_slug)
+            
 
         if brand_slug:
             products = products.filter(product_brand__brand_name=brand_slug)
+            
 
         # Annotate products with their average rating
         products = products.annotate(avg_rating=Avg('reviews__rating'))
@@ -252,32 +271,42 @@ class ProductShop(View):
         # Sort products based on the sort_by parameter
         if sort_by == 'price_asc':
             products = products.order_by('offer_price')
-            # count = products.aggregate(count=Count(''))
+            
         elif sort_by == 'price_desc':
             products = products.order_by('-offer_price')
+            
         elif sort_by == 'release_date':
             products = products.order_by('-release_date')
+            
         elif sort_by == 'avg_rating':
             products = products.order_by('-avg_rating')
+            
         else:
             products = products.order_by('id')
+            
 
         
         if price_range == '2000-3000':
             products = products.filter(offer_price__gte=2000, offer_price__lt=3000)
+            
         elif price_range == '3000-4000':
             products = products.filter(offer_price__gte=3000, offer_price__lt=4000)
+            
         elif price_range == '4000-5000':
             products = products.filter(offer_price__gte=4000, offer_price__lt=5000)
+            
         elif price_range == 'above_5000':
             products = products.filter(offer_price__gte=5000)
+            
         elif price_range == 'all':
             products = products  # No filtering for 'all'
+            
         
         
         categories = Category.objects.filter(is_deleted=False)
         brands = Brand.objects.filter(status=True)
         
+        count = products.aggregate(count=Count('id'))['count']
         
         context = {
             'products': products,
@@ -287,16 +316,82 @@ class ProductShop(View):
             'current_sort_by': sort_by,
             'search_query': search_query,
             'current_brand': brand_slug,
+            'count':count
         }
         return render(request, 'Accounts/user_side/product_shop.html', context)
 
     
 
-class Contact(View):
+class Contact(PreventBackMixin,View):
     def get(self, request):
         return render(request, 'Accounts/user_side/contact.html')
     
 
-class About(View):
+class About(PreventBackMixin,View):
     def get(self, request):
         return render(request, 'Accounts/user_side/about.html')
+    
+    
+
+def password_reset_request(request):
+    if request.method == "POST":
+        password_reset_form = PasswordResetForm(request.POST)
+        if password_reset_form.is_valid():
+            data = password_reset_form.cleaned_data['email']
+            associated_users = Accounts.objects.filter(Q(email=data))
+            if associated_users.exists():
+                for user in associated_users:
+                    subject = "Password Reset Requested"
+                    email_template_name = "Accounts/user_side/password_reset_email.txt"
+                    c = {
+                        "email": user.email,
+                        'domain': '127.0.0.1:8000',
+                        'site_name': 'FADEX.9',
+                        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                        "user": user,
+                        'token': default_token_generator.make_token(user),
+                        'protocol': 'http',
+                    }
+                    email_content = render_to_string(email_template_name, c)
+                    try:
+                        send_mail(
+                            subject,
+                            email_content,
+                            settings.DEFAULT_FROM_EMAIL,
+                            [user.email],
+                            fail_silently=False,
+                        )
+                    except BadHeaderError:
+                        return HttpResponse('Invalid header found.')
+                    return redirect("accounts:password_reset_done")
+    
+    password_reset_form = PasswordResetForm()
+    return render(request, "Accounts/user_side/password_reset.html", {"password_reset_form": password_reset_form})
+
+
+def password_reset_done(request):
+    return render(request, 'Accounts/user_side/password_reset_done.html')
+
+def password_reset_confirm(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            form = SetPasswordForm(user, request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your password has been set. You may go ahead and log in now.')
+                return redirect('accounts:password_reset_complete')
+        else:
+            form = SetPasswordForm(user)
+        return render(request, 'Accounts/user_side/password_reset_confirm.html', {'form': form})
+    else:
+        messages.error(request, 'The password reset link was invalid, possibly because it has already been used. Please request a new password reset.')
+        return redirect('accounts:password_reset')
+
+def password_reset_complete(request):
+    return render(request, 'Accounts/user_side/password_reset_complete.html')

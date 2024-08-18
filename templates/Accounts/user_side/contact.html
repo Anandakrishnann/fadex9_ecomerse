@@ -5,8 +5,7 @@
     <div class="page-header breadcrumb-wrap">
         <div class="container">
             <div class="breadcrumb">
-                <a href="index.html" rel="nofollow">Home</a>
-                <span></span> Pages
+                <a href="{% url 'accounts:home' %}" rel="nofollow">Home</a>
                 <span></span> Contact us
             </div>
         </div>
@@ -38,7 +37,7 @@
                         Sunday: Closed</p>
                     <p class="wow fadeIn animated">
                         <a class="btn btn-brand btn-lg font-weight-bold text-white border-radius-5 btn-shadow-brand hover-up" href="{% url 'accounts:about' %}">About Us</a>
-                        <a class="btn btn-outline btn-lg btn-brand-outline font-weight-bold text-brand bg-white text-hover-white ml-15 border-radius-5 btn-shadow-brand hover-up">Support Center</a>
+                        {% comment %} <a class="btn btn-outline btn-lg btn-brand-outline font-weight-bold text-brand bg-white text-hover-white ml-15 border-radius-5 btn-shadow-brand hover-up">Support Center</a> {% endcomment %}
                     </p>
                 </div>
             </div>

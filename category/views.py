@@ -5,6 +5,7 @@ from .forms import CategoryForm
 from .models import Category
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
+from shared.mixins import PreventBackMixin  # Import the mixin
 
 
 # Create your views here.
@@ -12,7 +13,7 @@ from utils.decorators import admin_required
 
 @method_decorator(admin_required, name='dispatch')
 
-class CreateCategory(View):
+class CreateCategory(PreventBackMixin,View):
     def get(self, request):
         form = CategoryForm()
         return render(request, 'Category/create_category.html', {'form': form})
@@ -34,21 +35,21 @@ class CreateCategory(View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class CategoryList(View):
+class CategoryList(PreventBackMixin,View):
     def get(self, request):
         if request.user.is_authenticated:
             query = request.GET.get('q')
             if query:
-                categories = Category.objects.filter(category_name__icontains=query, is_deleted=False)
+                categories = Category.objects.filter(category_name__icontains=query)
             else:
-                categories = Category.objects.filter(is_deleted=False)
+                categories = Category.objects.all()
             return render(request, 'Category/category.html', {'categories': categories, 'query': query})
         else:
             return render(request, 'Accounts/admin_side/admin_login.html')
         
         
 @method_decorator(admin_required, name='dispatch')
-class CategoryEdit(View):
+class CategoryEdit(PreventBackMixin,View):
     def get(self, request, pk):
         category = get_object_or_404(Category, id=pk)
         form = CategoryForm(instance=category)
@@ -71,7 +72,7 @@ class CategoryEdit(View):
     
     
 @method_decorator(admin_required, name='dispatch')
-class DeleteCategory(View):
+class DeleteCategory(PreventBackMixin,View):
     def get(self, request, pk):
         delete_category = get_object_or_404(Category, id=pk)
         delete_category.is_deleted = not delete_category.is_deleted

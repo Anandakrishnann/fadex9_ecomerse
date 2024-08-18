@@ -21,10 +21,11 @@ from django.db.models import *
 from decimal import Decimal
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
+from shared.mixins import PreventBackMixin  # Import the mixin
 # Create your views here.
 
 
-class OrderVerificationView(LoginRequiredMixin, View):
+class OrderVerificationView(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request):
         return redirect('cart:cart_checkout')
     
@@ -260,7 +261,7 @@ class OrderVerificationView(LoginRequiredMixin, View):
                 cart_item.variant.save()
 
             cart_items.delete()
-            
+
             request.session['order_id']=order_main.order_id
             request.session['order_date'] = order_main.date.strftime("%Y-%m-%d")
             request.session['order_status']=order_main.order_status
@@ -273,7 +274,7 @@ class OrderVerificationView(LoginRequiredMixin, View):
 
 
 
-class OnlinePayment(LoginRequiredMixin,View):
+class OnlinePayment(LoginRequiredMixin,PreventBackMixin,View):
     def get(self, request):
         user = request.user
         cart_items = CartItem.objects.filter(cart__user=user, is_active=True) 
@@ -436,7 +437,7 @@ class OnlinePayment(LoginRequiredMixin,View):
 
 
 
-class OrderSuccess(LoginRequiredMixin,View):
+class OrderSuccess(LoginRequiredMixin,PreventBackMixin,View):
     def get(self, request):
         future_date_time = timezone.now() + timedelta(days=5)
         formatted_future_date = future_date_time.strftime("Arriving By %d %a %B %Y")
@@ -449,7 +450,7 @@ class OrderSuccess(LoginRequiredMixin,View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class AdminOrder(View):
+class AdminOrder(PreventBackMixin,View):
     def get(self, request):
         search_query = request.GET.get('search', '').strip()
         if search_query:
@@ -460,14 +461,14 @@ class AdminOrder(View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class AdminOrderDetails(View):
+class AdminOrderDetails(PreventBackMixin,View):
     def get(self, request, pk):
         orders = OrderMain.objects.get(id=pk)
         order_sub = OrderSub.objects.filter(main_order=orders)  # Filter by main_order to get the relevant OrderSub items
         return render(request, 'Order/admin_order_details.html', {'orders': orders, 'order_sub': order_sub})
 
 
-class CancelOrders(LoginRequiredMixin,View):
+class CancelOrders(LoginRequiredMixin,PreventBackMixin,View):
     def post(self, request, pk):
         try:
             order = OrderMain.objects.get(id=pk)
@@ -528,7 +529,7 @@ class CancelOrders(LoginRequiredMixin,View):
         return redirect('user_panel:user_dash')
 
 
-class ReturnOrders(LoginRequiredMixin, View):
+class ReturnOrders(LoginRequiredMixin,PreventBackMixin, View):
     def post(self, request, pk):
         try:
             order = OrderMain.objects.get(id=pk)
@@ -569,11 +570,11 @@ class ReturnOrders(LoginRequiredMixin, View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class AdminCancelOrders(View):
+class AdminCancelOrders(PreventBackMixin,View):
     def post(self, request, pk):
         try:
             order = OrderMain.objects.get(id=pk)
-            order_items = OrderSub.objects.filter(main_order=order)
+            order_items = OrderSub.objects.filter(main_order=order,is_active=True)
             
             for order_item in order_items:
                 order_variant = order_item.variant
@@ -585,43 +586,52 @@ class AdminCancelOrders(View):
             order.order_status = False
             order.save()
             
-            if order.payment_option == "Online Payment":
-                order_amount = order.total_amount
-                description = "Product Cancel Amount"
-                transaction_type = "Credited"
-                user = order.user
-                
-                wallet, created = Wallet.objects.get_or_create(user=user)
-                
-                Transaction.objects.create(
-                    wallet=wallet,
-                    description = description,
-                    amount = order_amount,
-                    transaction_type = transaction_type,
-                )
+            refund_amount = Decimal('0.00') 
             
-            if order.payment_option == "Wallet":
-                order_amount = order.total_amount
-                description = "Product Cancel Amount"
-                transaction_type = "Credited"
-                user = order.user
+            if order.payment_option == "Online Payment" or order.payment_option == "Wallet": 
                 
-                wallet, created = Wallet.objects.get_or_create(user=user)
+                for item in order_items: 
+                    item_total_cost = Decimal(str(item.final_total_cost())) 
+                    order_total_amount = Decimal(str(item.main_order.total_amount)) 
+                    order_discount_amount = Decimal(str(item.main_order.discount_amount)) 
+
+                    item_discount_amount = (order_discount_amount * item_total_cost) / order_total_amount 
+                    item_refund_amount = item_total_cost - item_discount_amount 
+
+                    refund_amount += item_refund_amount 
+                    order.is_active = False 
+                    order.save() 
                 
-                Transaction.objects.create(
-                    wallet=wallet,
-                    description = description,
-                    amount = order_amount,
-                    transaction_type = transaction_type,
-                )
-            
+                if refund_amount > 0:
+                    description = f"Sorry Due To Some Reason Admin Canceled This Order {order.order_id}"
+                    transaction_type = "Credited"
+                    
+                    wallet, created = Wallet.objects.get_or_create(user=request.user)
+                    
+                    transaction = Transaction.objects.create(
+                    wallet = wallet,
+                    description=description,
+                    amount=refund_amount,
+                    transaction_type=transaction_type,
+                    )
+                    
+                    wallet.balance += Decimal(refund_amount)
+                    wallet.save()
+                
+                messages.success(request, 'Order Canceled credited to the user\'s wallet.') 
+                return redirect('order:return_requests')
+                
+            else:
+                messages.success(request, 'Order Canceled Successfully')
+                return redirect('order:return_requests')
+
         except OrderMain.DoesNotExist:
             messages.error(request, 'Order does not exist.')
         return redirect('admin_panel:admin_orders_details')
     
 
 @method_decorator(admin_required, name='dispatch')
-class AdminReturnRequests(View):
+class AdminReturnRequests(PreventBackMixin,View):
     def get(self, request):
         search_query = request.GET.get('search', '').strip()
         
@@ -637,7 +647,7 @@ class AdminReturnRequests(View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class AdminReturnApproval(View):
+class AdminReturnApproval(PreventBackMixin,View):
     def post(self, request, pk):
         return_request = get_object_or_404(ReturnRequest, id=pk) 
         action = request.POST.get('action')
@@ -667,7 +677,6 @@ class AdminReturnApproval(View):
                 order.final_amount -= refund_amount
                 order.save()
                 
-                
                 all_canceled = not main_order.ordersub_set.filter(is_active=True).exists() 
                 
                 if all_canceled: 
@@ -696,7 +705,7 @@ class AdminReturnApproval(View):
                 order.order_status = 'Returned' 
                 order.is_active = False 
                 order.final_amount -= refund_amount
-                order.save() 
+                order.save()
 
             if refund_amount > 0 and return_request.order_main.payment_status: 
                     wallet, created = Wallet.objects.get_or_create(user=return_request.order_main.user) 
@@ -732,7 +741,7 @@ class AdminReturnApproval(View):
 
 
 
-class IndividualCancel(LoginRequiredMixin,View):
+class IndividualCancel(LoginRequiredMixin,PreventBackMixin,View):
     def post(self, request, pk):
         order_sub = get_object_or_404(OrderSub, id=pk, user=request.user)
 
@@ -784,7 +793,7 @@ class IndividualCancel(LoginRequiredMixin,View):
         return redirect('user_panel:user_dash')
 
 
-class IndividualReturn(View):
+class IndividualReturn(PreventBackMixin,View):
     def post(self, request, pk):
         order_sub = get_object_or_404(OrderSub, id=pk, user=request.user)
 

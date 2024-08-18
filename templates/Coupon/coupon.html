@@ -24,9 +24,9 @@
                         Edit
                     </button>
                 </form>
-                <form method="post" action="{% url 'coupon:coupon_status' coupon.id %}">
+                <form id="deleteForm" method="post" action="{% url 'coupon:coupon_status' coupon.id %}">
                     {% csrf_token %}
-                    <button type="submit"class="btn btn-sm {% if coupon.status %}btn-success{% else %}btn-danger{% endif %}">
+                    <button type="submit" id="deleteButton" class="btn btn-sm {% if coupon.status %}btn-success{% else %}btn-danger{% endif %}">
                         {% if coupon.status %}
                         delete
                         {% else %}
@@ -34,6 +34,7 @@
                         {% endif %}
                     </button>
                 </form>
+                
             </div> 
         </div> 
         <div class="card-body"> 
@@ -65,61 +66,59 @@
     </div> 
     {% endfor %}    
 </div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-    {% if messages %}
-        const messages = [
-            {% for message in messages %}
-                "{{ message }}",
-            {% endfor %}
-        ];
-        messages.forEach(message => {
-            Swal.fire({
-                toast: true,
-                position: 'top-right',
-                icon: 'success',
-                title: message,
-                showConfirmButton: false,
-                timer: 3000
-            });
-        });
-    {% endif %}
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
+    <!-- SweetAlert2 and jQuery scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- SweetAlert2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+    <!-- SweetAlert Confirmation Script -->
+    <script>
+    document.getElementById('deleteButton').addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the form from submitting immediately
 
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-    {% if messages %}
-        const messages = [
-            {% for message in messages %}
-                {
-                    type: "{{ message.tags }}",  // assuming message.tags contains the type ('success', 'error', etc.)
-                    text: "{{ message }}"
-                },
-            {% endfor %}
-        ];
-        messages.forEach(message => {
-            Swal.fire({
-                toast: true,
-                position: 'top-right',
-                icon: message.type === 'error' ? 'error' : 'success',  // Show error icon for error messages
-                title: message.text,
-                showConfirmButton: false,
-                timer: 3000,
-                background: message.type === 'error' ? '#f8d7da' : '', // Optional: customize background color for errors
-                color: message.type === 'error' ? '#721c24' : ''       // Optional: customize text color for errors
-            });
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you really want to delete this coupon?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // If confirmed, submit the form
+                document.getElementById('deleteForm').submit();
+            }
         });
-    {% endif %}
-});
-</script>
+    });
+    </script>
+
+    <!-- SweetAlert Toast Messages Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        {% if messages %}
+            const messages = [
+                {% for message in messages %}
+                    {
+                        type: "{{ message.tags }}",  // assuming message.tags contains the type ('success', 'error', etc.)
+                        text: "{{ message }}"
+                    },
+                {% endfor %}
+            ];
+            messages.forEach(message => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-right',
+                    icon: message.type === 'error' ? 'error' : 'success',  // Show error icon for error messages
+                    title: message.text,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    background: message.type === 'error' ? '#f8d7da' : '', // Optional: customize background color for errors
+                    color: message.type === 'error' ? '#721c24' : ''       // Optional: customize text color for errors
+                });
+            });
+        {% endif %}
+    });
+    </script>
+
 {% endblock %}

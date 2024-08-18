@@ -39,9 +39,7 @@
                         <button class="btn btn-primary" type="submit">Save</button>
                         {% endif %}
                     </form>
-                    <form method="post" action="">
-                    <button class="btn btn-primary" type="submit">Save</button>
-                    </form>
+                    
                 </div>
                 
             </div>
@@ -102,9 +100,8 @@
                                     <th width="10%">Unit Price</th>
                                     <th width="10%">Quantity</th>
                                     <th width="10%">Status</th>
-                                    <th width="10%">Total</th>
                                     <th width="10%">Discount Amount</th>
-                                    <th width="10%" class="text-end">Final Total</th>
+                                    <th width="10%" >Final Total</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -123,36 +120,38 @@
                                     <td class="align-middle">₹{{ item.price }}</td>
                                     <td class="align-middle">{{ item.quantity }}</td>
                                     <td class="align-middle">{% if item.status %}{{ item.status }}{% else %}Order Placed{% endif %}</td>
-                                    <td class="align-middle">₹{{ item.final_total_cost }}</td>
                                     <td class="align-middle">₹{{ item.main_order.discount_amount }}</td>
-                                    <td class="align-middle text-end">₹{{ item.main_order.final_amount }}</td>
+                                    <td class="align-middle ">₹{{ item.final_total_cost }}</td>
                                 </tr>
                                 {% endfor %}
                                 <tr>
                                     <td colspan="8">
                                         <div class="float-end text-end">
-                                            <dl class="dlist">
-                                                <dt>Subtotal:</dt>
-                                                <dd>₹{{ orders.total_amount }}</dd>
+                                            <dl class="dlist mb-2">
+                                                <dt class="text-muted">Subtotal:</dt>
+                                                <dd class="fw-bold">₹{{ orders.total_amount }}</dd>
+                                            </dl>
+                                            <dl class="dlist mb-2">
+                                                <dt class="text-muted">Discount Amount:</dt>
+                                                <dd class="fw-bold text-danger">- ₹{{ orders.discount_amount }}</dd>
+                                            </dl>
+                                            <dl class="dlist mb-3">
+                                                <dt class="text-muted">Grand Total:</dt>
+                                                <dd><b class="h4 text-primary">₹{{ orders.final_amount }}</b></dd>
                                             </dl>
                                             <dl class="dlist">
-                                                <dt>Discount Amount:</dt>
-                                                <dd>₹{{ orders.discount_amount }}</dd>
-                                            </dl>
-                                            
-                                            <dl class="dlist">
-                                                <dt>Grand total:</dt>
-                                                <dd><b class="h5">{{ orders.final_amount }}</b></dd>
-                                            </dl>
-                                            <dl class="dlist">
-                                                <dt class="text-muted">Status:</dt>
+                                                <dt class="text-muted">Payment Status:</dt>
                                                 <dd>
-                                                    <span class="badge rounded-pill alert-success text-success">{{ orders.payment_status }}</span>
+                                                    <span class="badge rounded-pill 
+                                                        {% if orders.payment_status == 'Paid' %} bg-success text-light {% elif orders.payment_status == 'Pending' %} bg-warning text-dark {% else %} bg-danger text-light {% endif %}">
+                                                        {{ orders.payment_status }}
+                                                    </span>
                                                 </dd>
                                             </dl>
                                         </div>
                                     </td>
                                 </tr>
+                                
                             </tbody>
                         </table>
                     </div> <!-- table-responsive// -->

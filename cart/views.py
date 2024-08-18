@@ -10,9 +10,10 @@ from coupon.models import *
 from wallet.models import *
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
+from shared.mixins import PreventBackMixin  # Import the mixin
 
 
-class AddToCart(LoginRequiredMixin, View):
+class AddToCart(LoginRequiredMixin,PreventBackMixin, View):
     def post(self, request, *args, **kwargs):
         try:
             user_id = request.user.id
@@ -64,7 +65,7 @@ class AddToCart(LoginRequiredMixin, View):
 
 
 
-class CartView(LoginRequiredMixin, View):
+class CartView(LoginRequiredMixin,PreventBackMixin, View):
     def get(self,request):
         try:
             cart = get_object_or_404(Cart, user=request.user)
@@ -83,7 +84,7 @@ class CartView(LoginRequiredMixin, View):
 
 
 
-class CartItemsDelete(LoginRequiredMixin, View):
+class CartItemsDelete(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request, pk):
         cart_items = CartItem.objects.filter(id=pk)
         cart_items.delete()
@@ -136,7 +137,7 @@ def update_cart_quantity(request):
     return JsonResponse({'success': False})
 
 
-class ApplyCouponView(View):
+class ApplyCouponView(PreventBackMixin,View):
     def post(self, request, *args, **kwargs):
         coupon_code = request.POST.get('coupon_code')
         response = {'success': False}
@@ -188,7 +189,7 @@ class ApplyCouponView(View):
         return JsonResponse(response)
 
 
-class RemoveCouponView(View):
+class RemoveCouponView(PreventBackMixin,View):
     def post(self, request, *args, **kwargs):
         response = {'success': False}
         cart = Cart.objects.get(user=request.user)
@@ -208,7 +209,7 @@ class RemoveCouponView(View):
 
 
 
-class UpdateCartStatus(View):
+class UpdateCartStatus(PreventBackMixin,View):
     def post(self, request, *args, **kwargs):
         item_id = request.POST.get('item_id')
         is_active = request.POST.get('is_active') == 'true'
@@ -246,19 +247,22 @@ class UpdateCartStatus(View):
         return JsonResponse(response)
 
 
-class CartCheckout(LoginRequiredMixin, View):
+class CartCheckout(LoginRequiredMixin,PreventBackMixin, View):
     def get(self, request):
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart, is_active=True).order_by('-cart__updated_at')
-
-        # Check if all cart items are active and have sufficient stock
         
+        print("hello")
         if not cart_items.exists():
+            print("hello1")
+            
             messages.error(request, 'Select Product')
             return redirect('cart:cart_view')
         
         for cart_item in cart_items:
             if not cart_item.variant.variant_status:
+                print("hello2")
+
                 messages.error(request, 'variant unavailable')
                 return redirect('cart:cart_view')
             
@@ -267,6 +271,8 @@ class CartCheckout(LoginRequiredMixin, View):
                 return redirect('cart:cart_view')
             
             if not cart_item.product.is_active:
+                print("hello4")
+                
                 messages.error(request, 'Product unavailable')
                 return redirect('cart:cart_view')
             

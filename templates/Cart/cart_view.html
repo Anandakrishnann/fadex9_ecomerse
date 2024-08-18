@@ -21,7 +21,7 @@
     <div class="page-header breadcrumb-wrap">
         <div class="container">
             <div class="breadcrumb">
-                <a href="index.html" rel="nofollow">Home</a>
+                <a href="{% url 'accounts:home' %}" rel="nofollow">Home</a>
                 <span></span> Cart
                 
             </div>
@@ -82,8 +82,16 @@
                 {% endfor %}
             {% else %}
             <div class="position-relative">
-                <img src="{% static 'banner/977032.jpg' %}" alt="" class="img-fluid">
-                <a href="{% url 'accounts:product_shop' %}" class="btn btn-sm btn-outline-danger position-absolute top-50 start-50 translate-middle">Shop Now</a>
+                <div>
+                    <img src="{% static 'banner/cart.jpg' %}" alt="" class="img-fluid">
+                </div>
+                <div style="">
+                    <a href="{% url 'accounts:product_shop' %}" 
+                    class="btn btn-sm btn-outline-danger position-absolute" 
+                    style="top: 320px; left: 420px; transform: translate(-50%, -50%);">
+                    Shop Now
+                    </a>
+                </div>
             </div>
             {% endif %}
             

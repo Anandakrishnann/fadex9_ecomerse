@@ -75,7 +75,7 @@
                     </table> 
                     <div class="btn-group mt-3" role="group"> 
                         <button
-                            onclick="deleteItem('{% url 'product:product_delete' product.id %}', '{% if product.is_active %}Are you sure you want to restore this category?{% else %}Are you sure you want to delete this category?{% endif %}')"
+                            onclick="confirmDelete('{% url 'product:product_delete' product.id %}', '{% if product.is_active %}Are you sure you want to restore this category?{% else %}Are you sure you want to delete this category?{% endif %}')"
                             class="btn btn-sm {% if product.is_active %}btn-success{% else %}btn-danger{% endif %}">
                             {% if product.is_active %}Delete{% else %}Restore{% endif %}
                         </button>
@@ -124,40 +124,33 @@
         </nav> 
     </div> 
 </section> 
-
-<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-<script>
-        function deleteItem(url, message) {
-        swal({
-            title: "Are you sure?",
-            text: message,
-            icon: "warning",
-            buttons: true,
-            dangerMode: true,
-        })
-        .then((willDelete) => {
-            if (willDelete) {
-            window.location.href = url;
-            } 
-        });
-    }
-</script>
+<!-- Load SweetAlert2 JS and CSS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
-
-<!-- SweetAlert2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
+function confirmDelete(url, message) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: message,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, do it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
+
+// Display toast notifications if there are messages
+document.addEventListener('DOMContentLoaded', (event) => {
     {% if messages %}
         const messages = [
             {% for message in messages %}
                 {
-                    type: "{{ message.tags }}",  // assuming message.tags contains the type ('success', 'error', etc.)
+                    type: "{{ message.tags }}", // 'success' or 'error'
                     text: "{{ message }}"
                 },
             {% endfor %}
@@ -166,7 +159,7 @@
             Swal.fire({
                 toast: true,
                 position: 'top-right',
-                icon: message.type === 'error' ? 'error' : 'success',  // Show error icon for error messages
+                icon: message.type === 'error' ? 'error' : 'success',
                 title: message.text,
                 showConfirmButton: false,
                 timer: 3000,

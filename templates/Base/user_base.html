@@ -333,44 +333,41 @@
                             </div>
                             <h5 class="mt-20 mb-10 fw-600 text-grey-4 wow fadeIn animated">Contact</h5>
                             <p class="wow fadeIn animated">
-                                <strong>Address: </strong>562 Wellington Road, Street 32, San Francisco
+                                <strong>Address: </strong>Brototype ,Maradu , Kochi,628459
                             </p>
                             <p class="wow fadeIn animated">
-                                <strong>Phone: </strong>+01 2222 365 /(+91) 01 2345 6789
+                                <strong>Phone: </strong>+91 9539027191
                             </p>
                             <p class="wow fadeIn animated">
                                 <strong>Hours: </strong>10:00 - 18:00, Mon - Sat
                             </p>
                             <h5 class="mb-10 mt-30 fw-600 text-grey-4 wow fadeIn animated">Follow Us</h5>
                             <div class="mobile-social-icon wow fadeIn animated mb-sm-5 mb-md-0">
-                                <a href="#"><img src="{% static 'user_side/assets/imgs/theme/icons/icon-facebook.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'user_side/assets/imgs/theme/icons/icon-twitter.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'user_side/assets/imgs/theme/icons/icon-instagram.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'user_side/assets/imgs/theme/icons/icon-pinterest.svg' %}" alt=""></a>
-                                <a href="#"><img src="{% static 'user_side/assets/imgs/theme/icons/icon-youtube.svg' %}" alt=""></a>
+                                <a href="https://www.facebook.com/anandha.krishnan.98031"><img src="{% static 'user_side/assets/imgs/theme/icons/icon-facebook.svg' %}" alt=""></a>
+                                <a href="https://www.instagram.com/ananda.krshnnn/"><img src="{% static 'user_side/assets/imgs/theme/icons/icon-instagram.svg' %}" alt=""></a>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-2 col-md-3">
                         <h5 class="widget-title wow fadeIn animated">About</h5>
                         <ul class="footer-list wow fadeIn animated mb-sm-5 mb-md-0">
-                            <li><a href="#">About Us</a></li>
-                            <li><a href="#">Delivery Information</a></li>
-                            <li><a href="#">Privacy Policy</a></li>
-                            <li><a href="#">Terms &amp; Conditions</a></li>
-                            <li><a href="#">Contact Us</a></li>
-                            <li><a href="#">Support Center</a></li>
+                            <li><a href="{% url 'accounts:about' %}">About Us</a></li>
+                            <li><a href="{% url 'accounts:about' %}">Delivery Information</a></li>
+                            <li><a href="{% url 'accounts:about' %}">Privacy Policy</a></li>
+                            <li><a href="{% url 'accounts:about' %}">Terms &amp; Conditions</a></li>
+                            <li><a href="{% url 'accounts:contact' %}">Contact Us</a></li>
+                            <li><a href="{% url 'accounts:contact' %}">Support Center</a></li>
                         </ul>
                     </div>
                     <div class="col-lg-2  col-md-3">
                         <h5 class="widget-title wow fadeIn animated">My Account</h5>
                         <ul class="footer-list wow fadeIn animated">
-                            <li><a href="#">Sign In</a></li>
-                            <li><a href="#">View Cart</a></li>
-                            <li><a href="#">My Wishlist</a></li>
-                            <li><a href="#">Track My Order</a></li>
-                            <li><a href="#">Help</a></li>
-                            <li><a href="#">Order</a></li>
+                            <li><a {% if request.user.is_authenticated %} href="{% url 'accounts:logout' %}"{% else %}href="{% url 'accounts:login' %}"{% endif %}>{% if request.user.is_authenticated %}Log Out{% else %}Sign In{% endif %}</a></li>
+                            <li><a href="{% url 'cart:cart_view' %}">View Cart</a></li>
+                            <li><a href="{% url 'wishlist:wishlist' %}">My Wishlist</a></li>
+                            <li><a href="{% url 'user_panel:user_dash' %}">Track My Order</a></li>
+                            <li><a href="{% url 'accounts:contact' %}">Help</a></li>
+                            <li><a href="{% url 'user_panel:user_dash' %}">Order</a></li>
                         </ul>
                     </div>
                     <div class="col-lg-4">

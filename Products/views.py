@@ -6,9 +6,11 @@ from utils.decorators import admin_required
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from shared.mixins import PreventBackMixin  # Import the mixin
+
 
 @method_decorator(admin_required, name='dispatch')
-class ProductView(View):
+class ProductView(PreventBackMixin,View):
     def get(self, request):
         query = request.GET.get('q')
         if query:
@@ -19,7 +21,7 @@ class ProductView(View):
     
     
 @method_decorator(admin_required, name='dispatch')
-class ProductCreate(View):
+class ProductCreate(PreventBackMixin,View):
     def get(self, request):
         categories = Category.objects.all()
         brands = Brand.objects.all()
@@ -57,15 +59,18 @@ class ProductCreate(View):
         if price is not None and price <= 0:
             errors.append('Price must be greater than 0.')
             
-        elif price > offer_price:
+        elif price > 10000000:
+            errors.append('Cannot Add This Much Amount On A Product')
+            
+        elif price < offer_price:
             errors.append('Price Must Be Lesser Than Offer Price')
+            
+        
         
         if offer_price is not None and offer_price < 0:
             errors.append('Offer price cannot be negative.')
-
-        elif offer_price < price:
-            errors.append('Offer Price Must Be Greater Than Price')
-        
+            
+            
         try:
             product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None
         except Brand.DoesNotExist:
@@ -84,12 +89,12 @@ class ProductCreate(View):
                 messages.error(request, error)
             return redirect('product:product_create')
         
-        if not thumbnail.content_type.startswith('image/'):
-            errors.append('Uploaded file is not an image.')
+        # if not thumbnail.content_type.startswith('image/'):
+        #     errors.append('Uploaded file is not an image.')
 
-        max_file_size = 5 * 1024 * 1024  
-        if thumbnail.size > max_file_size:
-            errors.append('Image size should not exceed 5 MB.')
+        # max_file_size = 5 * 1024 * 1024  
+        # if thumbnail.size > max_file_size:
+        #     errors.append('Image size should not exceed 5 MB.')
 
         
         product = Products.objects.create(
@@ -110,7 +115,7 @@ class ProductCreate(View):
     
 
 @method_decorator(admin_required, name='dispatch')
-class ProductEdit(View):
+class ProductEdit(PreventBackMixin,View):
     def get(self, request, pk):
         categories = Category.objects.all()
         brands = Brand.objects.all()
@@ -127,17 +132,9 @@ class ProductEdit(View):
         product_brand_id = request.POST.get('product_brand')
         price = request.POST.get('price')
         offer_price = request.POST.get('offer_price')
-        status = request.POST.get('is_active') == 'on'
+        status = request.POST.get('is_active') == "on"
         thumbnail = request.FILES.get('thumbnail')
 
-        
-        if not thumbnail.content_type.startswith('image/'):
-            errors.append('Uploaded file is not an image.')
-
-        max_file_size = 5 * 1024 * 1024  
-        if thumbnail.size > max_file_size:
-            errors.append('Image size should not exceed 5 MB.')
-        
         if not product_name:
             errors.append('Product name is required.')
 
@@ -198,11 +195,9 @@ class ProductEdit(View):
         messages.success(request, 'Product updated successfully.')
         return redirect('product:products')
 
-        
-
 
 @method_decorator(admin_required, name='dispatch')
-class ProductImage(View):
+class ProductImage(PreventBackMixin,View):
     def get(self, request, pk):
         products = get_object_or_404(Products, id=pk)
         return render(request, 'Products/product_image.html' ,{'products':products})
@@ -218,7 +213,7 @@ class ProductImage(View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class VariantCreate(View):
+class VariantCreate(PreventBackMixin,View):
     def get(self, request, pk):
         product = get_object_or_404(Products, id=pk)
         return render(request, 'Products/product_create_variants.html', {'product': product})
@@ -269,7 +264,7 @@ class VariantCreate(View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class VariantsView(View):
+class VariantsView(PreventBackMixin,View):
     def get(self, request, pk):
         product = get_object_or_404(Products, id=pk)
         variants = ProductVariant.objects.filter(product=product)
@@ -278,7 +273,7 @@ class VariantsView(View):
     
     
 @method_decorator(admin_required, name='dispatch')
-class VariantEdit(View):
+class VariantEdit(PreventBackMixin,View):
     def get(self, request, pk):
         variant = get_object_or_404(ProductVariant, id=pk)
         return render(request, 'Products/product_edit_variant.html', {'variant': variant})
@@ -324,23 +319,41 @@ class VariantEdit(View):
         variant.save()
         
         messages.success(request, 'Product variant updated successfully.')
-        return redirect('product:product_variant', pk=product.id)
+        return redirect('product:product_variant', pk=variant.product.id)
 
     
     
 @method_decorator(admin_required, name='dispatch')
-class VariantStatus(View):
+class VariantStatus(PreventBackMixin,View):
     def get(self, request, pk):
+        print('VariantStatus View Called')
+        
+        
         variant = get_object_or_404(ProductVariant, id=pk)
-        pk = variant.product.id
+        
+        
+        print(f'Current Variant Status: {variant.variant_status}')
+        
+        
         variant.variant_status = not variant.variant_status
+        
+        
+        print(f'New Variant Status: {variant.variant_status}')
+        
+        
         variant.save()
-        return redirect('product:product_variant', pk=pk)
+        
+        
+        saved_variant = get_object_or_404(ProductVariant, id=pk)
+        print(f'Saved Variant Status: {saved_variant.variant_status}')
+        
+        
+        return redirect('product:product_variant', pk=variant.product.id)
 
 
 
 @method_decorator(admin_required, name='dispatch')
-class ProductStocks(View):
+class ProductStocks(PreventBackMixin,View):
     def get(self, request, pk):
         variants = ProductVariant.objects.filter(product_id=pk)
         images = ProductImages.objects.filter(product_id=pk)
@@ -349,7 +362,7 @@ class ProductStocks(View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class ProductDelete(View):
+class ProductDelete(PreventBackMixin,View):
     def get(self, request, pk):
         product = get_object_or_404(Products, id=pk)
         product.is_active = not product.is_active
@@ -359,7 +372,7 @@ class ProductDelete(View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class ProductInfo(View):
+class ProductInfo(PreventBackMixin,View):
     def get(self, request, pk):
         product = get_object_or_404(Products, id=pk)
         images = ProductImages.objects.filter(product=product) 
@@ -371,7 +384,7 @@ class ProductInfo(View):
 #---------------------------------------------- Review Page -------------------------------------------------------------#
 
 
-class Reviews(LoginRequiredMixin,View):
+class Reviews(PreventBackMixin,LoginRequiredMixin,View):
     def post(self, request, pk):
         try:
             user = Accounts.objects.get(id=request.user.id, is_active=True,is_blocked=False)
@@ -394,7 +407,7 @@ class Reviews(LoginRequiredMixin,View):
     
 
 @method_decorator(admin_required, name='dispatch')
-class DeleteImage(View):
+class DeleteImage(PreventBackMixin,View):
     def post(self, request, pk):
         image = get_object_or_404(ProductImages, id=pk)
         pk = image.product.id 
@@ -403,7 +416,7 @@ class DeleteImage(View):
 
         
             
-class DeleteReview(View):
+class DeleteReview(PreventBackMixin,View):
     def post(self, request, pk):
         review = get_object_or_404(Review, id=pk)
         try:
