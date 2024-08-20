@@ -1,6 +1,7 @@
 {% extends 'Base/user_base.html' %}
 {% load static %}
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
 <style>
     .no-outline {
         outline: none;
@@ -210,7 +211,7 @@
                                                                                             Price: ₹{{ item.price }}
                                                                                         </p>
                                                                                         {% if item.is_active and item.main_order.is_active %}
-                                                                                            {% if item.status != "Return Requested" and item.status != "Canceled" %}
+                                                                                            {% if item.status != "Return Requested" and item.status != "Canceled" and item.status != "Returned" %}
                                                                                                 {% if item.main_order.order_status == "Order Placed" %}
                                                                                                     <form class="item-return-form" method="post" action="{% url 'order:individual_return' item.id %}">
                                                                                                         {% csrf_token %}
@@ -529,141 +530,93 @@
     </div>
 </div>
 </main>
-<script>
-    /*
-
-        document.getElementById('addressForm').addEventListener('submit', function(event) {
-            var form = this;
-            var isValid = true;
-            var fields = [
-                { name: 'name', pattern: /^[A-Za-z\s]{2,50}$/ }, 
-                { name: 'house_name', pattern: /^.{1,100}$/ },
-                { name: 'street_name', pattern: /^.{2,100}$/ },
-                { name: 'pin_number', pattern: /^[0-9]{5,6}$/ },
-                { name: 'district', pattern: /^[A-Za-z\s]{2,50}$/ },
-                { name: 'state', pattern: /^[A-Za-z\s]{2,50}$/ },
-                { name: 'country', pattern: /^[A-Za-z\s]{2,50}$/ },
-                { name: 'phone_number', pattern: /^[0-9]{10}$/ }
-            ];
-    
-            fields.forEach(function(field) {
-                var input = form[field.name];
-                var value = input.value.trim();
-                if (!field.pattern.test(value)) {
-                    isValid = false;
-                    input.style.borderColor = 'red';
-                } else {
-                    input.style.borderColor = '';
-                }
-                input.value = value; // Remove leading/trailing spaces
-            });
-    
-            if (!isValid) {
-                event.preventDefault(); // Prevent form submission if validation fails
-                alert('Please fill out all required fields correctly.');
-            }
-        });
-    */
-</script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-    {% if messages %}
-        const messages = [
-            {% for message in messages %}
-                "{{ message }}",
-            {% endfor %}
-        ];
-        messages.forEach(message => {
-            Swal.fire({
-                toast: true,
-                position: 'top-right',
-                icon: 'success',
-                title: message,
-                showConfirmButton: false,
-                timer: 3000
-            });
-        });
-    {% endif %}
-});
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-document.addEventListener('DOMContentLoaded', function() {
-    let currentForm;
-
-    function handleConfirmation(form, title, text, isReturn = false) {
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            Swal.fire({
-                title: title,
-                text: text,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, proceed'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    if (isReturn) {
-                        currentForm = form;
-                        const reasonModal = new bootstrap.Modal(document.getElementById('reasonModal'));
-                        reasonModal.show();
-                    } else {
-                        form.submit();
-                    }
-                }
-            });
-        });
-    }
-
-    // Handle reason form submission
-    const reasonForm = document.getElementById('reason-form');
-    reasonForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        
-        const reason = document.getElementById('reason-text').value;
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'reason';
-        hiddenInput.value = reason;
-        currentForm.appendChild(hiddenInput);
-
-        const reasonModal = bootstrap.Modal.getInstance(document.getElementById('reasonModal'));
-        reasonModal.hide();
-        currentForm.submit();
-    });
-
-    // Order-level cancel
-    const cancelOrderForm = document.getElementById('cancel-order-form');
-    if (cancelOrderForm) {
-        handleConfirmation(cancelOrderForm, 'Cancel Order?', 'Are you sure you want to cancel this order?');
-    }
-
-    // Order-level return
-    const returnOrderForm = document.getElementById('return-order-form');
-    if (returnOrderForm) {
-        handleConfirmation(returnOrderForm, 'Return Order?', 'Are you sure you want to return this order?', true);
-    }
-
-    // Item-level cancel
-    const itemCancelForms = document.querySelectorAll('.item-cancel-form');
-    itemCancelForms.forEach(form => {
-        handleConfirmation(form, 'Cancel Item?', 'Are you sure you want to cancel this item?');
-    });
-
-    // Item-level return
-    const itemReturnForms = document.querySelectorAll('.item-return-form');
-    itemReturnForms.forEach(form => {
-        handleConfirmation(form, 'Return Item?', 'Are you sure you want to return this item?', true);
-    });
-});
-</script>
-
-<!-- Include Bootstrap JS for collapse functionality -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Custom script to ensure only one collapse is open at a time -->
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentForm;
+    
+        function handleConfirmation(form, title, text, isReturn = false) {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, proceed'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (isReturn) {
+                            currentForm = form;
+                            const reasonModal = new bootstrap.Modal(document.getElementById('reasonModal'));
+                            reasonModal.show();
+                        } else {
+                            form.submit();
+                        }
+                    }
+                });
+            });
+        }
+    
+        // Handle reason form submission
+        const reasonForm = document.getElementById('reason-form');
+        reasonForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const reason = document.getElementById('reason-text').value;
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'reason';
+            hiddenInput.value = reason;
+            currentForm.appendChild(hiddenInput);
+    
+            const reasonModal = bootstrap.Modal.getInstance(document.getElementById('reasonModal'));
+            reasonModal.hide();
+            currentForm.submit();
+        });
+    
+        // Order-level cancel
+        const cancelOrderForms = document.querySelectorAll('#cancel-order-form');
+        cancelOrderForms.forEach(form => {
+            handleConfirmation(form, 'Cancel Order?', 'Are you sure you want to cancel this order?');
+        });
+    
+        // Order-level return
+        const returnOrderForms = document.querySelectorAll('#return-order-form');
+        returnOrderForms.forEach(form => {
+            handleConfirmation(form, 'Return Order?', 'Are you sure you want to return this order?', true);
+        });
+    
+        // Item-level cancel
+        const itemCancelForms = document.querySelectorAll('.item-cancel-form');
+        itemCancelForms.forEach(form => {
+            handleConfirmation(form, 'Cancel Item?', 'Are you sure you want to cancel this item?');
+        });
+    
+        // Item-level return
+        const itemReturnForms = document.querySelectorAll('.item-return-form');
+        itemReturnForms.forEach(form => {
+            handleConfirmation(form, 'Return Item?', 'Are you sure you want to return this item?', true);
+        });
+    });
+    
+</script>
+
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var collapseButtons = document.querySelectorAll('.collapse-btn');
@@ -680,14 +633,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
-
-<!-- SweetAlert2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {

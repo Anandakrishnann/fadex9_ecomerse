@@ -2,35 +2,57 @@
 {% load static %}
 {% block content %}
 <style>
-    .star-rating {
-        direction: rtl;
+    .star-rating .star {
         font-size: 2rem;
-        display: flex;
-        justify-content: center;
         cursor: pointer;
+        color: #d3d3d3; /* Default star color */
     }
     
-    .star {
-        color: #ccc;
+    .star-rating .star.selected,
+    .star-rating .star.hovered {
+        color: #f5c518; /* Gold color for selected/hovered stars */
     }
     
-    .star.selected,
-    .star:hover,
-    .star:hover ~ .star {
-        color: #f39c12;
+    .star-rating .star:hover {
+        color: #f5c518; /* Same color on hover */
     }
+    
     .star-rating-display {
-        display: flex;
-    }
-    
-    .star {
         font-size: 2rem;
-        color: #ccc; /* Default star color */
+        cursor: pointer;
+        color: #d3d3d3;
     }
     
-    .star.filled {
-        color: gold; /* Filled star color */
+    .star-rating-display .star {
+        font-size: 2rem;
+        color: #ccc; /* Light gray for unfilled stars */
     }
+    
+    .star-rating-display .star.filled {
+        color: gold; /* Gold for filled stars */
+    }
+    
+    .star-rating-display .star.selected {
+        color: gold; /* Gold for selected stars */
+    }
+    
+    .star-rating-display .star.hovered {
+        color: orange; /* Orange for hovered stars */
+    }
+    
+    .star-rating-display .star.blink {
+        animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0;
+        }
+    }
+    
     </style>
 <main class="main">
     <div class="page-header breadcrumb-wrap">
@@ -92,7 +114,7 @@
                                                 <span class="star">&#9733;</span>
                                                 <span class="star">&#9733;</span>
                                             </div>
-                                            <span class="font-small ml-5 text-muted">(25 reviews)</span>
+                                            <span class="font-small ml-5 text-muted">({{ review_count }} reviews)</span>
                                         </div>
                                     </div>
                                     <div class="clearfix product-price-cover">
@@ -238,24 +260,25 @@
                                                 </div>
                                                 <div class="progress">
                                                     <span>5 star</span>
-                                                    <div class="progress-bar" role="progressbar" style="width: 50%; background-color:black;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+                                                    <div class="progress-bar" role="progressbar" style="width: {{ review_percentages.5 }}%; background-color:black;" aria-valuenow="{{ review_percentages.5 }}" aria-valuemin="0" aria-valuemax="100">{{ review_percentages.5|floatformat:2 }}%</div>
                                                 </div>
                                                 <div class="progress">
                                                     <span>4 star</span>
-                                                    <div class="progress-bar" role="progressbar" style="width: 25%; background-color:black;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+                                                    <div class="progress-bar" role="progressbar" style="width: {{ review_percentages.4 }}%; background-color:black;" aria-valuenow="{{ review_percentages.4 }}" aria-valuemin="0" aria-valuemax="100">{{ review_percentages.4|floatformat:2 }}%</div>
                                                 </div>
                                                 <div class="progress">
                                                     <span>3 star</span>
-                                                    <div class="progress-bar" role="progressbar" style="width: 45%; background-color:black;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
+                                                    <div class="progress-bar" role="progressbar" style="width: {{ review_percentages.3 }}%; background-color:black;" aria-valuenow="{{ review_percentages.3 }}" aria-valuemin="0" aria-valuemax="100">{{ review_percentages.3|floatformat:2 }}%</div>
                                                 </div>
                                                 <div class="progress">
                                                     <span>2 star</span>
-                                                    <div class="progress-bar" role="progressbar" style="width: 65%; background-color:black;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
+                                                    <div class="progress-bar" role="progressbar" style="width: {{ review_percentages.2 }}%; background-color:black;" aria-valuenow="{{ review_percentages.2 }}" aria-valuemin="0" aria-valuemax="100">{{ review_percentages.2|floatformat:2 }}%</div>
                                                 </div>
                                                 <div class="progress mb-30">
                                                     <span>1 star</span>
-                                                    <div class="progress-bar" role="progressbar" style="width: 85%; background-color:black;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">85%</div>
+                                                    <div class="progress-bar" role="progressbar" style="width: {{ review_percentages.1 }}%; background-color:black;" aria-valuenow="{{ review_percentages.1 }}" aria-valuemin="0" aria-valuemax="100">{{ review_percentages.1|floatformat:2 }}%</div>
                                                 </div>
+                                                
                                                 <a href="#" class="font-xs text-muted">How are ratings calculated?</a>
                                             </div>
                                         </div>
@@ -264,9 +287,9 @@
                                 </div>
                                 <!--comment form-->
                                 <div class="comment-form">
-                                    <h4 class="mb-15">Add a review</h4>
-                                    <div class="d-flex mb-30">
-                                        <div class="star-rating-display" data-rating="{{ products.get_average_rating }}">
+                                    <h4 class="mb-15" style="font-weight:bold; font-size:30px;">Add a Review</h4>
+                                    {% comment %} <div class="d-flex mb-30">
+                                        <div class="star-rating-display" >
                                             <span class="star">&#9733;</span>
                                             <span class="star">&#9733;</span>
                                             <span class="star">&#9733;</span>
@@ -274,35 +297,35 @@
                                             <span class="star">&#9733;</span>
                                         </div>
                                     
-                                    <h6></h6>
+                                    <h6></h6> {% endcomment %}
                                 </div>
                                     <div class="row">
                                         <div class="col-lg-8 col-md-12">
-
                                             <form method="post" class="form-contact comment_form" action="{% url 'product:product_review' products.id %}" id="commentForm">
                                                 {% csrf_token %}
                                                 <div class="row">
                                                     <div class="col-12">
-                                                        <div class="form-group">    
+                                                        <div class="form-group">
                                                             <textarea class="form-control w-100" name="comment" id="comment" cols="30" rows="9" placeholder="Write Comment"></textarea>
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <div class="star-rating" id="star-rating">
-                                                            <span class="star" data-value="1">&#9733;</span>
-                                                            <span class="star" data-value="2">&#9733;</span>
-                                                            <span class="star" data-value="3">&#9733;</span>
-                                                            <span class="star" data-value="4">&#9733;</span>
+                                                        <h4 class="mb-2">Before Submitting Rate This Product</h4>
+                                                        <div class="star-rating mb-3" id="star-rating">
                                                             <span class="star" data-value="5">&#9733;</span>
+                                                            <span class="star" data-value="4">&#9733;</span>
+                                                            <span class="star" data-value="3">&#9733;</span>
+                                                            <span class="star" data-value="2">&#9733;</span>
+                                                            <span class="star" data-value="1">&#9733;</span>
                                                         </div>
                                                         <input type="hidden" id="rating" name="rating" value="0">
-                                                        
                                                     </div>
                                                 </div>
                                                 <div class="form-group ">
-                                                    <button type="submit" class="button button-contactForm">Submit Review</button>
+                                                    <button type="submit" style="background-color:black; hover-color:black;" class="button button-contactForm">Submit Review</button>
                                                 </div>
                                             </form>
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -341,8 +364,8 @@
                                                     </span>
                                                 </div>
                                                 <div class="product-price">
-                                                    <span>₹{{ related.price }}</span>
-                                                    <span class="old-price">₹{{ related.offerprice }}</span>
+                                                    <span>₹{{ related.offer_price }}</span>
+                                                    <span class="old-price">₹{{ related.price }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -375,61 +398,57 @@
     $(document).ready(function() {
         const stars = $('.star-rating .star');
         const ratingInput = $('#rating');
-        
-        function fillStars(upToIndex) {
+    
+        function fillStars(value) {
             stars.each(function(index) {
-                if (index >= upToIndex) {
+                if (index < value) {
                     $(this).addClass('selected');
                 } else {
                     $(this).removeClass('selected');
                 }
             });
         }
-        
+    
         function clearHoverStars() {
             stars.removeClass('hovered');
         }
-        
+    
         stars.each(function(index) {
             // Handle click event
             $(this).on('click', function() {
-                const value = $(this).data('value');
-                ratingInput.val(value -1);
-                fillStars(value); // Adjust for the desired index
+                const value = index + 1; // Add 1 to the index for a 1-based rating
+                ratingInput.val(value); // Store the correct value
+                fillStars(value);
             });
-        
+    
             // Handle mouseover event
             $(this).on('mouseover', function() {
                 clearHoverStars();
-                stars.each(function(i) {
-                    if (i >= index) {
-                        $(this).addClass('hovered');
-                    }
-                });
+                fillStars(index + 1);
             });
-        
+    
             // Handle mouseout event
             $(this).on('mouseout', function() {
                 clearHoverStars();
-                fillStars(ratingInput.val()); // Keep the selected stars filled on mouseout
+                fillStars(parseInt(ratingInput.val()) || 0);
             });
         });
-        
+    
         // Initial rendering based on data-rating attribute for static star displays
         const starContainers = $('.star-rating-display');
         starContainers.each(function() {
             const rating = parseInt($(this).attr('data-rating'));
             const stars = $(this).find('.star');
-        
             stars.each(function(index) {
                 if (index < rating) {
                     $(this).addClass('filled');
                 }
             });
         });
-    });
-    
+    }); 
 
+
+    
  // Cart functionality
 
 

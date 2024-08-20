@@ -146,19 +146,35 @@
     $(document).ready(function() {
         $('.cart-item').on('click', function(e) {
             e.preventDefault();
-
+    
             var button = $(this);
             var productId = button.data('product-id');
             var variantId = button.data('variant-id');  // Ensure your button has this data attribute
-
+            console.log(productId)
+            console.log(productId)
+            if (!productId || !variantId) {
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'error',
+                    title: 'Product or variant ID is missing.',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    toast: true,
+                    customClass: {
+                        container: 'swal2-container-top-end'
+                    }
+                });
+                return;
+            }
+    
             if (button.text() === 'Go to Cart') {
                 // Redirect to the cart view
                 window.location.href = '{% url "cart:cart_view" %}';
                 return;
             }
-
+    
             $.ajax({
-                url: '{% url "cart:add_to_cart" %}',
+                url: '{% url "wishlist:wishlist_to_cart" %}',
                 type: 'POST',
                 data: {
                     'product_id': productId,
@@ -169,7 +185,7 @@
                     if (response.success) {
                         button.text('Go to Cart');
                         button.removeClass('btn-outline-danger').addClass('btn-success');
-                        
+    
                         // Show SweetAlert notification
                         Swal.fire({
                             position: 'top-end',
@@ -212,6 +228,7 @@
             });
         });
     });
+    
 </script>
 
 

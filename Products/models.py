@@ -3,7 +3,7 @@ from category.models import Category
 from brand.models import Brand
 from django.utils import timezone
 from Accounts.models import Accounts
-from django.db.models import Avg
+from django.db.models import *
 
 # Create your models here.
 
@@ -29,6 +29,16 @@ class Products(models.Model):
     def get_average_rating(self):
         average = self.reviews.aggregate(Avg('rating'))['rating__avg']
         return average if average else 0
+    
+    def get_star_rating_distribution(self):
+        total_reviews = self.reviews.count()
+        distribution = self.reviews.values('rating').annotate(rating_count=Count('rating'))
+        
+        star_ratings = {str(i): 0 for i in range(1, 6)}
+        for item in distribution:
+            star_ratings[str(item['rating'])] = (item['rating_count'] / total_reviews) * 100
+        
+        return star_ratings
     
 
 class ProductVariant(models.Model):

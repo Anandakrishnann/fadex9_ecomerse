@@ -21,7 +21,7 @@
                     <p class="w-50 m-auto mb-50 wow fadeIn animated" style="font-weight:bold;">At Fadex9, we're passionate about fashion and providing you with the best in hyped apparel. Whether you have a question about our products, need assistance with an order, or simply want to give us feedback, we're here to help!<br>
 
                         Contact Information<br>
-                        Customer Service Email: support@fadex9.com<br>
+                        Customer Service Email: infofadex9@gmail.com<br>
                         
                         Phone: +1 (234) 567-890<br>
                         
@@ -80,35 +80,12 @@
                 <div class="col-xl-8 col-lg-10 m-auto">
                     <div class="contact-from-area padding-20-row-col wow FadeInUp">
                         <h3 class="mb-10 text-center">Drop Us a Line</h3>
-                        <p class="text-muted mb-30 text-center font-sm">Lorem ipsum dolor sit amet consectetur.</p>
-                        <form class="contact-form-style text-center" id="contact-form" action="#" method="post">
+                        <p class="text-muted mb-30 text-center font-sm">We'd love to hear from you! Whether you have a question, feedback, or just want to say hello, feel free to reach out to us. Our team is here to assist you with any inquiries or concerns you may have.</p>
+                        <form class="contact-form-style text-center" id="contact-form" method="post" action="{% url 'accounts:contact_form' %}">
                             <div class="row">
-                                <div class="col-lg-6 col-md-6">
-                                    <div class="input-style mb-20">
-                                        <input name="name" placeholder="First Name" type="text">
-                                    </div>
-                                </div>
-                                <div class="col-lg-6 col-md-6">
-                                    <div class="input-style mb-20">
-                                        <input name="email" placeholder="Your Email" type="email">
-                                    </div>
-                                </div>
-                                <div class="col-lg-6 col-md-6">
-                                    <div class="input-style mb-20">
-                                        <input name="telephone" placeholder="Your Phone" type="tel">
-                                    </div>
-                                </div>
-                                <div class="col-lg-6 col-md-6">
-                                    <div class="input-style mb-20">
-                                        <input name="subject" placeholder="Subject" type="text">
-                                    </div>
-                                </div>
-                                <div class="col-lg-12 col-md-12">
-                                    <div class="textarea-style mb-30">
-                                        <textarea name="message" placeholder="Message"></textarea>
-                                    </div>
-                                    <button class="submit submit-auto-width" type="submit">Send message</button>
-                                </div>
+                                {% csrf_token %}
+                                {{ form.as_p }}
+                                <button type="submit">Send</button>
                             </div>
                         </form>
                         <p class="form-messege"></p>

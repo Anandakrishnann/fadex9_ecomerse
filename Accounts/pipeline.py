@@ -1,3 +1,4 @@
+from django.contrib import messages
 from Accounts.models import Accounts
 from social_core.pipeline.partial import partial
 
@@ -13,13 +14,13 @@ def save_user_details(strategy, details, user=None, *args, **kwargs):
     }
     
     if not all(fields.values()):
-        return strategy.redirect('/some-error-page/')  # Handle the error
+        return strategy.redirect('accounts:home')  
 
     user = Accounts.objects.create_user(
         email=fields['email'],
         first_name=fields['first_name'],
         last_name=fields['last_name'],
-        phone_number=details.get('phone_number', ''),  # Default to empty string if not provided
+        phone_number=details.get('phone_number', ''),  
     )
     return {
         'is_new': True,
@@ -36,13 +37,15 @@ def activate_user(user, *args, **kwargs):
     user.is_active = True
     user.save()
 
-def check_if_user_blocked(user, *args, **kwargs):
+def check_if_user_blocked(strategy, user, *args, **kwargs):
     if user.is_blocked:
-        return {
-            'is_blocked': True,
-            'user': user
-        }
+        messages.error(strategy.request, "Your account is blocked. Please contact support.")
+        return strategy.redirect('accounts:home')  
+
     return {
         'is_blocked': False,
         'user': user
     }
+
+def login_success_message(strategy, user, *args, **kwargs):
+    messages.success(strategy.request, "Successfully logged in. Welcome back!")

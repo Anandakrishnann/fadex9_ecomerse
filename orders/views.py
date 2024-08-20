@@ -22,6 +22,8 @@ from decimal import Decimal
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
 from shared.mixins import PreventBackMixin  # Import the mixin
+from django.core.paginator import Paginator
+
 # Create your views here.
 
 
@@ -33,7 +35,11 @@ class OrderVerificationView(LoginRequiredMixin,PreventBackMixin, View):
         current_user = request.user
         cart = Cart.objects.get(user=current_user)
         cart_items = CartItem.objects.filter(cart=cart, is_active=True)
-        address = UserAddress.objects.get(user=current_user, order_status=True,is_deleted=False)  
+        try:
+            address = UserAddress.objects.get(user=current_user, order_status=True,is_deleted=False)  
+        except:
+            messages.error(request, 'Please Select Address')
+            return redirect('cart:cart_checkout')
         new_total = sum(item.sub_total() for item in cart_items)                                    
         
         payment_option = request.POST.get('payment_option')
@@ -72,7 +78,7 @@ class OrderVerificationView(LoginRequiredMixin,PreventBackMixin, View):
         if payment_option == "Online Payment":
             return redirect('order:online_payment')
         
-        if payment_option == "Wallet" and new_total > 6000:
+        if payment_option == "Wallet" :
                 current_user = request.user
                 try:
                     wallet = Wallet.objects.get(user=current_user)
@@ -104,19 +110,14 @@ class OrderVerificationView(LoginRequiredMixin,PreventBackMixin, View):
                         if coupon_code:
                             try:
                                 coupon = Coupon.objects.get(coupon_code=coupon_code)
-                                if new_total >= coupon.minimum_amount:
-                                    discount = coupon.discount
-                                    discount_amount = (new_total * discount / 100)
-                                    # Cap the discount amount to the maximum amount
-                                    discount_amount = min(discount_amount, coupon.maximum_amount)
-                                    
-                                    final_amount = new_total - discount_amount
-                                    request.session['applied_coupon'] = coupon_code
-                                else:
-                                    messages.error(request, f'Coupon only available for orders over {coupon.minimum_amount}')
+                                discount = coupon.maximum_amount
+                                discount_amount = (new_total * discount / 100)
+                                if discount_amount > discount:
+                                    discount_amount = discount
+                                final_amount -= discount_amount
                             except Coupon.DoesNotExist:
                                 pass
-                        
+                                    
                         order_address = OrderAddress.objects.create(
                             name=address.name,
                             house_name=address.house_name,
@@ -166,7 +167,7 @@ class OrderVerificationView(LoginRequiredMixin,PreventBackMixin, View):
                             transaction_type=transaction_type,
                         )
 
-                        wallet.balance -= order_amount 
+                        wallet.balance -= final_amount 
                         wallet.save()
                         
                         cart_items.delete()
@@ -243,7 +244,7 @@ class OrderVerificationView(LoginRequiredMixin,PreventBackMixin, View):
                 order_id=order_id,
                 order_status=order_status,
                 payment_id=payment_id,
-                payment_status=True
+                payment_status=False
             )
             
             
@@ -276,44 +277,48 @@ class OrderVerificationView(LoginRequiredMixin,PreventBackMixin, View):
 
 class OnlinePayment(LoginRequiredMixin,PreventBackMixin,View):
     def get(self, request):
-        user = request.user
-        cart_items = CartItem.objects.filter(cart__user=user, is_active=True) 
-        new_total = sum(item.sub_total() for item in cart_items) 
-        
-        coupon_code = request.session.get('applied_coupon', None)
-        discount = 0
-        if coupon_code:
-            try:
-                coupon = Coupon.objects.get(coupon_code=coupon_code)
-                if new_total >= coupon.minimum_amount:
-                    discount = coupon.discount
-                    discount_amount = (new_total * discount / 100)
-                    discount_amount = min(discount_amount, coupon.maximum_amount)
-                    
-                    new_total = new_total - discount_amount
-                    request.session['applied_coupon'] = coupon_code
-                else:
-                    messages.error(request, f'Coupon only available for orders over {coupon.minimum_amount}')
-            except Coupon.DoesNotExist:
-                pass
+        try:
+            user = request.user
+            cart_items = CartItem.objects.filter(cart__user=user, is_active=True) 
+            new_total = sum(item.sub_total() for item in cart_items) 
             
+            coupon_code = request.session.get('applied_coupon', None)
+            discount = 0
+            if coupon_code:
+                try:
+                    coupon = Coupon.objects.get(coupon_code=coupon_code)
+                    if new_total >= coupon.minimum_amount:
+                        discount = coupon.discount
+                        discount_amount = (new_total * discount / 100)
+                        discount_amount = min(discount_amount, coupon.maximum_amount)
+                        
+                        new_total = new_total - discount_amount
+                        request.session['applied_coupon'] = coupon_code
+                    else:
+                        messages.error(request, f'Coupon only available for orders over {coupon.minimum_amount}')
+                except Coupon.DoesNotExist:
+                    pass
+                
+                
+            new_total_paise = int(new_total * 100)
             
-        new_total_paise = int(new_total * 100)
-        
 
-        client = razorpay.Client(auth=(settings.RAZORPAY_KEY, settings.RAZORPAY_SECRET))
-        payment = client.order.create({'amount': new_total_paise, 'currency': 'INR', 'payment_capture': 1})
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY, settings.RAZORPAY_SECRET))
+            payment = client.order.create({'amount': new_total_paise, 'currency': 'INR', 'payment_capture': 1})
+            
+            print(f"Razorpay order created: {payment}")  # Logging the payment object
+            
+            context = {
+                'cart': new_total,
+                'payment': payment,
+                'razorpay_key_id': settings.RAZORPAY_KEY,
+                'payment_amount': new_total_paise,
+            }
+            return render(request, 'Cart/razor_pay.html', context)
+        except:
+            messages.error(request, 'No Internet Connection')
+            return redirect('cart:cart_checkout')
         
-        print(f"Razorpay order created: {payment}")  # Logging the payment object
-        
-        context = {
-            'cart': new_total,
-            'payment': payment,
-            'razorpay_key_id': settings.RAZORPAY_KEY,
-            'payment_amount': new_total_paise,
-        }
-        return render(request, 'Cart/razor_pay.html', context)
-    
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -450,14 +455,34 @@ class OrderSuccess(LoginRequiredMixin,PreventBackMixin,View):
 
 
 @method_decorator(admin_required, name='dispatch')
-class AdminOrder(PreventBackMixin,View):
+class AdminOrder(PreventBackMixin, View):
     def get(self, request):
         search_query = request.GET.get('search', '').strip()
+        status_filter = request.GET.get('status', '').strip()
+
+        orders = OrderMain.objects.all().order_by('-updated_at')
+
         if search_query:
-            orders = OrderMain.objects.filter(order_id__icontains=search_query)
-        else:
-            orders = OrderMain.objects.all()
-        return render(request, 'Order/admin_order.html', {'orders': orders, 'search_query': search_query})
+            orders = orders.filter(order_id__icontains=search_query)
+
+        if status_filter and status_filter != 'Show all':
+            if status_filter == 'Active':
+                orders = orders.filter(is_active=True)
+            elif status_filter == 'Inactive':
+                orders = orders.filter(is_active=False)
+
+        # Pagination
+        paginator = Paginator(orders, 5)  # Show 10 orders per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        return render(request, 'Order/admin_order.html', {
+            'orders': page_obj,
+            'search_query': search_query,
+            'status_filter': status_filter,
+        })
+
+
 
 
 @method_decorator(admin_required, name='dispatch')
@@ -489,7 +514,7 @@ class CancelOrders(LoginRequiredMixin,PreventBackMixin,View):
             order.is_active = False
             order.save()
             
-            if order.payment_option == "Online Payment" or order.payment_option == "Wallet":
+            if order.payment_option == "Online Payment" or order.payment_option == "Wallet Payment":
                 
                 item_refund = 0
                 
@@ -521,6 +546,9 @@ class CancelOrders(LoginRequiredMixin,PreventBackMixin,View):
                     
                     wallet.balance += Decimal(item_refund)  # Ensure Decimal type for accurate calculation
                     wallet.save()
+                    
+                order.final_amount -= item_refund
+                order.save()
             
         except OrderMain.DoesNotExist:
             messages.error(request, 'Order does not exist.')
@@ -583,12 +611,11 @@ class AdminCancelOrders(PreventBackMixin,View):
                 order_variant.variant_stock += order_quantity
             
             order.order_status = "Canceled"
-            order.order_status = False
             order.save()
             
             refund_amount = Decimal('0.00') 
             
-            if order.payment_option == "Online Payment" or order.payment_option == "Wallet": 
+            if order.payment_option == "Online Payment" or order.payment_option == "Wallet Payment": 
                 
                 for item in order_items: 
                     item_total_cost = Decimal(str(item.final_total_cost())) 
@@ -606,9 +633,9 @@ class AdminCancelOrders(PreventBackMixin,View):
                     description = f"Sorry Due To Some Reason Admin Canceled This Order {order.order_id}"
                     transaction_type = "Credited"
                     
-                    wallet, created = Wallet.objects.get_or_create(user=request.user)
+                    wallet, created = Wallet.objects.get_or_create(user=order.user)
                     
-                    transaction = Transaction.objects.create(
+                    transaction, created = Transaction.objects.get_or_create(
                     wallet = wallet,
                     description=description,
                     amount=refund_amount,
@@ -617,34 +644,41 @@ class AdminCancelOrders(PreventBackMixin,View):
                     
                     wallet.balance += Decimal(refund_amount)
                     wallet.save()
+                    
+                order.final_amount -= refund_amount
+                order.save()
                 
                 messages.success(request, 'Order Canceled credited to the user\'s wallet.') 
-                return redirect('order:return_requests')
+                return redirect('order:admin_orders_details',pk=order.id)
                 
             else:
                 messages.success(request, 'Order Canceled Successfully')
-                return redirect('order:return_requests')
+                return redirect('order:admin_orders_details',pk=order.id)
 
         except OrderMain.DoesNotExist:
             messages.error(request, 'Order does not exist.')
-        return redirect('admin_panel:admin_orders_details')
+        return redirect('admin_panel:admin_orders_details',pk=order.id)
     
 
 @method_decorator(admin_required, name='dispatch')
-class AdminReturnRequests(PreventBackMixin,View):
+class AdminReturnRequests(PreventBackMixin, View):
     def get(self, request):
         search_query = request.GET.get('search', '').strip()
-        
+
         if search_query:
-            
             return_requests = ReturnRequest.objects.filter(order_main__order_id__icontains=search_query).order_by('-created_at')
         else:
-            
             return_requests = ReturnRequest.objects.all().order_by('-created_at')
-        
-        return render(request, 'Order/return_request.html', {'return_requests': return_requests, 'search_query': search_query})
 
+        # Pagination
+        paginator = Paginator(return_requests, 5)  # Show 10 return requests per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
+        return render(request, 'Order/return_request.html', {
+            'return_requests': page_obj,
+            'search_query': search_query,
+        })
 
 @method_decorator(admin_required, name='dispatch')
 class AdminReturnApproval(PreventBackMixin,View):
@@ -721,7 +755,6 @@ class AdminReturnApproval(PreventBackMixin,View):
                         transaction_type='Credited' 
                     )
                     
-                    
                     messages.success(request, 'Return request approved and amount credited to the user\'s wallet.') 
                     return redirect('order:return_requests')
             else: 
@@ -735,8 +768,9 @@ class AdminReturnApproval(PreventBackMixin,View):
             messages.success(request, 'Return request rejected.') 
             return redirect('order:return_requests')
         
-        messages.error(request, 'Invalid action.')
-        return redirect('order:return_requests')
+        else:
+            messages.error(request, 'Invalid action.')
+            return redirect('order:return_requests')
 
 
 
@@ -753,7 +787,7 @@ class IndividualCancel(LoginRequiredMixin,PreventBackMixin,View):
             messages.error(request, 'Order cannot be canceled at this stage.') 
             return redirect('user_panel:user_dash') 
 
-        if order_sub.main_order.payment_option in ['Online Payment', 'Wallet']: 
+        if order_sub.main_order.payment_option in ['Online Payment', 'Wallet Payment']: 
 
             item_total_cost = Decimal(order_sub.total_cost()) 
             order_total_amount = Decimal(order_sub.main_order.total_amount) 

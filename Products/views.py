@@ -7,6 +7,8 @@ from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from shared.mixins import PreventBackMixin  # Import the mixin
+from orders.models import *
+from django.core.paginator import Paginator
 
 
 @method_decorator(admin_required, name='dispatch')
@@ -17,7 +19,12 @@ class ProductView(PreventBackMixin,View):
             products = Products.objects.filter(product_name__icontains=query)
         else:
             products = Products.objects.all()
-        return render(request, 'Products/product.html', {'products':products})
+        
+        paginator = Paginator(products, 5)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        return render(request, 'Products/product.html', {'products':page_obj})
     
     
 @method_decorator(admin_required, name='dispatch')
@@ -89,13 +96,6 @@ class ProductCreate(PreventBackMixin,View):
                 messages.error(request, error)
             return redirect('product:product_create')
         
-        # if not thumbnail.content_type.startswith('image/'):
-        #     errors.append('Uploaded file is not an image.')
-
-        # max_file_size = 5 * 1024 * 1024  
-        # if thumbnail.size > max_file_size:
-        #     errors.append('Image size should not exceed 5 MB.')
-
         
         product = Products.objects.create(
             product_name=product_name,
@@ -328,26 +328,13 @@ class VariantStatus(PreventBackMixin,View):
     def get(self, request, pk):
         print('VariantStatus View Called')
         
-        
         variant = get_object_or_404(ProductVariant, id=pk)
-        
-        
-        print(f'Current Variant Status: {variant.variant_status}')
-        
-        
         variant.variant_status = not variant.variant_status
-        
-        
-        print(f'New Variant Status: {variant.variant_status}')
-        
-        
         variant.save()
-        
-        
+
         saved_variant = get_object_or_404(ProductVariant, id=pk)
-        print(f'Saved Variant Status: {saved_variant.variant_status}')
         
-        
+        messages.success(request, 'Variant Status Updated Successfully')
         return redirect('product:product_variant', pk=variant.product.id)
 
 
@@ -367,6 +354,7 @@ class ProductDelete(PreventBackMixin,View):
         product = get_object_or_404(Products, id=pk)
         product.is_active = not product.is_active
         product.save()
+        messages.success(request, 'Product Deleted Successfully')
         return redirect('product:products')
 
 
@@ -384,26 +372,35 @@ class ProductInfo(PreventBackMixin,View):
 #---------------------------------------------- Review Page -------------------------------------------------------------#
 
 
-class Reviews(PreventBackMixin,LoginRequiredMixin,View):
+class Reviews(PreventBackMixin, LoginRequiredMixin, View):
     def post(self, request, pk):
         try:
-            user = Accounts.objects.get(id=request.user.id, is_active=True,is_blocked=False)
+            user = Accounts.objects.get(id=request.user.id, is_active=True, is_blocked=False)
         except:
-            messages.error(request,'Login to Add review')
+            messages.error(request, 'Login to Add review')
             return redirect('accounts:login')
-        
+
         product = get_object_or_404(Products, pk=pk)
+
         rating = request.POST.get('rating')
         comment = request.POST.get('comment')
+
+        if rating is None or rating == '0':
+            messages.error(request, 'Please select a star rating.')
+            return redirect('accounts:product_details', pk=pk)
+        
+        
+
         review = Review.objects.create(
-            user = user,
-            product = product,
-            rating = rating,
-            comment = comment
+            user=user,
+            product=product,
+            rating=rating,
+            comment=comment
         )
         review.save()
-    
+        messages.success(request, 'Review Added Successfully')
         return redirect('accounts:product_details', pk=pk)
+
     
 
 @method_decorator(admin_required, name='dispatch')
@@ -412,6 +409,7 @@ class DeleteImage(PreventBackMixin,View):
         image = get_object_or_404(ProductImages, id=pk)
         pk = image.product.id 
         image.delete()
+        messages.success(request, 'Image Deleted Successfully')
         return redirect('product:product_info', pk=pk)
 
         

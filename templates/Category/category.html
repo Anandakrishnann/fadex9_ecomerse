@@ -82,18 +82,38 @@
         </div> 
         <!-- card-body end// --> 
     </div> 
-    <div class="pagination-area mt-30 mb-50"> 
-        <nav aria-label="Page navigation example"> 
-            <ul class="pagination justify-content-start"> 
-                <li class="page-item active"><a class="page-link" href="#">01</a></li> 
-                <li class="page-item"><a class="page-link" href="#">02</a></li> 
-                <li class="page-item"><a class="page-link" href="#">03</a></li> 
-                <li class="page-item"><a class="page-link dot" href="#">...</a></li> 
-                <li class="page-item"><a class="page-link" href="#">16</a></li> 
-                <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li> 
-            </ul> 
-        </nav> 
-    </div> 
+    <div class="pagination-area mt-15 mb-50">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-start">
+                {% if return_requests.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ categories.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            <i class="material-icons md-chevron_left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for num in categories.paginator.page_range %}
+                    {% if return_requests.number == num %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if categories.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ categories.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            <i class="material-icons md-chevron_right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    
 </section>
 <!-- SweetAlert2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">

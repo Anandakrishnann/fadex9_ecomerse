@@ -1,7 +1,52 @@
 {% extends "Base/user_base.html" %}
 {% load static %}
 {% block content %}
-
+<style>
+    .deal {
+        position: relative;
+        overflow: hidden;
+        height: 100%; /* Adjust as needed */
+        color: #fff; /* Ensure text is readable over the video */
+    }
+    
+    .video-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    .video-background video {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: translate(-50%, -50%);
+    }
+    
+    .deal-top, .deal-content, .deal-bottom {
+        position: relative;
+        z-index: 1; /* Ensure text is above the video */
+        padding: 20px; /* Add some padding if needed */
+    }
+    
+    .deal-top {
+        /* Styling for top section */
+    }
+    
+    .deal-content {
+        /* Styling for content section */
+    }
+    
+    .deal-bottom {
+        /* Styling for bottom section */
+    }
+    
+</style>
 <main class="main">       
     <section class="home-slider position-relative pt-50">
         <div class="hero-slider-1 dot-style-1 dot-style-1-position-1">
@@ -19,12 +64,33 @@
                         </div>
                         <div class="col-lg-7 col-md-6" >
                             <div class="single-slider-img single-slider-img-1" >
-                                <img  class="animated slider-1-1" src="{% static 'banner/dolce gabana.jpg' %}" alt="">
+                                <img  class="animated slider-1-1" src="{% static 'banner/new4.jpg' %}" alt="">
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="single-hero-slider single-animation-wrap">
+                <div class="container">
+                    <div class="row align-items-center slider-animated-1">
+                        <div class="col-lg-5 col-md-6">
+                            <div class="hero-slider-content-2">
+                                <h4 class="animated">Exclusive Drop Alert</h4>
+                                <h1 class="animated fw-900">Uncover the Latest</h1>
+                                <h1 class="animated fw-900">Hyped Collections</h1>
+                               
+                                <a class="animated btn btn-black" href="{% url 'accounts:product_shop' %}">Discover Now</a>
+                            </div>
+                        </div>
+                        <div class="col-lg-7 col-md-6">
+                            <div class="single-slider-img single-slider-img-1">
+                                <img class="animated slider-1-1" src="{% static 'banner/new5.jpg' %}" alt="Exclusive Drop">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="single-hero-slider single-animation-wrap">
                 <div class="container">
                     <div class="row align-items-center slider-animated-1">
@@ -116,11 +182,7 @@
                                                 {% endif %}
                                             </a>
                                         </div>
-                                        {% comment %} <div class="product-action-1">
-                                            <a aria-label="Add To Wishlist" class="action-btn hover-up add-to-wishlist-btn" href="javascript:void(0);" data-product-id="{{ product.id }}">
-                                                <i class="fi-rs-heart"></i>
-                                            </a>
-                                        </div> {% endcomment %}
+                                        
                                         <div class="product-badges product-badges-position product-badges-mrg">
                                             <span class="new">New</span>
                                         </div>
@@ -139,9 +201,7 @@
                                             <span>₹{{ product.offer_price }} </span>
                                             <span class="old-price">₹{{ product.price }}</span>
                                         </div>
-                                        {% comment %} <div class="product-action-1 show">
-                                            <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>
-                                        </div> {% endcomment %}
+                                    
                                     </div>
                                 </div>
                             </div>
@@ -168,7 +228,7 @@
                         <img src="{% static 'banner/black.jpg' %}" alt="">
                         <div style="color:white;" class="banner-text">
                             <span style="color:white;">Smart Offer</span>
-                            <h4 style="color:white;">Save 20% on <br>Woman Bag</h4>
+                            <h4 style="color:white;">Save 20% on <br>Hoodies</h4>
                             <a href="{% url 'accounts:product_shop' %}" style="color:white;">Shop Now <i class="fi-rs-arrow-right"></i></a>
                         </div>
                     </div>
@@ -211,18 +271,16 @@
                                     <img class="hover-img" src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}">
                                 </a>
                             </div>
-                            <div class="product-action-1">
-                                
-                                <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                            </div>
+                            
                             <div class="product-badges product-badges-position product-badges-mrg">
-                                <span class="hot">Hot</span>
+                                <span style="color:white; background-color:red;" >New</span>
                             </div>
                         </div>
                         <div class="product-content-wrap">
                             <h2><a href="{% url 'accounts:product_details' product.id %}">{{ product.product_name }}</a></h2>
-                            <div class="rating-result" title="90%">
+                            <div  title="90%">
                                 <span>
+                                    <span style="color:red;">{{ product.percentage_discount }}%</span>
                                 </span>
                             </div>
                             <div class="product-price">
@@ -240,40 +298,54 @@
     <section class="deals section-padding">
         <div class="container">
             <div class="row">
+                
                 <div class="col-lg-6 deal-co">
-                    <div class="deal wow fadeIn animated mb-md-4 mb-sm-4 mb-lg-0" style="background-image: url('user_side/assets/imgs/banner/menu-banner-7.jpg');">
+                    <div class="deal wow fadeIn animated">
+                        <div class="video-background">
+                            <video autoplay muted loop playsinline>
+                                <source src="{% static 'images/street2.mp4' %}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
                         <div class="deal-top">
-                            <h2 class="text-brand">Deal of the Day</h2>
-                            <h5>Limited quantities.</h5>
+                            <h2 class="text-brand">Hyped Apparel</h2>
+                            <h5>Trendsetting Styles.</h5>
                         </div>
                         <div class="deal-content">
-                            <h6 class="product-title"><a href="shop-product-right.html">Summer Collection New Morden Design</a></h6>
-                            <div class="product-price"><span class="new-price">₹139.00</span><span class="old-price">₹160.99</span></div>
+                            <h6 class="product-title"><a href="shop-product-right.html">Elevate Your Wardrobe with Exclusive Drops</a></h6>
+                            <div class="product-price"><span class="new-price">₹3000.00</span><span class="old-price">₹9000.99</span></div>
                         </div>
                         <div class="deal-bottom">
-                            <p>Hurry Up! Offer End In:</p>
-                            <div class="deals-countdown" data-countdown="2025/03/25 00:00:00"></div>
-                            <a href="{% url 'accounts:product_shop' %}" class="btn hover-up">Shop Now <i class="fi-rs-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 deal-co">
-                    <div class="deal wow fadeIn animated" style="background-image: url('user_side/assets/imgs/banner/menu-banner-8.jpg');">
-                        <div class="deal-top">
-                            <h2 class="text-brand">Men Clothing</h2>
-                            <h5>Shirt & Bag</h5>
-                        </div>
-                        <div class="deal-content">
-                            <h6 class="product-title"><a href="shop-product-right.html">Try something new on vacation</a></h6>
-                            <div class="product-price"><span class="new-price">₹178.00</span><span class="old-price">₹256.99</span></div>
-                        </div>
-                        <div class="deal-bottom">
-                            <p>Hurry Up! Offer End In:</p>
+                            <p>Catch the Hottest Trends:</p>
                             <div class="deals-countdown" data-countdown="2026/03/25 00:00:00"></div>
                             <a href="{% url 'accounts:product_shop' %}" class="btn hover-up">Shop Now <i class="fi-rs-arrow-right"></i></a>
                         </div>
                     </div>
                 </div>
+                <div class="col-lg-6 deal-co">
+                    <div class="deal wow fadeIn animated">
+                        <div class="video-background">
+                            <video autoplay muted loop playsinline>
+                                <source src="{% static 'images/street1.mp4' %}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <div class="deal-top">
+                            <h2 class="text-brand">Exclusive Hype Drops</h2>
+                            <h5>Stand Out in Style.</h5>
+                        </div>
+                        <div class="deal-content">
+                            <h6 class="product-title"><a href="shop-product-right.html">Unleash the Boldest Looks of the Season</a></h6>
+                            <div class="product-price"><span class="new-price">₹4000.00</span><span class="old-price">₹6000.99</span></div>
+                        </div>
+                        <div class="deal-bottom">
+                            <p>Limited Edition Releases:</p>
+                            <div class="deals-countdown" data-countdown="2026/03/25 00:00:00"></div>
+                            <a href="{% url 'accounts:product_shop' %}" class="btn hover-up">Shop Now <i class="fi-rs-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </div>
     </section>
@@ -325,10 +397,6 @@
                                                 </a>
                                             </div>
                                             <div class="product-action-1">
-                                            
-
-                                                <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
-        
                                             </div>
                                             <div class="product-badges product-badges-position product-badges-mrg">
                                                 <span class="hot">Hot</span>
@@ -341,16 +409,14 @@
                                         <h2><a href="{% url 'accounts:product_details' product.id %}">{{ product.product_name }}</a></h2>
                                             <div  title="90%">
                                                 <span>
-                                                    <span>{{ product.percentage_discount }}%</span>
+                                                    <span style="color:red;">{{ product.percentage_discount }}%</span>
                                                 </span>
                                             </div>
                                             <div class="product-price">
                                                 <span>₹{{ product.price }} </span>
                                                 <span class="old-price">₹{{ product.offer_price }}</span>
                                             </div>
-                                            <div class="product-action-1 show">
-                                                <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>
-                                            </div>
+                                            
                                         </div>
                                     </div>
                                     {% endfor %}
@@ -382,25 +448,28 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {
-    {% if messages %}
-        const messages = [
-            {% for message in messages %}
-                "{{ message }}",
-            {% endfor %}
-        ];
-        messages.forEach(message => {
-            Swal.fire({
-                toast: true,
-                position: 'top-right',
-                icon: 'success',
-                title: message,
-                showConfirmButton: false,
-                timer: 3000
+        {% if messages %}
+            const messages = [
+                {% for message in messages %}
+                    {
+                        type: "{{ message.tags }}",
+                        text: "{{ message }}"
+                    },
+                {% endfor %}
+            ];
+            messages.forEach(message => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-right',
+                    icon: message.type === 'error' ? 'error' : 'success',
+                    title: message.text,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    background: message.type === 'error' ? '#f8d7da' : '',
+                    color: message.type === 'error' ? '#721c24' : ''
+                });
             });
-        });
-    {% endif %}
-});
-
-
+        {% endif %}
+    });
 </script>
 {% endblock %}

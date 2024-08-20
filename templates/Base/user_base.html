@@ -26,6 +26,32 @@
         align-items: center;
         justify-content: center; /* Center items horizontally */
     }
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
+
+        .main {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            color: #000;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .brand-highlight {
+            color: #ff0000;
+            font-weight: 700;
+        }
+        
+        p {
+            font-weight: 300;
+            line-height: 1.6;
+        }
+        
+        h3 {
+            font-weight: 600;
+        }
 
 .search-input {
     display: flex;
@@ -363,6 +389,7 @@
                         <h5 class="widget-title wow fadeIn animated">My Account</h5>
                         <ul class="footer-list wow fadeIn animated">
                             <li><a {% if request.user.is_authenticated %} href="{% url 'accounts:logout' %}"{% else %}href="{% url 'accounts:login' %}"{% endif %}>{% if request.user.is_authenticated %}Log Out{% else %}Sign In{% endif %}</a></li>
+                            <li><a href="{% url 'user_panel:user_dash' %}">View Account</a></li>
                             <li><a href="{% url 'cart:cart_view' %}">View Cart</a></li>
                             <li><a href="{% url 'wishlist:wishlist' %}">My Wishlist</a></li>
                             <li><a href="{% url 'user_panel:user_dash' %}">Track My Order</a></li>

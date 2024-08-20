@@ -15,6 +15,7 @@ urlpatterns = [
     path('resend_otp/', ResendOtp.as_view(), name='resend-otp'),
     path('contact/', Contact.as_view(), name='contact'),
     path('about/', About.as_view(), name='about'),
+    path('contact_form/', contact_form, name='contact_form'),
     path('password-reset/', views.password_reset_request, name='password_reset'),
     path('password-reset-done/', views.password_reset_done, name='password_reset_done'),
     path('reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),

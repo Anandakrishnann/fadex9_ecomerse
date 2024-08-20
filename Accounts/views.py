@@ -29,6 +29,7 @@ from django.http import HttpResponse
 from django.contrib.auth.forms import SetPasswordForm
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
+from django.core.paginator import Paginator
 
 
 #---------------------------------------------- User Side -------------------------------------------------------------#
@@ -95,13 +96,30 @@ class RegisterView(PreventBackMixin,View):
             } 
             user_data.is_active = False
             # Sending the otp through email
-            send_mail(
-                'Your otp code',
-                f'Your OTP code is {otp}',
-                settings.DEFAULT_FROM_EMAIL,
-                [user_data.email],
-                fail_silently=False,
-            )
+            send_mail( 
+                    'Your OTP Code', 
+                    f"""Dear {user_data.first_name},
+
+                    Welcome to FADEX.9!
+
+                    Thank you for joining our fashion community. We're excited to have you as a part of the FADEX.9 family, where style meets exclusivity. Our collections are carefully curated with the most unique and hyped apparel that you won't find anywhere else.
+
+                    To complete your registration and start shopping for these exclusive pieces, please verify your email address using the One-Time Password (OTP) provided below:
+
+                    Your OTP: "{otp}"
+
+                    Enter this OTP on our website to verify your account and unlock access to the latest trends in men's fashion.
+
+                    If you have any questions or need assistance, our support team is here to help. Reach out to us anytime at infofadex9@.com.
+
+                    Stay ahead of the fashion curve!
+
+                    Best regards,
+                    The FADEX.9 Team""", 
+                    settings.DEFAULT_FROM_EMAIL, 
+                    [user_data.email], 
+                    fail_silently=False, 
+                ) 
 
             messages.success(request, 'OTP has been sent to your email. Please verify to complete registration.')
 
@@ -179,32 +197,58 @@ class ResendOtp(PreventBackMixin,View):
             request.session['otp_generation_time'] = otp_generation_time 
             request.session.set_expiry(120)  # OTP expires in 2 minutes 
     
-            send_mail( 
-                    'Your OTP Code', 
-                    f"""Dear {user_data.first_name},
+            subject = 'Your OTP Code'
+            from_email = settings.DEFAULT_FROM_EMAIL
+            to_email = [user_data.email]
+            text_content = f"""
+            Dear {user_data.first_name},
 
-                    Welcome to FADEX.9!
+            Welcome to FADEX.9!
 
-                    Thank you for joining our fashion community. We're excited to have you as a part of the FADEX.9 family, where style meets exclusivity. Our collections are carefully curated with the most unique and hyped apparel that you won't find anywhere else.
+            Thank you for joining our fashion community. We're excited to have you as a part of the FADEX.9 family, where style meets exclusivity. Our collections are carefully curated with the most unique and hyped apparel that you won't find anywhere else.
 
-                    To complete your registration and start shopping for these exclusive pieces, please verify your email address using the One-Time Password (OTP) provided below:
+            To complete your registration and start shopping for these exclusive pieces, please verify your email address using the One-Time Password (OTP) provided below:
 
-                    Your OTP: {otp}
+            Your OTP: "{otp}"
 
-                    Enter this OTP on our website to verify your account and unlock access to the latest trends in men's fashion.
+            Enter this OTP on our website to verify your account and unlock access to the latest trends in men's fashion.
 
-                    If you have any questions or need assistance, our support team is here to help. Reach out to us anytime at infofadex9@.com.
+            If you have any questions or need assistance, our support team is here to help. Reach out to us anytime at infofadex9@.com.
 
-                    Stay ahead of the fashion curve!
+            Stay ahead of the fashion curve!
 
-                    Best regards,
-                    The FADEX.9 Team""", 
-                    settings.DEFAULT_FROM_EMAIL, 
-                    [user_data['email']], 
-                    fail_silently=False, 
-                ) 
+            Best regards,
+            The FADEX.9 Team
+            """
 
+            html_content = f"""
+            <p>Dear {user_data.first_name},</p>
 
+            <p>Welcome to FADEX.9!</p>
+
+            <p>Thank you for joining our fashion community. We're excited to have you as a part of the FADEX.9 family, where style meets exclusivity. Our collections are carefully curated with the most unique and hyped apparel that you won't find anywhere else.</p>
+
+            <p>To complete your registration and start shopping for these exclusive pieces, please verify your email address using the One-Time Password (OTP) provided below:</p>
+
+            <p><strong>Your OTP: <span style="color: #ff5733;">{otp}</span></strong></p>
+
+            <p>Enter this OTP on our website to verify your account and unlock access to the latest trends in men's fashion.</p>
+
+            <p>If you have any questions or need assistance, our support team is here to help. Reach out to us anytime at infofadex9@.com.</p>
+
+            <p>Stay ahead of the fashion curve!</p>
+
+            <p>Best regards,<br>The FADEX.9 Team</p>
+            """
+
+            send_mail(
+                subject=subject,
+                message=text_content,
+                from_email=from_email,
+                recipient_list=to_email,
+                fail_silently=False,
+                html_message=html_content  # Use html_message to send the HTML version
+            )
             
             messages.success(request, 'A new OTP has been sent to your email.') 
         else: 
@@ -225,19 +269,39 @@ class IndexView(PreventBackMixin,View):
 #---------------------------------------------- Product Detail Page -------------------------------------------------------------#
 
 
+def get_review_percentages(product):
+    total_reviews = product.reviews.count()
+    if total_reviews == 0:
+        return {i: 0 for i in range(1, 6)}  # return 0% for all if no reviews
+
+    percentages = {
+        5: product.reviews.filter(rating=5).count() * 100 / total_reviews,
+        4: product.reviews.filter(rating=4).count() * 100 / total_reviews,
+        3: product.reviews.filter(rating=3).count() * 100 / total_reviews,
+        2: product.reviews.filter(rating=2).count() * 100 / total_reviews,
+        1: product.reviews.filter(rating=1).count() * 100 / total_reviews,
+    }
+    return percentages
+
+
+
 class ProductView(PreventBackMixin,View):
     def get(self, request, pk):
         products = get_object_or_404(Products, pk=pk)
+        review_percentages = get_review_percentages(products)
         images = ProductImages.objects.filter(product=products)
         variants = ProductVariant.objects.filter(product=products)
-        reviews = Review.objects.filter(product=products)
+        reviews = Review.objects.filter(product=products).order_by('-created_at')
+        review_count = reviews.count()
         related_products = Products.objects.filter(product_category=products.product_category)
         return render(request, 'Accounts/user_side/product_detail.html', {
             'products': products,
             'images': images,
             'variants': variants,
             'reviews': reviews,
+            'review_count':review_count,
             'related_products':related_products,
+            'review_percentages':review_percentages
         })
 
 
@@ -301,7 +365,9 @@ class ProductShop(PreventBackMixin,View):
         elif price_range == 'all':
             products = products  # No filtering for 'all'
             
-        
+        paginator = Paginator(products, 9)  # Show 10 return requests per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
         
         categories = Category.objects.filter(is_deleted=False)
         brands = Brand.objects.filter(status=True)
@@ -309,7 +375,7 @@ class ProductShop(PreventBackMixin,View):
         count = products.aggregate(count=Count('id'))['count']
         
         context = {
-            'products': products,
+            'products': page_obj,
             'categories': categories,
             'brands': brands,
             'current_category': category_slug,
@@ -324,7 +390,8 @@ class ProductShop(PreventBackMixin,View):
 
 class Contact(PreventBackMixin,View):
     def get(self, request):
-        return render(request, 'Accounts/user_side/contact.html')
+        form = ContactForm(request.POST)
+        return render(request, 'Accounts/user_side/contact.html',{'form':form})
     
 
 class About(PreventBackMixin,View):
@@ -395,3 +462,36 @@ def password_reset_confirm(request, uidb64, token):
 
 def password_reset_complete(request):
     return render(request, 'Accounts/user_side/password_reset_complete.html')
+
+
+def contact_form(request):
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            message = form.cleaned_data['message']
+            
+           # Send email
+            send_mail(
+                subject=f'New Contact Form Submission from {name}',
+                message=(
+                    f"Dear Team,\n\n"
+                    f"You have received a new contact form submission on your website. Here are the details:\n\n"
+                    f"Name: {name}\n"
+                    f"Email: {email}\n\n"
+                    f"Message:\n{message}\n\n"
+                    f"Please respond to the inquiry at your earliest convenience.\n\n"
+                    f"Best regards,\n"
+                    f"FADEX.9"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                fail_silently=False,
+            )
+
+            messages.success(request, 'Your message has been successfully sent, and we will get back to you as soon as possible. We appreciate your interest and look forward to assisting you.')
+            return redirect('accounts:contact') 
+    else:
+        messages.error(request, 'There was an error sending your message. Please try again later.')
+        return redirect('accounts:contact')

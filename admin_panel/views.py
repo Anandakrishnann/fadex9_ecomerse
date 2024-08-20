@@ -16,7 +16,8 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 import json
 from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
-from shared.mixins import PreventBackMixin  # Import the mixin
+from shared.mixins import PreventBackMixin  
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -178,6 +179,7 @@ class AdminUsers(PreventBackMixin,View):
     def get(self, request):
         if request.user.is_authenticated:
             query = request.GET.get('q')
+            status_filter = request.GET.get('status', '').strip()
             if query:
                 users = Accounts.objects.filter(
                     Q(email__icontains=query) | Q(first_name__icontains=query)
@@ -185,7 +187,18 @@ class AdminUsers(PreventBackMixin,View):
             else:
                 users = Accounts.objects.filter(is_admin=False).order_by('-is_blocked')
                 print(users.values_list())
-            return render(request, 'Accounts/admin_side/admin_users.html', {'users': users})
+                
+            if status_filter and status_filter != 'Show all':
+                if status_filter == 'Active':
+                    users = Accounts.objects.filter(is_active=True)
+                elif status_filter == 'Inactive':
+                    users = Accounts.objects.filter(is_active=False)
+                
+            paginator = Paginator(users, 5)  # Show 10 return requests per page
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            
+            return render(request, 'Accounts/admin_side/admin_users.html', {'users': page_obj})
         else:
             return render(request, 'Accounts/admin_side/admin_login.html')
 

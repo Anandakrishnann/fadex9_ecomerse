@@ -2,194 +2,185 @@
 {% load static %}
 {% block content %}
 <main class="main single-page">
-    <div class="page-header breadcrumb-wrap">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
+
+        .main {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            color: #000;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .brand-highlight {
+            color: #ff0000;
+            font-weight: 700;
+        }
+        
+        p {
+            font-weight: 300;
+            line-height: 1.6;
+        }
+        
+        h3 {
+            font-weight: 600;
+        }
+    
+        /* Your existing styles here */
+        .about-section {
+            padding: 80px 0;
+            background-color: #f8f8f8;
+        }
+        .about-section {
+            padding: 80px 0;
+            background-color: #f8f8f8;
+        }
+        .about-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .about-text {
+            flex: 0 0 50%;
+            padding-right: 50px;
+        }
+        .about-image {
+            flex: 0 0 50%;
+            text-align: right;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            color: #000;
+            margin-bottom: 30px;
+        }
+        .brand-highlight {
+            color: #ff0000;
+            font-weight: bold;
+        }
+        .team-section {
+            padding: 80px 0;
+            background-color: #fff;
+        }
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        .team-member {
+            text-align: center;
+        }
+        .team-member img {
+            width: 300px;
+            height: 500px;
+
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+        .location-section {
+            padding: 80px 0;
+            background-color: #f8f8f8;
+        }
+        .location-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .location-map {
+            flex: 0 0 60%;
+        }
+        .location-info {
+            flex: 0 0 35%;
+        }
+        p {
+            font-weight: 600;
+            line-height: 1.6;
+        }
+    </style>
+
+    <section class="about-section">
         <div class="container">
-            <div class="breadcrumb">
-                <a href="{% url 'accounts:home' %}" rel="nofollow">Home</a>
-                <span></span> About us
-            </div>
-        </div>
-    </div>
-    <section class="section-padding">
-        <div class="container pt-25">
-            <div class="row">
-                <div class="col-lg-6 align-self-center mb-lg-0 mb-4">
-                    <h6 class="mt-0 mb-15 text-uppercase font-sm text-brand wow fadeIn animated">Our Company</h6>
-                    <h1 class="font-heading mb-40">
-                        About Fadex9
-                    </h1>
+            <div class="about-content">
+                <div class="about-text">
+                    <h1 class="section-title">About <span class="brand-highlight">FADEX.9</span></h1>
                     <p>Welcome to Fadex9! We are dedicated to being the premier destination for all things fashion, focusing exclusively on men's hyped apparel. Our store is situated in the vibrant city of Kochi, Eranakulam, where we bring the latest trends and exclusive pieces to our valued customers.</p>
                     <p>At Fadex9, we understand the pulse of modern men's fashion. Our collection is carefully curated to include the most sought-after items that blend style, comfort, and uniqueness. Whether you're looking for the latest streetwear, high-end fashion pieces, or limited-edition drops, Fadex9 is your go-to destination.</p>
                 </div>
-                <div class="col-lg-6">
-                    <img src="{% static 'banner\fadex9.jpg' %}" alt="">
+                <div class="about-image">
+                    <img src="{% static 'images/FADEX.9.jpg' %}" alt="Fadex9 Store" style="max-width: 100%; height: auto;">
                 </div>
             </div>
         </div>
     </section>
-    <section id="team" class="pt-25 wow fadeIn animated">
+
+    <section class="team-section">
         <div class="container">
-            <div class="row mb-50 align-items-center">
-                <div class="col-md-6">
-                    <h6 class="mt-0 mb-15 text-uppercase font-sm text-brand wow fadeIn animated">Our Team</h6>
-                    <h2 class="mb-15 wow fadeIn animated">Top team of experts</h2>
-                    <p class="text-grey-3 wow fadeIn animated">Our team at Fadex9 comprises top fashion experts who are passionate about bringing you the best in men's hyped apparel. We are committed to providing exceptional service and ensuring that your shopping experience with us is nothing short of excellent. Our experts are always on the lookout for the newest trends and exclusive items to keep your wardrobe ahead of the curve.</p>
+
+            <div class="team-grid">
+                <div class="team-member">
+                    <img src="{% static 'images/new.jpg' %}" alt="Team Member 1">
+                    
+                </div>
+                
+                <div class="team-member">
+                    <img src="{% static 'images/new1.jpg' %}" alt="Team Member 2">
+                    
+                </div>
+                <div class="team-member">
+                    <img src="{% static 'images/new2.jpg' %}" alt="Team Member 3">
+                    
                 </div>
             </div>
         </div>
     </section>
-    <section id="work" class="mt-40 pt-50 pb-50 section-border">
+
+    <section class="location-section">
         <div class="container">
-            <div class="row mb-50">
-                <div class="col-lg-12 col-md-12 text-center">
-                    <h6 class="mt-0 mb-5 text-uppercase  text-brand font-sm wow fadeIn animated">FADEX.9 Co</h6>
-                    <h2 class="mb-15 text-grey-1 wow fadeIn animated">Our main branche</h2>
-                    <p class="w-50 m-auto text-grey-3 wow fadeIn animated">Situated in Kochi, Eranakulam, we are at the heart of a bustling fashion scene. Our location allows us to stay connected with the latest fashion movements and trends, ensuring that we can offer our customers the best and most current styles. The rich cultural heritage and dynamic atmosphere of Kochi inspire us to innovate and bring fresh, exciting apparel to the market.</p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4 text-center mb-md-0 mb-4">
-                    <img class="btn-shadow-brand hover-up border-radius-10 bg-brand-muted wow fadeIn animated" src="" alt="">
-                    <h4 class="mt-30 mb-15 wow fadeIn animated"></h4>
-                    <p class="text-grey-3 wow fadeIn animated"></p>
-                </div>
-                <div class="col-md-4 text-center mb-md-0 mb-4">
-                    <img class="btn-shadow-brand hover-up border-radius-10 bg-brand-muted wow fadeIn animated" src="{% static 'images/icons/logo-no-background.png' %}" alt="">
-                    <h4 class="mt-30 mb-15 wow fadeIn animated">Kerala, India</h4>
-                    <p class="text-grey-3 wow fadeIn animated">Kochi,<br> 986598 </p>
-                </div>
-                <div class="col-md-4 text-center">
-                    <img class="btn-shadow-brand hover-up border-radius-10 bg-brand-muted wow fadeIn animated" src="" alt="">
-                    <h4 class="mt-30 mb-15 wow fadeIn animated"></h4>
-                    <p class="text-grey-3 wow fadeIn animated"></p>
-                </div>
-            </div>
-        </div>
-    </section>
-    {% comment %} <section id="testimonials" class="section-padding">
-        <div class="container pt-25">
-            <div class="row mb-50">
-                <div class="col-lg-12 col-md-12 text-center">
-                    <h6 class="mt-0 mb-10 text-uppercase  text-brand font-sm wow fadeIn animated">some facts</h6>
-                    <h2 class="mb-15 text-grey-1 wow fadeIn animated">Take a look what<br> our clients say about us</h2>
-                    <p class="w-50 m-auto text-grey-3 wow fadeIn animated">At vero eos et accusamus et iusto odio dignissimos ducimus quiblanditiis praesentium. ebitis nesciunt voluptatum dicta reprehenderit accusamus</p>
-                </div>
-            </div>
-            <div class="row align-items-center">
-                <div class="col-md-6 col-lg-4">
-                    <div class="hero-card box-shadow-outer-6 wow fadeIn animated mb-30 hover-up d-flex">
-                        <div class="hero-card-icon icon-left-2 hover-up ">
-                            <img class="btn-shadow-brand hover-up border-radius-5 bg-brand-muted" src="{% static 'user_side/assets/imgs/page/avatar-1.jpg' %}" alt="">
-                        </div>
-                        <div class="pl-30">
-                            <h5 class="mb-5 fw-500">
-                                J. Bezos
-                            </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="hero-card box-shadow-outer-6 wow fadeIn animated mb-30 hover-up d-flex">
-                        <div class="hero-card-icon icon-left-2 hover-up ">
-                            <img class="btn-shadow-brand hover-up border-radius-5 bg-brand-muted" src="{% static 'user_side/assets/imgs/page/avatar-3.jpg' %}" alt="">
-                        </div>
-                        <div class="pl-30">
-                            <h5 class="mb-5 fw-500">
-                                B.Gates
-                            </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="hero-card box-shadow-outer-6 wow fadeIn animated mb-30 hover-up d-flex">
-                        <div class="hero-card-icon icon-left-2 hover-up ">
-                            <img class="btn-shadow-brand hover-up border-radius-5 bg-brand-muted" src="{% static 'user_side/assets/imgs/page/avatar-2.jpg' %}" alt="">
-                        </div>
-                        <div class="pl-30">
-                            <h5 class="mb-5 fw-500">
-                                B. Meyers
-                            </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="hero-card box-shadow-outer-6 wow fadeIn animated mb-30 hover-up d-flex">
-                        <div class="hero-card-icon icon-left-2 hover-up ">
-                            <img class="btn-shadow-brand hover-up border-radius-5 bg-brand-muted" src="{% static 'user_side/assets/imgs/page/avatar-4.jpg' %}" alt="">
-                        </div>
-                        <div class="pl-30">
-                            <h5 class="mb-5 fw-500">
-                                J. Bezos
-                            </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="hero-card box-shadow-outer-6 wow fadeIn animated mb-30 hover-up d-flex">
-                        <div class="hero-card-icon icon-left-2 hover-up ">
-                            <img class="btn-shadow-brand hover-up border-radius-5 bg-brand-muted" src="{% static 'user_side/assets/imgs/page/avatar-5.jpg' %}" alt="">
-                        </div>
-                        <div class="pl-30">
-                            <h5 class="mb-5 fw-500">
-                                B.Gates
-                            </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="hero-card box-shadow-outer-6 wow fadeIn animated mb-30 hover-up d-flex">
-                        <div class="hero-card-icon icon-left-2 hover-up ">
-                            <img class="btn-shadow-brand hover-up border-radius-5 bg-brand-muted" src="{% static 'user_side/assets/imgs/page/avatar-1.jpg' %}" alt="">
-                        </div>
-                        <div class="pl-30">
-                            <h5 class="mb-5 fw-500">
-                                B. Meyers
-                            </h5>
-                            <p class="font-sm text-grey-5">Adobe Jsc</p>
-                            <p class="text-grey-3">"Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis nesciunt voluptatum dicta reprehenderit accusamus voluptatibus voluptas."</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-           
-        </div>
-    </section> {% endcomment %}
    
+            <div class="location-content">
+                <div class="location-map">
+                    <img src="{% static 'images/logo-no-background.png' %}" alt="Store Location Map" style="max-width: 100%; height: auto;">
+                </div>
+                <div class="location-info">
+                    <h3>Fadex9 Flagship Store</h3>
+                    <p>123 Fashion Street</p>
+                    <p>Kochi, Eranakulam</p>
+                    <p>Kerala, India 682001</p>
+                    <p>Phone: +91 9539027191</p>
+                    <p>Email: info@fadex9.com</p>
+                </div>
+            </div>
+        </div>
+    </section>
 </main>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', (event) => {
-    {% if messages %}
-        const messages = [
-            {% for message in messages %}
-                {
-                    level: "{{ message.tags }}",
-                    text: "{{ message }}"
-                },
-            {% endfor %}
-        ];
-        messages.forEach(message => {
-            Swal.fire({
-                toast: true,
-                position: 'top-right',
-                icon: message.level === 'success' ? 'success' : 'error',
-                title: message.text,
-                showConfirmButton: false,
-                timer: 3000
+    document.addEventListener('DOMContentLoaded', (event) => {
+        {% if messages %}
+            const messages = [
+                {% for message in messages %}
+                    {
+                        level: "{{ message.tags }}",
+                        text: "{{ message }}"
+                    },
+                {% endfor %}
+            ];
+            messages.forEach(message => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-right',
+                    icon: message.level === 'success' ? 'success' : 'error',
+                    title: message.text,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
             });
-        });
-    {% endif %}
-});
+        {% endif %}
+    });
 </script>
 {% endblock %}

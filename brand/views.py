@@ -4,7 +4,8 @@ from django.views import View
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
-from shared.mixins import PreventBackMixin  # Import the mixin
+from shared.mixins import PreventBackMixin  
+from django.core.paginator import Paginator
 
 
 # Create your views here.
@@ -19,7 +20,13 @@ class BrandList(PreventBackMixin,View):
                 brands = Brand.objects.filter(brand_name__icontains=query)
             else:
                 brands = Brand.objects.all()
-            return render(request, 'Brands/brand.html',{'brands':brands})
+                
+            paginator = Paginator(brands, 4)  
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            
+            return render(request, 'Brands/brand.html',{'brands':page_obj})
+        
         else:
             return render(request, 'Admin_panel/admin_side/admin_login.html')
         

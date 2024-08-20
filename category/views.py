@@ -6,6 +6,7 @@ from .models import Category
 from django.utils.decorators import method_decorator
 from utils.decorators import admin_required
 from shared.mixins import PreventBackMixin  # Import the mixin
+from django.core.paginator import Paginator
 
 
 # Create your views here.
@@ -43,7 +44,11 @@ class CategoryList(PreventBackMixin,View):
                 categories = Category.objects.filter(category_name__icontains=query)
             else:
                 categories = Category.objects.all()
-            return render(request, 'Category/category.html', {'categories': categories, 'query': query})
+            
+            paginator = Paginator(categories, 4)  # Show 10 return requests per page
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            return render(request, 'Category/category.html', {'categories': page_obj, 'query': query})
         else:
             return render(request, 'Accounts/admin_side/admin_login.html')
         

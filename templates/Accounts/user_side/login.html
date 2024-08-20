@@ -15,8 +15,9 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
         }
-
+        
         .login-container {
             background-color: white;
             border-radius: 10px;
@@ -25,28 +26,30 @@
             display: flex;
             max-width: 900px;
             width: 100%;
+            height: 500px; /* Ensure the container has a fixed height */
         }
-
+        
         .login-image {
             position: relative;
             width: 60%;
+            height: 100%; /* Make sure the container takes full height */
             overflow: hidden;
         }
-
+        
         .login-image video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: cover; /* Cover the full container without leaving gaps */
         }
-
+        
         .login-form {
             padding: 40px;
             width: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center the form vertically */
         }
-
-        .login-form h1 {
-            font-weight: bold;
-        }
+        
     </style>
 </head>
 
@@ -57,7 +60,6 @@
                 <source src="{% static 'images/vid.mp4' %}" type="video/mp4">
                 
             </video>
-            <audio src="{% static 'images/audio.mp3' %}" autoplay loop></audio>
         </div>
         <div class="login-form">
             <h1 style="font-weight:bold; font-size:50px; font-family: 'Poppins', sans-serif;">FADEX.9</h1>
