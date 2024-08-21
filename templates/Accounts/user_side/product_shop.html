@@ -49,7 +49,7 @@
                                 </div>
                                 <div class="sort-by-dropdown">
                                     <ul>
-                                        <li><a href="?category={{ current_category }}&sort_by=featured" {% if current_sort_by == 'featured' %}class="active"{% endif %}>Featured</a></li>
+                                        <li><a href="?category={{ current_category }}&sort_by=featured" {% if current_sort_by == 'featured' %}class="active"{% endif %}>All</a></li>
                                         <li><a href="?category={{ current_category }}&sort_by=price_asc" {% if current_sort_by == 'price_asc' %}class="active"{% endif %}>Price: Low to High</a></li>
                                         <li><a href="?category={{ current_category }}&sort_by=price_desc" {% if current_sort_by == 'price_desc' %}class="active"{% endif %}>Price: High to Low</a></li>
                                         <li><a href="?category={{ current_category }}&sort_by=release_date" {% if current_sort_by == 'release_date' %}class="active"{% endif %}>Release Date</a></li>
@@ -79,7 +79,7 @@
                                         <div class="product-action-1">
                                         </div>
                                         <div class="product-badges product-badges-position product-badges-mrg">
-                                            <span class="new">New</span>
+                                            <span class="new" style="background-color:red; color:white;">New</span>
                                         </div>
                                     </div>
                                     <div class="product-content-wrap">
@@ -87,20 +87,16 @@
                                             <a href="shop-grid-right.html">{{ product.product_brand.brand_name }}</a>
                                         </div>
                                         <h2><a href="{% url 'accounts:product_details' product.id %}">{{ product.product_name }}</a></h2>
-                                        <div class="rating-result" title="90%">
+                                        <div title="90%">
                                             <span>
-                                                <span>{{ product.percentage_discount }}%</span>
+                                                <span style="color:red; font-weight:bold;">{{ product.percentage_discount }}%</span>
                                             </span>
                                         </div>
                                         <div class="product-price">
                                             <span>₹{{ product.offer_price }} </span>
                                             <span class="old-price">₹{{ product.price }}</span>
                                         </div>
-                                        <div class="product-action-1 show">
-                                            <button aria-label="Add To Wishlist" class="action-btn hover-up add-to-wishlist-btn" data-variant-id="{{ variant.id }}">
-                                                <i class="fi-rs-heart"></i> 
-                                            </button>  
-                                        </div>
+                                      
                                     </div>
                                 </div>
                             </div>

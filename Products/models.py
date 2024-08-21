@@ -4,6 +4,7 @@ from brand.models import Brand
 from django.utils import timezone
 from Accounts.models import Accounts
 from django.db.models import *
+from django.apps import apps 
 
 # Create your models here.
 
@@ -40,6 +41,14 @@ class Products(models.Model):
         
         return star_ratings
     
+    def user_has_purchased(self, user):
+        OrderSub = apps.get_model('orders', 'OrderSub')  
+        return OrderSub.objects.filter(
+            variant__product=self,
+            user=user,
+            is_active=True
+        ).exists()
+    
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
@@ -51,7 +60,7 @@ class ProductVariant(models.Model):
 class ProductImages(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
     images = models.ImageField(
-        upload_to='product_images', default="C:\FADEX.9\FADEX9\static\product_images\no image.webp"
+        upload_to='product_images'
     )
     
     def __str__(self):      

@@ -294,6 +294,7 @@ class ProductView(PreventBackMixin,View):
         reviews = Review.objects.filter(product=products).order_by('-created_at')
         review_count = reviews.count()
         related_products = Products.objects.filter(product_category=products.product_category)
+        has_purchased = products.user_has_purchased
         return render(request, 'Accounts/user_side/product_detail.html', {
             'products': products,
             'images': images,
@@ -301,7 +302,8 @@ class ProductView(PreventBackMixin,View):
             'reviews': reviews,
             'review_count':review_count,
             'related_products':related_products,
-            'review_percentages':review_percentages
+            'review_percentages':review_percentages,
+            'has_purchased':has_purchased
         })
 
 
@@ -340,7 +342,7 @@ class ProductShop(PreventBackMixin,View):
             products = products.order_by('-offer_price')
             
         elif sort_by == 'release_date':
-            products = products.order_by('-release_date')
+            products = products.order_by('-created_at')
             
         elif sort_by == 'avg_rating':
             products = products.order_by('-avg_rating')
@@ -472,7 +474,7 @@ def contact_form(request):
             email = form.cleaned_data['email']
             message = form.cleaned_data['message']
             
-           # Send email
+
             send_mail(
                 subject=f'New Contact Form Submission from {name}',
                 message=(
@@ -495,3 +497,8 @@ def contact_form(request):
     else:
         messages.error(request, 'There was an error sending your message. Please try again later.')
         return redirect('accounts:contact')
+
+
+
+def custom_404_view(request, exception):
+    return render(request, '404.html', status=404)

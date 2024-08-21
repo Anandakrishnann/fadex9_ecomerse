@@ -72,6 +72,7 @@ MIDDLEWARE = [
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'Accounts.Middleware.CheckUserBlockedMiddleware',
     'Accounts.Middleware.SocialAuthExceptionMiddleware',
+    'Accounts.Middleware.Custom404Middleware',
 ]
 
 ROOT_URLCONF = 'FADEX9.urls'

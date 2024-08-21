@@ -154,14 +154,27 @@
                                 
                             </tbody>
                         </table>
-                        {% if orders.order_status != "Canceled" and orders.order_status != "Order Placed" %}
+                        {% if orders.order_status != "Canceled" and orders.order_status != "Order Placed" and orders.order_status != "Returned" %}
                             <form id="cancelForm_{{ orders.id }}" action="{% url 'order:admin_cancel_order' orders.id %}" method="post">
                                 {% csrf_token %}
                                 <div style="margin-left:960px;" class="mb-2">
                                     <button id="cancelButton_{{ orders.id }}" class="btn btn-danger" style="width:100px;" type="submit">Cancel</button>
+                                
                                 </div>
+                                
                             </form>
                         {% endif %}
+                        
+                        <div style="margin-left:960px;" class="mb-2">
+                            {% if orders.order_status == "Canceled" %}
+                                <button class="btn btn-danger" style="width:100px;" type="submit">Canceled</button>
+                            {% elif orders.order_status == "Returned" %}
+                                <button class="btn btn-danger" style="width:100px;" type="submit">Returned</button>
+                            {% elif orders.order_status == "Order Placed"%}
+                                <button class="btn btn-success"  type="submit">Order Placed</button>
+                            {% endif %}
+                        </div>
+                        
                     </div> <!-- table-responsive// -->
                     
                 </div> <!-- col// -->

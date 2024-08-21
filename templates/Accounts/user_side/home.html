@@ -78,7 +78,7 @@
                                 <h4 class="animated">Exclusive Drop Alert</h4>
                                 <h1 class="animated fw-900">Uncover the Latest</h1>
                                 <h1 class="animated fw-900">Hyped Collections</h1>
-                               
+                                
                                 <a class="animated btn btn-black" href="{% url 'accounts:product_shop' %}">Discover Now</a>
                             </div>
                         </div>
@@ -155,13 +155,7 @@
             <div class="tab-header">
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        {% comment %} <button class="nav-link active" id="nav-tab-one" data-bs-toggle="tab" data-bs-target="#tab-one" type="button" role="tab" aria-controls="tab-one" aria-selected="true">Featured</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="nav-tab-two" data-bs-toggle="tab" data-bs-target="#tab-two" type="button" role="tab" aria-controls="tab-two" aria-selected="false">Popular</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="nav-tab-three" data-bs-toggle="tab" data-bs-target="#tab-three" type="button" role="tab" aria-controls="tab-three" aria-selected="false">New added</button> {% endcomment %}
+                    
                     </li>
                 </ul>
                 <a href="{% url 'accounts:product_shop' %}" class="view-more d-none d-md-flex">View More<i class="fi-rs-angle-double-small-right"></i></a>
@@ -184,7 +178,7 @@
                                         </div>
                                         
                                         <div class="product-badges product-badges-position product-badges-mrg">
-                                            <span class="new">New</span>
+                                            <span style="color:white; background-color:red;" class="new">New</span>
                                         </div>
                                     </div>
                                     <div class="product-content-wrap">
@@ -284,8 +278,8 @@
                                 </span>
                             </div>
                             <div class="product-price">
-                                <span>₹{{ product.price  }}</span>
-                                <span class="old-price">₹{{ product.offer_price }}</span>
+                                <span>₹{{ product.offer_price  }}</span>
+                                <span class="old-price">₹{{ product.price }}</span>
                             </div>
                         </div>
                     </div>
@@ -399,7 +393,7 @@
                                             <div class="product-action-1">
                                             </div>
                                             <div class="product-badges product-badges-position product-badges-mrg">
-                                                <span class="hot">Hot</span>
+                                                <span class="hot" style="background-color:red; color:white;">Hot</span>
                                             </div>
                                         </div>
                                         <div class="product-content-wrap">
@@ -413,8 +407,8 @@
                                                 </span>
                                             </div>
                                             <div class="product-price">
-                                                <span>₹{{ product.price }} </span>
-                                                <span class="old-price">₹{{ product.offer_price }}</span>
+                                                <span>₹{{ product.offer_price }} </span>
+                                                <span class="old-price">₹{{ product.price }}</span>
                                             </div>
                                             
                                         </div>
