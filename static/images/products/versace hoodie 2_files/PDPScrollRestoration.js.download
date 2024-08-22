@@ -1,1 +1,0 @@
-(()=>{try{const o="back-plp-scroll-position",s="pdp-scroll-position",e=sessionStorage.getItem(s);e&&(window.sessionStorage.removeItem(s),window.sessionStorage.setItem(o,e))}catch(o){console.error(o)}})();
