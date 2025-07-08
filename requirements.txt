@@ -11,6 +11,7 @@ django-allauth==0.63.3
 django-appconf==1.0.6
 django-libsass==0.9
 django_compressor==4.5
+dj-database-url==2.1.0
 fonttools==4.53.1
 html5lib==1.1
 idna==3.7
