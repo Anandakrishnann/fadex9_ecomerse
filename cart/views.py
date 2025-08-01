@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404,redirect,render
 from django.http import JsonResponse
 from django.views import View
-from .models import Accounts, Products, ProductVariant, Cart, CartItem
+from .models import Accounts, Cart, CartItem
+from products.models import *
 from user_panel.models import *
 import logging
 from django.contrib.auth.mixins import LoginRequiredMixin

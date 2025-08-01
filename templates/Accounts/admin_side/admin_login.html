@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     {% if messages %}
         const messages = [
             {% for message in messages %}
-                "{{ message }}",
+                `{% autoescape on %}{{ message|escapejs }}{% endautoescape %}`{% if not forloop.last %},{% endif %}
             {% endfor %}
         ];
         messages.forEach(message => {
@@ -68,5 +68,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     {% endif %}
 });
 </script>
+
 </body>
 </html>
