@@ -68,7 +68,7 @@ class RegisterView(PreventBackMixin,View):
     
     def get(self, request):
         form = RegistrationForm()
-        return render(request, 'Accounts/user_side/register.html', {'form': form})
+        return render(request, 'Accounts/user_side/Register.html', {'form': form})
 
     def post(self, request):
 
@@ -125,7 +125,7 @@ class RegisterView(PreventBackMixin,View):
 
             return redirect('accounts:verify-otp')
         
-        return render(request, 'Accounts/user_side/register.html', {'form': form})
+        return render(request, 'Accounts/user_side/Register.html', {'form': form})
 
 #---------------------------------------------- verify otp -------------------------------------------------------------#
 
