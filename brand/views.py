@@ -67,7 +67,6 @@ class BrandCreate(PreventBackMixin,View):
     
     
 @method_decorator(admin_required, name='dispatch')
-
 class BrandEdit(PreventBackMixin,View):
     def get(self, request, pk):
         brands = get_object_or_404(Brand, id=pk)

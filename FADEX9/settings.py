@@ -58,6 +58,9 @@ INSTALLED_APPS = [
     'coupon',
     'wallet',
     'social_django',
+    'cloudinary_storage',
+    'cloudinary',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -167,9 +170,6 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Media settings
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # email
 EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
@@ -194,8 +194,18 @@ LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-MEDIA_URL = '/media/' 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+# MEDIA_URL = 'https://res.cloudinary.com/%s/image/upload/' % os.getenv('CLOUDINARY_CLOUD_NAME')
+
+
 
 RAZORPAY_KEY = os.environ.get('RAZORPAY_KEY')
 RAZORPAY_SECRET = os.environ.get('RAZORPAY_SECRET')
