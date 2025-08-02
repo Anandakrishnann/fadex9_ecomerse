@@ -199,9 +199,9 @@ class ResendOtp(PreventBackMixin,View):
     
             subject = 'Your OTP Code'
             from_email = settings.DEFAULT_FROM_EMAIL
-            to_email = [user_data.email]
+            to_email = [user_data['email']]
             text_content = f"""
-            Dear {user_data.first_name},
+            Dear {user_data['first_name']},
 
             Welcome to FADEX.9!
 
@@ -222,7 +222,7 @@ class ResendOtp(PreventBackMixin,View):
             """
 
             html_content = f"""
-            <p>Dear {user_data.first_name},</p>
+            <p>Dear {user_data['first_name']},</p>
 
             <p>Welcome to FADEX.9!</p>
 

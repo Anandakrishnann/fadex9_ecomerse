@@ -54,10 +54,15 @@
 </head>
 
 <body>
+      <video autoplay muted loop
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: -1; opacity: 0.5;">
+        <source src="{% static 'banner/login.mp4' %}" type="video/mp4">
+    </video>
+
     <div class="login-container">
         <div class="login-image">
             <video style="width: 100%; height: 500px; object-fit: cover;" autoplay muted loop>
-                <source src="{% static 'images/vid.mp4' %}" type="video/mp4">
+                <source src="{% static 'banner/login.mp4' %}" type="video/mp4">
                 
             </video>
         </div>
